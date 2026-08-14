@@ -1,9 +1,9 @@
-import React from 'react';
-import { ArrowRight, Users, BookOpen, Smartphone } from 'lucide-react';
-import BrushFrame from './BrushFrame';
-import { HERO } from '../mock';
+import React from "react";
+import { ArrowRight, Users, BookOpen, Smartphone } from "lucide-react";
+import BrushFrame from "./BrushFrame";
+import { HERO } from "../mock";
 
-const iconMap = { users: Users, 'book-open': BookOpen, smartphone: Smartphone };
+const iconMap = { users: Users, "book-open": BookOpen, smartphone: Smartphone };
 
 const Hero = () => {
   return (
@@ -15,13 +15,19 @@ const Hero = () => {
             {HERO.eyebrow.map((word, i) => (
               <React.Fragment key={word}>
                 <span>{word}</span>
-                {i < HERO.eyebrow.length - 1 && <span className="w-1.5 h-1.5 rounded-full bg-burgundy" />}
+                {i < HERO.eyebrow.length - 1 && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-burgundy" />
+                )}
               </React.Fragment>
             ))}
           </div>
 
           <h1 className="fade-up delay-1 mt-5 font-serif-display text-burgundy text-[44px] sm:text-[54px] md:text-[64px] leading-[1.02] font-semibold">
-            Creativity can<br />become a place<br />to breathe.
+            Creativity can
+            <br />
+            become a place
+            <br />
+            to breathe.
           </h1>
 
           <p className="fade-up delay-2 mt-6 text-[16px] md:text-[17px] leading-[1.7] text-ink/80 max-w-[520px]">
@@ -29,11 +35,17 @@ const Hero = () => {
           </p>
 
           <div className="fade-up delay-3 mt-8 flex flex-wrap gap-3">
-            <a href={HERO.primaryCta.href} className="cta-btn inline-flex items-center gap-3 rounded-full bg-burgundy text-ivory px-6 py-4 text-[15px] font-semibold hover:bg-burgundy-light shadow-[0_14px_30px_-14px_rgba(92,21,25,0.7)]">
+            <a
+              href={HERO.primaryCta.href}
+              className="cta-btn inline-flex items-center gap-3 rounded-full bg-burgundy text-ivory px-6 py-4 text-[15px] font-semibold hover:bg-burgundy-light shadow-[0_14px_30px_-14px_rgba(92,21,25,0.7)]"
+            >
               {HERO.primaryCta.label}
               <ArrowRight className="w-4 h-4" />
             </a>
-            <a href={HERO.secondaryCta.href} className="cta-btn inline-flex items-center gap-3 rounded-full border-2 border-burgundy text-burgundy px-6 py-4 text-[15px] font-semibold hover:bg-burgundy hover:text-ivory">
+            <a
+              href={HERO.secondaryCta.href}
+              className="cta-btn inline-flex items-center gap-3 rounded-full border-2 border-burgundy text-burgundy px-6 py-4 text-[15px] font-semibold hover:bg-burgundy hover:text-ivory"
+            >
               {HERO.secondaryCta.label}
               <ArrowRight className="w-4 h-4" />
             </a>
@@ -43,7 +55,10 @@ const Hero = () => {
             {HERO.bullets.map((b) => {
               const Icon = iconMap[b.icon] || Users;
               return (
-                <div key={b.label} className="flex items-center gap-2 text-[13px] md:text-[14px] text-ink/85">
+                <div
+                  key={b.label}
+                  className="flex items-center gap-2 text-[13px] md:text-[14px] text-ink/85"
+                >
                   <Icon className="w-5 h-5 text-burgundy" strokeWidth={1.6} />
                   <span className="font-medium">{b.label}</span>
                 </div>

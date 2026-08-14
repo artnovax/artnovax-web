@@ -6,12 +6,14 @@ export const NAV_LINKS = [
   { label: 'Events', href: '/events' },
   { label: 'Research & Insights', href: '/research' },
   { label: 'ArtNovaX App', href: '/app' },
-  { label: 'Get Involved', href: '/get-involved', hasDropdown: true, children: [
-    { label: 'Partner With Us', href: '/get-involved/partner' },
-    { label: 'Volunteer', href: '/get-involved/volunteer' },
-    { label: 'Support Our Work', href: '/get-involved/support' },
-    { label: 'Shop for the Cause', href: '/get-involved/shop' },
-  ] },
+  {
+    label: 'Get Involved', href: '/get-involved', hasDropdown: true, children: [
+      { label: 'Partner With Us', href: '/get-involved/partner' },
+      { label: 'Volunteer', href: '/get-involved/volunteer' },
+      { label: 'Support Our Work', href: '/get-involved/support' },
+      { label: 'Shop for the Cause', href: '/get-involved/shop' },
+    ]
+  },
 ];
 
 export const HERO = {
@@ -70,24 +72,30 @@ export const WHAT_WE_DO = {
 export const FOOTER = {
   tagline: 'Where art heals,\ntech empowers,\n& minds transform.',
   columns: [
-    { title: 'Explore', links: [
-      { label: 'About Us', href: '/about' },
-      { label: 'Our Work', href: '/our-work' },
-      { label: 'Events', href: '/events' },
-      { label: 'Research & Insights', href: '/research' },
-    ]},
-    { title: 'ArtNovaX', links: [
-      { label: 'ArtNovaX App', href: '/app' },
-      { label: 'Our Story', href: '/about#story' },
-      { label: 'Founders', href: '/about#founders' },
-      { label: 'Careers', href: '/careers' },
-    ]},
-    { title: 'Get Involved', links: [
-      { label: 'Partner With Us', href: '/get-involved/partner' },
-      { label: 'Volunteer', href: '/get-involved/volunteer' },
-      { label: 'Support Our Work', href: '/get-involved/support' },
-      { label: 'Shop for the Cause', href: '/get-involved/shop' },
-    ]},
+    {
+      title: 'Explore', links: [
+        { label: 'About Us', href: '/about' },
+        { label: 'Our Work', href: '/our-work' },
+        { label: 'Events', href: '/events' },
+        { label: 'Research & Insights', href: '/research' },
+      ]
+    },
+    {
+      title: 'ArtNovaX', links: [
+        { label: 'ArtNovaX App', href: '/app' },
+        { label: 'Our Story', href: '/about#story' },
+        { label: 'Founders', href: '/about#founders' },
+        { label: 'Careers', href: '/careers' },
+      ]
+    },
+    {
+      title: 'Get Involved', links: [
+        { label: 'Partner With Us', href: '/get-involved/partner' },
+        { label: 'Volunteer', href: '/get-involved/volunteer' },
+        { label: 'Support Our Work', href: '/get-involved/support' },
+        { label: 'Shop for the Cause', href: '/get-involved/shop' },
+      ]
+    },
     {
       title: 'Connect', links: [
         {

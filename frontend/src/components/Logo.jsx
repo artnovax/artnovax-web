@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 
-const publicUrl = process.env.PUBLIC_URL || '';
+const publicUrl = process.env.PUBLIC_URL || "";
 const LOGO_COLOR = `${publicUrl}/images/artnovax-wordmark.png`;
 const LOGO_WHITE = `${publicUrl}/images/artnovax-wordmark-white.png`;
 
-const Logo = ({ className = '', variant = 'default' }) => {
-  const isLight = variant === 'light';
+const Logo = ({ className = "", variant = "default" }) => {
+  const isLight = variant === "light";
   const src = isLight ? LOGO_WHITE : LOGO_COLOR;
 
   return (
@@ -20,5 +20,7 @@ const Logo = ({ className = '', variant = 'default' }) => {
   );
 };
 
-export const LogoWithTagline = ({ variant = 'default' }) => <Logo variant={variant} />;
+export const LogoWithTagline = ({ variant = "default" }) => (
+  <Logo variant={variant} />
+);
 export default Logo;

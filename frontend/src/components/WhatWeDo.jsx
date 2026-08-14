@@ -1,6 +1,6 @@
-import React from 'react';
-import { ArrowRight, Brush, Brain, Smartphone } from 'lucide-react';
-import { WHAT_WE_DO } from '../mock';
+import React from "react";
+import { ArrowRight, Brush, Brain, Smartphone } from "lucide-react";
+import { WHAT_WE_DO } from "../mock";
 
 const iconMap = { brush: Brush, brain: Brain, app: Smartphone };
 
@@ -21,7 +21,10 @@ const WhatWeDo = () => {
           {WHAT_WE_DO.items.map((item) => {
             const Icon = iconMap[item.icon];
             return (
-              <div key={item.title} className="wwd-card group text-left rounded-2xl bg-ivory-100/60 hover:bg-ivory-100 ring-1 ring-transparent hover:ring-ivory-300 p-6 md:p-8">
+              <div
+                key={item.title}
+                className="wwd-card group text-left rounded-2xl bg-ivory-100/60 hover:bg-ivory-100 ring-1 ring-transparent hover:ring-ivory-300 p-6 md:p-8"
+              >
                 <div className="flex items-center justify-center w-[92px] h-[92px] rounded-full bg-ivory-200 mb-6">
                   <Icon className="w-9 h-9 text-burgundy" strokeWidth={1.4} />
                 </div>
@@ -31,7 +34,10 @@ const WhatWeDo = () => {
                 <p className="mt-3 text-ink/80 text-[15px] leading-[1.7] max-w-[320px]">
                   {item.body}
                 </p>
-                <a href={item.link.href} className="mt-6 inline-flex items-center gap-2 text-burgundy font-semibold text-[14px] group-hover:gap-3 transition-all">
+                <a
+                  href={item.link.href}
+                  className="mt-6 inline-flex items-center gap-2 text-burgundy font-semibold text-[14px] group-hover:gap-3 transition-all"
+                >
                   {item.link.label}
                   <ArrowRight className="w-4 h-4" />
                 </a>

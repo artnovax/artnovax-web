@@ -1,9 +1,9 @@
-import React from 'react';
-import Header from '../components/Header';
-import Hero from '../components/Hero';
-import MissionBand from '../components/MissionBand';
-import WhatWeDo from '../components/WhatWeDo';
-import Footer from '../components/Footer';
+import React from "react";
+import Header from "../components/Header";
+import Hero from "../components/Hero";
+import MissionBand from "../components/MissionBand";
+import WhatWeDo from "../components/WhatWeDo";
+import Footer from "../components/Footer";
 
 const Home = () => {
   return (

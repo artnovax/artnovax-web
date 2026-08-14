@@ -2,11 +2,7 @@
   {
     "slug": "art-and-emotional-wellbeing",
     "topic": "Art & Emotional Wellbeing",
-    "tags": [
-      "Emotions",
-      "Practice",
-      "Everyday"
-    ],
+    "tags": ["Emotions", "Practice", "Everyday"],
     "title": "How creative expression helps us process what words can’t.",
     "excerpt": "A gentle look at why making things—however imperfectly—can quietly change how we feel.",
     "read": "8 min read",
@@ -92,11 +88,7 @@
   {
     "slug": "creativity-and-the-brain",
     "topic": "Creativity & The Brain",
-    "tags": [
-      "Neuroscience",
-      "Focus",
-      "Flow"
-    ],
+    "tags": ["Neuroscience", "Focus", "Flow"],
     "title": "Flow, focus and the quiet science of making things.",
     "excerpt": "What neuroscience is starting to say about the calm that comes from creating.",
     "read": "7 min read",
@@ -166,11 +158,7 @@
   {
     "slug": "art-therapy-explained",
     "topic": "Art Therapy Explained",
-    "tags": [
-      "Clinical",
-      "Therapy",
-      "Guide"
-    ],
+    "tags": ["Clinical", "Therapy", "Guide"],
     "title": "Art therapy: what it is, what it isn’t, and who it can help.",
     "excerpt": "A clear, non-clinical guide to a discipline that is often misunderstood.",
     "read": "9 min read",
@@ -244,11 +232,7 @@
   {
     "slug": "youth-and-mental-health",
     "topic": "Youth & Mental Health",
-    "tags": [
-      "Youth",
-      "Campus",
-      "Digital"
-    ],
+    "tags": ["Youth", "Campus", "Digital"],
     "title": "What young people are telling us about their mental health.",
     "excerpt": "Notes from our campus sessions across Kenya—and what we’ve learned by listening.",
     "read": "8 min read",
@@ -318,11 +302,7 @@
   {
     "slug": "culture-identity-and-wellbeing",
     "topic": "Culture, Identity & Wellbeing",
-    "tags": [
-      "Culture",
-      "Community",
-      "Ubuntu"
-    ],
+    "tags": ["Culture", "Community", "Ubuntu"],
     "title": "Culture and identity are not accessories to healing—they are the fabric.",
     "excerpt": "Why cultural context shapes wellbeing—and how we co-design creative practice from the ground up.",
     "read": "7 min read",

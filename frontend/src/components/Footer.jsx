@@ -4,7 +4,6 @@ import { LogoWithTagline } from "./Logo";
 import { FOOTER } from "../mock";
 import { subscribeNewsletter } from "../services/submissions";
 
-
 const iconMap = {
   instagram: Instagram,
   linkedin: Linkedin,
@@ -91,7 +90,11 @@ const Footer = () => {
                     <a
                       href={l.href}
                       target={l.href.startsWith("http") ? "_blank" : undefined}
-                      rel={l.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                      rel={
+                        l.href.startsWith("http")
+                          ? "noopener noreferrer"
+                          : undefined
+                      }
                       className="text-ivory/80 hover:text-ivory text-[14px]"
                     >
                       {l.label}

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, Menu, X, ChevronDown, ShoppingBag } from 'lucide-react';
-import { LogoWithTagline } from './Logo';
-import { NAV_LINKS } from '../mock';
-import { useCart } from '../context/CartContext';
+import React, { useState, useEffect } from "react";
+import { Heart, Menu, X, ChevronDown, ShoppingBag } from "lucide-react";
+import { LogoWithTagline } from "./Logo";
+import { NAV_LINKS } from "../mock";
+import { useCart } from "../context/CartContext";
 
-const Header = ({ activePath = '/' }) => {
+const Header = ({ activePath = "/" }) => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [dropdown, setDropdown] = useState(null);
@@ -12,20 +12,28 @@ const Header = ({ activePath = '/' }) => {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-    return () => { document.body.style.overflow = ''; };
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
   return (
-    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'bg-ivory/95 backdrop-blur-md shadow-[0_2px_20px_-12px_rgba(92,21,25,0.25)]' : 'bg-ivory'}`}>
+    <header
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? "bg-ivory/95 backdrop-blur-md shadow-[0_2px_20px_-12px_rgba(92,21,25,0.25)]" : "bg-ivory"}`}
+    >
       <div className="mx-auto max-w-[1280px] px-4 md:px-8 h-[84px] md:h-[100px] flex items-center justify-between gap-6">
-        <a href="/" aria-label="ArtNovaX home" className="flex items-center shrink-0 mr-4 lg:mr-10">
+        <a
+          href="/"
+          aria-label="ArtNovaX home"
+          className="flex items-center shrink-0 mr-4 lg:mr-10"
+        >
           <LogoWithTagline />
         </a>
 
@@ -49,7 +57,11 @@ const Header = ({ activePath = '/' }) => {
               {link.hasDropdown && dropdown === link.label && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 rounded-xl bg-white shadow-[0_20px_40px_-18px_rgba(92,21,25,0.35)] ring-1 ring-ivory-300 py-2">
                   {link.children.map((c) => (
-                    <a key={c.label} href={c.href} className="block px-4 py-2 text-sm text-ink hover:bg-ivory-200 hover:text-burgundy transition-colors">
+                    <a
+                      key={c.label}
+                      href={c.href}
+                      className="block px-4 py-2 text-sm text-ink hover:bg-ivory-200 hover:text-burgundy transition-colors"
+                    >
                       {c.label}
                     </a>
                   ))}
@@ -67,7 +79,9 @@ const Header = ({ activePath = '/' }) => {
           >
             <ShoppingBag className="w-5 h-5" />
             {count > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-burgundy text-ivory text-[10.5px] font-semibold flex items-center justify-center px-1">{count}</span>
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-burgundy text-ivory text-[10.5px] font-semibold flex items-center justify-center px-1">
+                {count}
+              </span>
             )}
           </button>
           <a
@@ -79,7 +93,7 @@ const Header = ({ activePath = '/' }) => {
           </a>
 
           <button
-            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-label={open ? "Close menu" : "Open menu"}
             className="lg:hidden inline-flex items-center justify-center w-11 h-11 rounded-full text-burgundy hover:bg-ivory-200 transition-colors"
             onClick={() => setOpen((o) => !o)}
           >
@@ -90,12 +104,16 @@ const Header = ({ activePath = '/' }) => {
 
       {/* Mobile drawer */}
       <div
-        className={`lg:hidden fixed inset-0 top-[76px] z-40 bg-ivory transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`lg:hidden fixed inset-0 top-[76px] z-40 bg-ivory transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="px-6 py-8 overflow-y-auto h-full">
           <nav className="flex flex-col divide-y divide-ivory-300">
             {NAV_LINKS.map((link) => (
-              <MobileNavItem key={link.label} link={link} onNavigate={() => setOpen(false)} />
+              <MobileNavItem
+                key={link.label}
+                link={link}
+                onNavigate={() => setOpen(false)}
+              />
             ))}
           </nav>
           <a
@@ -116,7 +134,11 @@ const MobileNavItem = ({ link, onNavigate }) => {
   const [expanded, setExpanded] = useState(false);
   if (!link.hasDropdown) {
     return (
-      <a href={link.href} onClick={onNavigate} className="py-4 text-lg font-medium text-ink hover:text-burgundy">
+      <a
+        href={link.href}
+        onClick={onNavigate}
+        className="py-4 text-lg font-medium text-ink hover:text-burgundy"
+      >
         {link.label}
       </a>
     );
@@ -128,12 +150,19 @@ const MobileNavItem = ({ link, onNavigate }) => {
         className="w-full flex items-center justify-between py-2 text-lg font-medium text-ink"
       >
         {link.label}
-        <ChevronDown className={`w-5 h-5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`w-5 h-5 transition-transform ${expanded ? "rotate-180" : ""}`}
+        />
       </button>
       {expanded && (
         <div className="pl-3 pb-3 flex flex-col gap-2">
           {link.children.map((c) => (
-            <a key={c.label} href={c.href} onClick={onNavigate} className="py-2 text-[15px] text-muted-foreground hover:text-burgundy">
+            <a
+              key={c.label}
+              href={c.href}
+              onClick={onNavigate}
+              className="py-2 text-[15px] text-muted-foreground hover:text-burgundy"
+            >
               {c.label}
             </a>
           ))}
