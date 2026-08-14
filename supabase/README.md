@@ -1,0 +1,44 @@
+# Website Supabase setup
+
+Run the SQL scripts in **Supabase Dashboard → SQL Editor** in this order. Each feature is intentionally one self-contained SQL script containing its table changes and RLS policies.
+
+1. `sql/00_admin_auth.sql`
+2. `sql/01_events.sql`
+3. `sql/02_volunteer.sql`
+4. `sql/03_articles.sql`
+5. `sql/04_founders.sql`
+6. `sql/05_newsletter.sql`
+7. `sql/06_app_waitlist.sql`
+8. `sql/07_contact.sql`
+9. `sql/08_partners.sql`
+10. `sql/09_products.sql`
+
+## First admin
+
+Create the user in **Authentication → Users**. Then run this once, replacing the email:
+
+```sql
+insert into public.user_roles (user_id, role)
+select id, 'admin'
+from auth.users
+where email = 'YOUR_ADMIN_EMAIL'
+on conflict (user_id) do update set role = excluded.role;
+```
+
+Admin/editor accounts authenticate at `/admin` with their Supabase Auth email/password. The old shared `ADMIN_TOKEN` is no longer used by the React CMS.
+
+## Migrate existing local Mongo content
+
+Keep the local Mongo container running and put `SUPABASE_URL` plus `SUPABASE_SERVICE_ROLE_KEY` in `backend/.env`. Then, from `backend/` with the venv active:
+
+```powershell
+python scripts/migrate_website_to_supabase.py
+```
+
+The script migrates/upserts events, registrations, volunteer roles/applications, articles, founders, newsletter subscribers, legacy app-waitlist signups, contact messages, partner inquiries and products.
+
+## Runtime boundary after this migration
+
+Supabase now handles: events/registrations, volunteer roles/applications, articles, founders, newsletter, app waitlist, contact, partner inquiries, product catalog and `/admin`.
+
+FastAPI is temporarily still required for checkout/payment flows (Stripe/M-Pesa), donations and transactional/reminder email behavior. Those should move to server-side Supabase Edge Functions before removing the Python backend completely.

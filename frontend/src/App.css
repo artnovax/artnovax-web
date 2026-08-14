@@ -1,0 +1,144 @@
+/* ArtNovaX global styles */
+
+/* Brush painted image frame using SVG data-URI (organic edges) */
+.brush-frame {
+  position: relative;
+  isolation: isolate;
+}
+
+.brush-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600' preserveAspectRatio='none'><path d='M60 90 C 100 30, 220 20, 340 25 C 470 30, 600 20, 720 55 C 780 75, 790 160, 770 260 C 755 340, 780 430, 740 500 C 700 560, 560 570, 420 555 C 300 545, 170 570, 90 520 C 30 480, 20 380, 35 290 C 45 220, 25 140, 60 90 Z' fill='black'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600' preserveAspectRatio='none'><path d='M60 90 C 100 30, 220 20, 340 25 C 470 30, 600 20, 720 55 C 780 75, 790 160, 770 260 C 755 340, 780 430, 740 500 C 700 560, 560 570, 420 555 C 300 545, 170 570, 90 520 C 30 480, 20 380, 35 290 C 45 220, 25 140, 60 90 Z' fill='black'/></svg>");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Burgundy paint stroke ring overlay */
+.brush-frame::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 820 620' fill='none'><path d='M70 100 C 110 40, 235 25, 355 32 C 480 40, 610 28, 730 62 C 795 82, 800 170, 780 270 C 770 355, 795 445, 750 510 C 710 570, 570 580, 425 565 C 305 555, 175 578, 95 525 C 32 483, 22 382, 40 295 C 50 225, 30 145, 70 100 Z' stroke='%235C1519' stroke-width='7' stroke-linecap='round' stroke-linejoin='round' stroke-dasharray='340 40 220 30 180 20'/></svg>") no-repeat center / 100% 100%;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.85;
+  mix-blend-mode: multiply;
+}
+
+/* Painted burgundy band edges */
+.paint-band {
+  position: relative;
+  background: #5C1519;
+  color: #FBF3E8;
+}
+.paint-band::before,
+.paint-band::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 22px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  pointer-events: none;
+}
+.paint-band::before {
+  top: -14px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 22' preserveAspectRatio='none'><path d='M0 22 C 90 4, 180 20, 270 10 C 360 0, 450 20, 540 12 C 630 4, 720 22, 810 14 C 900 6, 990 20, 1080 12 C 1140 6, 1200 20, 1200 22 Z' fill='%235C1519'/></svg>");
+}
+.paint-band::after {
+  bottom: -14px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 22' preserveAspectRatio='none'><path d='M0 0 C 90 18, 180 2, 270 12 C 360 22, 450 2, 540 10 C 630 18, 720 0, 810 8 C 900 16, 990 2, 1080 10 C 1140 16, 1200 2, 1200 0 Z' fill='%235C1519'/></svg>");
+}
+
+/* Line-art brain SVG background - reused */
+.brain-line-left,
+.brain-line-right {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 130px;
+  height: 130px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.brain-line-left { left: 24px; }
+.brain-line-right { right: 24px; }
+
+@media (max-width: 768px) {
+  .brain-line-left, .brain-line-right { width: 80px; height: 80px; opacity: 0.25; }
+  .brain-line-left { left: 8px; }
+  .brain-line-right { right: 8px; }
+}
+
+/* Subtle noise texture */
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.08 0 0 0 0 0.10 0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Nav underline */
+.nav-link {
+  position: relative;
+  padding: 6px 2px;
+  transition: color 200ms ease;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  background: #5C1519;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 220ms ease;
+}
+.nav-link:hover::after,
+.nav-link[data-active='true']::after {
+  transform: scaleX(1);
+}
+
+/* Card hover */
+.wwd-card {
+  transition: transform 260ms ease, box-shadow 260ms ease;
+}
+.wwd-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -22px rgba(92, 21, 25, 0.28);
+}
+
+/* Button micro-motion */
+.cta-btn { transition: transform 200ms ease, background-color 200ms ease, color 200ms ease, box-shadow 200ms ease; }
+.cta-btn:hover { transform: translateY(-2px); }
+.cta-btn:active { transform: translateY(0); }
+
+/* Serif italic emphasis */
+.serif-i { font-style: italic; font-family: 'Fraunces', Georgia, serif; }
+
+/* Fade-up entrance */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 700ms ease both; }
+.delay-1 { animation-delay: 90ms; }
+.delay-2 { animation-delay: 180ms; }
+.delay-3 { animation-delay: 270ms; }
+
+/* Mobile menu slide */
+.mobile-menu-enter { transform: translateX(100%); }
+.mobile-menu-enter-active { transform: translateX(0); transition: transform 300ms ease; }
