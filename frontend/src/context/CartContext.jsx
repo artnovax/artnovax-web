@@ -12,32 +12,50 @@ export const CartProvider = ({ children }) => {
       return [];
     }
   });
+
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch {
-      /* ignore */
+      /* ignore localStorage write failures */
     }
   }, [items]);
 
-  const parsePrice = (p) => {
-    const n = Number(String(p).replace(/[^0-9.]/g, ""));
-    return isNaN(n) ? 0 : n;
+  const parsePrice = (price) => {
+    const value = Number(String(price).replace(/[^0-9.]/g, ""));
+    return Number.isNaN(value) ? 0 : value;
   };
 
   const add = (product) => {
-    setItems((prev) => {
-      const found = prev.find((i) => i.id === product.name);
-      if (found)
-        return prev.map((i) =>
-          i.id === product.name ? { ...i, qty: i.qty + 1 } : i,
+    const productKey = product.id || product.name;
+
+    setItems((previous) => {
+      const found = previous.find(
+        (item) =>
+          (product.id && item.productId === product.id) ||
+          item.name === product.name,
+      );
+
+      if (found) {
+        return previous.map((item) =>
+          item.id === found.id
+            ? {
+                ...item,
+                id: productKey,
+                productId: product.id || item.productId || null,
+                qty: item.qty + 1,
+              }
+            : item,
         );
+      }
+
       return [
-        ...prev,
+        ...previous,
         {
-          id: product.name,
+          id: productKey,
+          productId: product.id || null,
           name: product.name,
           price: product.price,
           priceNum: parsePrice(product.price),
@@ -46,17 +64,33 @@ export const CartProvider = ({ children }) => {
         },
       ];
     });
+
     setOpen(true);
   };
-  const remove = (id) => setItems((prev) => prev.filter((i) => i.id !== id));
+
+  const remove = (id) =>
+    setItems((previous) => previous.filter((item) => item.id !== id));
+
   const setQty = (id, qty) =>
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, qty: Math.max(1, qty) } : i)),
+    setItems((previous) =>
+      previous.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              qty: Math.max(1, qty),
+            }
+          : item,
+      ),
     );
+
   const clear = () => setItems([]);
 
-  const count = items.reduce((s, i) => s + i.qty, 0);
-  const subtotal = items.reduce((s, i) => s + i.priceNum * i.qty, 0);
+  const count = items.reduce((sum, item) => sum + item.qty, 0);
+
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.priceNum * item.qty,
+    0,
+  );
 
   return (
     <CartContext.Provider
@@ -78,7 +112,11 @@ export const CartProvider = ({ children }) => {
 };
 
 export const useCart = () => {
-  const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
-  return ctx;
+  const context = useContext(CartContext);
+
+  if (!context) {
+    throw new Error("useCart must be used within CartProvider");
+  }
+
+  return context;
 };

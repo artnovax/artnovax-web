@@ -1,0 +1,20 @@
+[functions.create-donation-checkout]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.create-order-checkout]
+verify_jwt = false
+
+[functions.verify-order-checkout]
+verify_jwt = false
+
+[functions.mpesa-stk]
+verify_jwt = false
+
+[functions.mpesa-callback]
+verify_jwt = false
+
+[functions.mpesa-status]
+verify_jwt = false
