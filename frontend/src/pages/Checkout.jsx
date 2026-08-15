@@ -120,7 +120,6 @@ const Checkout = () => {
 
     verify();
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [returnedOrderId, stripeSession]);
 
   // Once an STK Push has been started, poll Supabase for the result
