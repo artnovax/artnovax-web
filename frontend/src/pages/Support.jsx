@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useSearchParams } from "react-router-dom";
 import { ArrowRight, Heart, CheckCircle2, Loader2 } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { supabase } from "../lib/supabase";
 
 const PRESETS = [500, 1000, 2500, 5000, 10000];
 
@@ -17,44 +15,54 @@ const Support = () => {
   const [err, setErr] = useState(null);
 
   const [params, setParams] = useSearchParams();
-  const dId = params.get("donation_id");
-  const sess = params.get("session_id");
-  const [thanks, setThanks] = useState(null);
+  const donationId = params.get("donation_id");
+  const stripeSession = params.get("session_id");
+  const [thanks, setThanks] = useState(false);
 
   useEffect(() => {
-    if (dId && sess) {
-      (async () => {
-        try {
-          const r = await axios.get(`${API}/donations/verify`, {
-            params: { donation_id: dId, session_id: sess },
-          });
-          setThanks({ paid: r.data.paid });
-        } catch {
-        } finally {
-          setParams({}, { replace: true });
-        }
-      })();
+    if (donationId && stripeSession) {
+      setThanks(true);
+      setParams({}, { replace: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [dId, sess]);
+  }, [donationId, stripeSession, setParams]);
 
   const donate = async () => {
     const value = Number(custom || amt);
+
     if (!value || value < 100) {
       setErr("Minimum donation is KES 100.");
       return;
     }
+
     setLoading(true);
     setErr(null);
+
     try {
-      const r = await axios.post(`${API}/donations/checkout`, {
-        amount_kes: value,
-        name: form.name,
-        email: form.email,
-        message: form.message,
-      });
-      window.location.href = r.data.url;
-    } catch (e) {
-      setErr(e?.response?.data?.detail || "Something went wrong.");
+      const { data, error } = await supabase.functions.invoke(
+        "create-donation-checkout",
+        {
+          body: {
+            amount_kes: value,
+            name: form.name,
+            email: form.email,
+            message: form.message,
+            success_url: `${window.location.origin}/support`,
+            cancel_url: `${window.location.origin}/support`,
+          },
+        },
+      );
+
+      if (error) throw error;
+      if (!data?.url) throw new Error("Stripe checkout URL was not returned.");
+
+      window.location.href = data.url;
+    } catch (error) {
+      console.error("Donation checkout failed:", error);
+      setErr(
+        error?.message ||
+          "We could not start the donation checkout. Please try again.",
+      );
       setLoading(false);
     }
   };
@@ -68,14 +76,12 @@ const Support = () => {
             <CheckCircle2 className="w-8 h-8 text-burgundy" />
           </div>
           <h1 className="mt-4 font-serif-display text-burgundy text-[36px] font-semibold">
-            {thanks.paid
-              ? "Thank you — we’re moved."
-              : "Payment not completed."}
+            Thank you — we&apos;re moved.
           </h1>
           <p className="mt-3 text-ink/80">
-            {thanks.paid
-              ? "Your gift will help us reach more young people through art."
-              : "You can try again below whenever you’re ready."}
+            Your checkout was completed. Stripe is securely confirming the
+            payment with ArtNovaX, and your gift will help us reach more young
+            people through art.
           </p>
           <a
             href="/"
@@ -129,6 +135,7 @@ const Support = () => {
           <h2 className="font-serif-display text-burgundy text-[24px] font-semibold">
             Give today
           </h2>
+
           <div className="mt-4 grid grid-cols-3 gap-2">
             {PRESETS.map((v) => (
               <button
@@ -138,12 +145,17 @@ const Support = () => {
                   setAmt(v);
                   setCustom("");
                 }}
-                className={`rounded-full ring-1 px-3 py-2 text-[13.5px] font-semibold transition-colors ${!custom && amt === v ? "bg-burgundy text-ivory ring-burgundy" : "ring-ivory-300 bg-ivory text-ink hover:ring-burgundy/40"}`}
+                className={`rounded-full ring-1 px-3 py-2 text-[13.5px] font-semibold transition-colors ${
+                  !custom && amt === v
+                    ? "bg-burgundy text-ivory ring-burgundy"
+                    : "ring-ivory-300 bg-ivory text-ink hover:ring-burgundy/40"
+                }`}
               >
                 KES {v.toLocaleString()}
               </button>
             ))}
           </div>
+
           <div className="mt-3">
             <label className="block text-[11.5px] tracking-widest text-ink/60 font-semibold">
               Or custom amount (KES)
@@ -157,6 +169,7 @@ const Support = () => {
               className="mt-1 w-full rounded-lg ring-1 ring-ivory-300 bg-ivory px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
           </div>
+
           <div className="mt-4 space-y-3">
             <input
               placeholder="Your name (optional)"
@@ -179,7 +192,9 @@ const Support = () => {
               className="w-full rounded-lg ring-1 ring-ivory-300 bg-ivory px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
           </div>
+
           {err && <div className="mt-3 text-red-700 text-[13.5px]">{err}</div>}
+
           <button
             onClick={donate}
             disabled={loading}
@@ -197,9 +212,9 @@ const Support = () => {
               </>
             )}
           </button>
+
           <div className="mt-3 text-ink/60 text-[11.5px] text-center">
-            Secured by Stripe — test mode. We also welcome bank transfers and
-            pledges:{" "}
+            Secured by Stripe. We also welcome bank transfers and pledges:{" "}
             <a href="/contact" className="text-burgundy font-semibold">
               contact us
             </a>
@@ -207,6 +222,7 @@ const Support = () => {
           </div>
         </div>
       </section>
+
       <Footer />
     </div>
   );
