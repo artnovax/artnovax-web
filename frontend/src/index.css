@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 :root {
+  /*
+   * ArtNovaX currently has one intentional visual theme.
+   * Prevent browsers from automatically converting the site
+   * into an improvised dark theme.
+   */
+  color-scheme: only light;
+
   --ivory: #FBF3E8;
   --ivory-2: #F6EADA;
   --ivory-3: #F1DFC7;
@@ -14,18 +21,44 @@
   --line: #E5D3BC;
 }
 
+/*
+ * Keep the document constrained to the real viewport width.
+ * This is especially important on tablet browsers.
+ */
 html,
-body {
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+}
+
+html {
   background: var(--ivory);
-  color: var(--ink);
+
+  /*
+   * Prevent mobile/tablet browsers from unexpectedly enlarging
+   * text after orientation/layout changes.
+   */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
+  background: var(--ivory);
+  color: var(--ink);
+  overflow-x: hidden;
+
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'ss01', 'cv02';
+}
+
+#root {
+  background: var(--ivory);
+  overflow-x: clip;
 }
 
 .font-serif-display {
@@ -41,23 +74,32 @@ body {
   :root {
     --background: 36 60% 95%;
     --foreground: 355 27% 14%;
+
     --card: 36 60% 97%;
     --card-foreground: 355 27% 14%;
+
     --popover: 36 60% 97%;
     --popover-foreground: 355 27% 14%;
+
     --primary: 356 63% 22%;
     --primary-foreground: 36 60% 95%;
+
     --secondary: 36 40% 88%;
     --secondary-foreground: 356 63% 22%;
+
     --muted: 36 30% 90%;
     --muted-foreground: 20 10% 35%;
+
     --accent: 356 40% 90%;
     --accent-foreground: 356 63% 22%;
+
     --destructive: 0 84% 55%;
     --destructive-foreground: 36 60% 97%;
+
     --border: 32 30% 82%;
     --input: 32 30% 82%;
     --ring: 356 63% 22%;
+
     --radius: 0.75rem;
   }
 }
@@ -86,6 +128,7 @@ body {
 }
 
 /* Scrollbar */
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
