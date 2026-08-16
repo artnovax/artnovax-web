@@ -18,3 +18,10 @@ verify_jwt = false
 
 [functions.mpesa-status]
 verify_jwt = false
+
+[functions.public-submission]
+verify_jwt = false
+
+[functions.send-event-reminders]
+verify_jwt = false
+

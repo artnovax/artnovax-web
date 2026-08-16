@@ -59,15 +59,36 @@ export async function getEventBySlug(slug) {
   return toFrontendEvent(data);
 }
 
-export async function registerForEvent({ eventId, name, email, phone, answers }) {
-  const { data, error } = await supabase.rpc('register_for_event', {
-    p_event_id: eventId,
-    p_name: name,
-    p_email: email,
-    p_phone: phone || null,
-    p_answers: answers || {},
-  });
+export async function registerForEvent({
+  eventId,
+  name,
+  email,
+  phone,
+  answers,
+}) {
+  const { data, error } =
+    await supabase.functions.invoke(
+      'public-submission',
+      {
+        body: {
+          type: 'event_registration',
+          payload: {
+            event_id: eventId,
+            name,
+            email,
+            phone,
+            answers,
+          },
+        },
+      },
+    );
+
   if (error) throw error;
+
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
   return data;
 }
 

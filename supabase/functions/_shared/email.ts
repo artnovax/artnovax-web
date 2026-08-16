@@ -755,3 +755,35 @@ export async function sendDonationPaidEmails(
 
   return result;
 }
+
+export function escapeEmailHtml(
+  value: unknown,
+): string {
+  return escapeHtml(value);
+}
+
+export function renderTransactionalEmail(
+  title: string,
+  content: string,
+): string {
+  return shell(title, content);
+}
+
+export async function sendTransactionalEmail({
+  to,
+  subject,
+  html,
+  idempotencyKey,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+  idempotencyKey: string;
+}): Promise<string | null> {
+  return await sendEmail({
+    to,
+    subject,
+    html,
+    idempotencyKey,
+  });
+}
