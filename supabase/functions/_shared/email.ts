@@ -263,35 +263,59 @@ async function sendEmail({
   html: string;
   idempotencyKey: string;
 }): Promise<string | null> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  const from = Deno.env.get("FROM_EMAIL");
+  const apiKey =
+    Deno.env.get("RESEND_API_KEY");
+
+  const from =
+    Deno.env.get("FROM_EMAIL");
+
+  const replyTo =
+    Deno.env
+      .get("REPLY_TO_EMAIL")
+      ?.trim();
 
   if (!apiKey) {
-    throw new Error("RESEND_API_KEY is not configured.");
+    throw new Error(
+      "RESEND_API_KEY is not configured.",
+    );
   }
 
   if (!from) {
-    throw new Error("FROM_EMAIL is not configured.");
+    throw new Error(
+      "FROM_EMAIL is not configured.",
+    );
   }
 
-  const response = await fetch(RESEND_ENDPOINT, {
-    method: "POST",
+  const response = await fetch(
+    RESEND_ENDPOINT,
+    {
+      method: "POST",
 
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "Idempotency-Key": idempotencyKey,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type":
+          "application/json",
+        "Idempotency-Key":
+          idempotencyKey,
+      },
+
+      body: JSON.stringify({
+        from,
+        to: [to],
+        subject,
+        html,
+
+        ...(replyTo
+          ? {
+              reply_to: replyTo,
+            }
+          : {}),
+      }),
     },
+  );
 
-    body: JSON.stringify({
-      from,
-      to: [to],
-      subject,
-      html,
-    }),
-  });
-
-  const raw = await response.text();
+  const raw =
+    await response.text();
 
   if (!response.ok) {
     throw new Error(
@@ -300,7 +324,9 @@ async function sendEmail({
   }
 
   try {
-    const parsed = JSON.parse(raw);
+    const parsed =
+      JSON.parse(raw);
+
     return parsed?.id ?? null;
   } catch {
     return null;
