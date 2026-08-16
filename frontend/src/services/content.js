@@ -17,17 +17,38 @@ export async function getVolunteerRole(slug) {
   return data;
 }
 
-export async function submitVolunteerApplication({ roleId, name, email, phone, answers }) {
-  const { error } = await supabase.from('volunteer_applications').insert({
-    role_id: roleId,
-    name: name.trim(),
-    email: email.trim().toLowerCase(),
-    phone: phone || null,
-    answers: answers || {},
-  });
-  if (error) throw error;
-}
+export async function submitVolunteerApplication({
+  roleId,
+  name,
+  email,
+  phone,
+  answers,
+}) {
+  const { data, error } =
+    await supabase.functions.invoke(
+      'public-submission',
+      {
+        body: {
+          type: 'volunteer',
+          payload: {
+            role_id: roleId,
+            name,
+            email,
+            phone,
+            answers,
+          },
+        },
+      },
+    );
 
+  if (error) throw error;
+
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return data;
+}
 export async function getFounders() {
   const { data, error } = await supabase.from('founders').select('*').order('display_order', { ascending: true });
   if (error) throw error;
