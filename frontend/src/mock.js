@@ -79,7 +79,6 @@ export const FOOTER = {
         { label: 'Our Work', href: '/our-work' },
         { label: 'Events', href: '/events' },
         { label: 'Research & Insights', href: '/research' },
-        { label: 'Contact Us', href: '/contact' }
       ]
     },
     {
@@ -87,7 +86,7 @@ export const FOOTER = {
         { label: 'ArtNovaX App', href: '/app' },
         { label: 'Our Story', href: '/about#story' },
         { label: 'Founders', href: '/about#founders' },
-        { label: 'Careers', href: '/careers' },
+        { label: 'Contact Us', href: '/contact' }
       ]
     },
     {
@@ -117,7 +116,7 @@ export const FOOTER = {
         },
         {
           label: 'Nairobi, Kenya',
-          href: '#',
+          href: 'https://maps.app.goo.gl/tcFi1tdZWTcgfsq68',
           icon: 'map-pin'
         },
       ]
