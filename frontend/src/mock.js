@@ -4,8 +4,8 @@ export const NAV_LINKS = [
   { label: 'About', href: '/about' },
   { label: 'Our Work', href: '/our-work' },
   { label: 'Events', href: '/events' },
-  { label: 'Research & Insights', href: '/research' },
-  { label: 'ArtNovaX App', href: '/app' },
+  { label: 'Research', href: '/research' },
+  { label: 'Our App', href: '/app' },
   {
     label: 'Get Involved', href: '/get-involved', hasDropdown: true, children: [
       { label: 'Partner With Us', href: '/get-involved/partner' },
@@ -14,6 +14,7 @@ export const NAV_LINKS = [
       { label: 'Shop for the Cause', href: '/get-involved/shop' },
     ]
   },
+
 ];
 
 export const HERO = {
@@ -78,6 +79,7 @@ export const FOOTER = {
         { label: 'Our Work', href: '/our-work' },
         { label: 'Events', href: '/events' },
         { label: 'Research & Insights', href: '/research' },
+        { label: 'Contact Us', href: '/contact' }
       ]
     },
     {
@@ -110,7 +112,7 @@ export const FOOTER = {
         },
         {
           label: 'Email',
-          href: 'mailto:admin@artnovax.org',
+          href: 'mailto:info@artnovax.org',
           icon: 'mail'
         },
         {

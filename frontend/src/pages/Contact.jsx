@@ -9,10 +9,15 @@ import { submitContact, subscribeNewsletter } from "../services/submissions";
 const iconMap = { mail: Mail, phone: Phone, "map-pin": MapPin, clock: Clock };
 
 const Contact = () => {
+  const topic = new URLSearchParams(window.location.search).get("topic");
+
+  const initialSubject =
+    topic === "event-idea" ? "Event idea / suggestion" : "";
+
   const [form, setForm] = useState({
     name: "",
     email: "",
-    subject: "",
+    subject: initialSubject,
     message: "",
   });
   const [sending, setSending] = useState(false);
@@ -28,7 +33,7 @@ const Contact = () => {
     try {
       await submitContact(form);
       setMsg({ type: "ok", text: "Message sent — we’ll be in touch soon." });
-      setForm({ name: "", email: "", subject: "", message: "" });
+      setForm({ name: "", email: "", subject: initialSubject, message: "" });
     } catch (err) {
       setMsg({ type: "err", text: err?.message || "Something went wrong." });
     } finally {

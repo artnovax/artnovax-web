@@ -139,7 +139,10 @@ export const EVENTS = {
   ],
   ideaCta: {
     title: 'Have an idea for an event?',
-    body: 'We collaborate with universities, organizations and communities to create meaningful creative experiences.',
-    button: { label: 'Partner With Us', href: '/get-involved/partner' }
+    body: "Whether you're an individual, student group, organization or community, we'd love to hear ideas for meaningful creative experiences.",
+    button: {
+      label: 'Share Your Idea',
+      href: '/contact?topic=event-idea'
+    }
   }
 };

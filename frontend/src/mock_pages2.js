@@ -102,7 +102,7 @@ export const CONTACT = {
   imageAlt: 'Two friends chatting warmly over coffee in soft sunlight',
   quickInfo: [
     { icon: 'mail', label: 'Email', value: 'info@artnovax.org' },
-    { icon: 'phone', label: 'Phone', value: '+254 700 123 456' },
+    { icon: 'phone', label: 'Phone', value: '+254 796 454 368' },
     { icon: 'map-pin', label: 'Location', value: 'Nairobi, Kenya' },
   ],
   formTitle: 'Send Us a Message',
@@ -116,7 +116,7 @@ export const CONTACT = {
     responseTitle: 'We typically respond\nwithin 1–2 business days',
     details: [
       { icon: 'mail', label: 'Email', value: 'info@artnovax.org' },
-      { icon: 'phone', label: 'Phone', value: '+254 700 123 456' },
+      { icon: 'phone', label: 'Phone', value: '+254 796 454 368' },
       { icon: 'map-pin', label: 'Location', value: 'Nairobi, Kenya' },
       { icon: 'clock', label: 'Hours', value: 'Mon – Fri, 9:00 AM – 5:00 PM EAT' },
     ],
