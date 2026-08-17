@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { HERO, MISSION_BAND, WHAT_WE_DO } from '../mock';
 import { ABOUT, EVENTS, OUR_WORK } from '../mock_pages';
+import { RESEARCH } from '../mock_pages2';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -53,6 +54,14 @@ export const defaultOurWorkPageContent = () => ({
 export const defaultEventsPageContent = () => ({
   ...clone(EVENTS),
   imageMediaId: null,
+});
+
+export const defaultResearchPageContent = () => ({
+  ...clone(RESEARCH),
+  imageMediaId: null,
+  libraryEyebrow: 'INSIGHTS LIBRARY',
+  libraryTitle: 'Read the full articles',
+  searchPlaceholder: 'Search insights…',
 });
 
 const mergeHomePageContent = (rows = []) => {
@@ -254,6 +263,54 @@ export async function getEventsPageContent() {
   return mergeEventsPageContent(await getPageSections('events'));
 }
 
+const mergeResearchPageContent = (rows = []) => {
+  const defaults = defaultResearchPageContent();
+  const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
+  const heroRow = bySection.hero;
+  const heroContent = heroRow?.content || {};
+  const topicsContent = bySection.topics?.content || {};
+  const libraryContent = bySection.library?.content || {};
+  const bandContent = bySection.band?.content || {};
+  const newsletterContent = bySection.newsletter?.content || {};
+
+  return {
+    ...defaults,
+    ...heroContent,
+    cta: { ...defaults.cta, ...(heroContent.cta || {}) },
+    image: heroRow?.image || defaults.image,
+    imageAlt: heroRow?.image_alt_text || defaults.imageAlt,
+    imageMediaId: heroRow?.image_media_id || null,
+    topicsTitle: topicsContent.topicsTitle || defaults.topicsTitle,
+    topics: defaults.topics.map((topic, index) => ({
+      ...topic,
+      ...(topicsContent.items?.[index] || {}),
+    })),
+    libraryEyebrow: libraryContent.libraryEyebrow || defaults.libraryEyebrow,
+    libraryTitle: libraryContent.libraryTitle || defaults.libraryTitle,
+    searchPlaceholder: libraryContent.searchPlaceholder || defaults.searchPlaceholder,
+    band: {
+      ...defaults.band,
+      ...bandContent,
+      integrity: {
+        ...defaults.band.integrity,
+        ...(bandContent.integrity || {}),
+        link: {
+          ...defaults.band.integrity.link,
+          ...(bandContent.integrity?.link || {}),
+        },
+      },
+    },
+    newsletter: {
+      ...defaults.newsletter,
+      ...newsletterContent,
+    },
+  };
+};
+
+export async function getResearchPageContent() {
+  return mergeResearchPageContent(await getPageSections('research'));
+}
+
 const upsertSection = async (pageKey, sectionKey, payload) => {
   const { data, error } = await supabase
     .from('page_sections')
@@ -441,4 +498,53 @@ export async function saveEventsPageContent(eventsPage) {
   ]);
 
   return getEventsPageContent();
+}
+
+export async function saveResearchPageContent(researchPage) {
+  await Promise.all([
+    upsertSection('research', 'hero', {
+      content: {
+        eyebrow: researchPage.eyebrow,
+        title: researchPage.title,
+        body: researchPage.body,
+        cta: researchPage.cta,
+      },
+      image: researchPage.image || null,
+      image_media_id: researchPage.imageMediaId || null,
+      image_alt_text: researchPage.imageAlt || null,
+    }),
+    upsertSection('research', 'topics', {
+      content: {
+        topicsTitle: researchPage.topicsTitle,
+        items: researchPage.topics,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('research', 'library', {
+      content: {
+        libraryEyebrow: researchPage.libraryEyebrow,
+        libraryTitle: researchPage.libraryTitle,
+        searchPlaceholder: researchPage.searchPlaceholder,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('research', 'band', {
+      content: researchPage.band,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('research', 'newsletter', {
+      content: researchPage.newsletter,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+  ]);
+
+  return getResearchPageContent();
 }

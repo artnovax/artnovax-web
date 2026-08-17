@@ -16,9 +16,12 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BrushFrame from "../components/BrushFrame";
 import { BrainLineArt } from "../components/BrandGlyphs";
-import { RESEARCH } from "../mock_pages2";
 import { ARTICLES_LIST } from "../mock_articles";
 import { getArticles } from "../services/content";
+import {
+  defaultResearchPageContent,
+  getResearchPageContent,
+} from "../services/pageContent";
 import { subscribeNewsletter } from "../services/submissions";
 
 const topicIcon = (key) => {
@@ -38,6 +41,19 @@ const Research = () => {
   const [msg, setMsg] = useState(null);
   const [loading, setLoading] = useState(false);
   const [articles, setArticles] = useState(ARTICLES_LIST);
+  const [pageContent, setPageContent] = useState(() =>
+    defaultResearchPageContent(),
+  );
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setPageContent(await getResearchPageContent());
+      } catch (error) {
+        console.warn("Using built-in Research page content.", error);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -98,26 +114,26 @@ const Research = () => {
       <section className="mx-auto max-w-[1240px] px-4 md:px-8 pt-8 md:pt-14 pb-8 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
         <div className="order-2 lg:order-1">
           <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold fade-up">
-            {RESEARCH.eyebrow}
+            {pageContent.eyebrow}
           </div>
           <h1 className="fade-up delay-1 mt-4 font-serif-display text-burgundy text-[42px] sm:text-[52px] md:text-[60px] leading-[1.02] font-semibold whitespace-pre-line">
-            {RESEARCH.title}
+            {pageContent.title}
           </h1>
           <p className="fade-up delay-2 mt-6 text-[16px] md:text-[17px] leading-[1.7] text-ink/80 max-w-[520px]">
-            {RESEARCH.body}
+            {pageContent.body}
           </p>
           <a
-            href="#library"
+            href={pageContent.cta.href}
             className="fade-up delay-3 mt-8 inline-flex items-center gap-3 rounded-full bg-burgundy text-ivory px-6 py-4 text-[15px] font-semibold hover:bg-burgundy-light shadow-[0_14px_30px_-14px_rgba(92,21,25,0.7)] cta-btn"
           >
-            Explore the library
+            {pageContent.cta.label}
             <ArrowRight className="w-4 h-4" />
           </a>
         </div>
         <div className="order-1 lg:order-2 fade-up delay-2">
           <BrushFrame
-            src={RESEARCH.image}
-            alt={RESEARCH.imageAlt}
+            src={pageContent.image}
+            alt={pageContent.imageAlt}
             aspect="aspect-[5/4]"
             objectPosition="center"
           />
@@ -130,10 +146,10 @@ const Research = () => {
         className="mx-auto max-w-[1240px] px-4 md:px-8 pt-10 md:pt-16"
       >
         <h2 className="font-serif-display text-ink text-[26px] md:text-[32px] font-medium inline-block border-b-2 border-burgundy pb-2">
-          {RESEARCH.topicsTitle}
+          {pageContent.topicsTitle}
         </h2>
         <div className="mt-8 md:mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-          {RESEARCH.topics.map((t, idx) => (
+          {pageContent.topics.map((t, idx) => (
             <article
               key={t.title}
               className="wwd-card rounded-3xl bg-ivory-100 ring-1 ring-ivory-300 p-5 flex flex-col"
@@ -166,10 +182,10 @@ const Research = () => {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <div className="text-burgundy tracking-[0.22em] text-[11.5px] font-semibold">
-              INSIGHTS LIBRARY
+              {pageContent.libraryEyebrow}
             </div>
             <h2 className="font-serif-display text-ink text-[26px] md:text-[32px] font-medium mt-1">
-              Read the full articles
+              {pageContent.libraryTitle}
             </h2>
           </div>
           <div className="relative w-full md:w-[380px]">
@@ -178,7 +194,7 @@ const Research = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               type="text"
-              placeholder="Search insights…"
+              placeholder={pageContent.searchPlaceholder}
               className="w-full rounded-full bg-ivory-100 ring-1 ring-ivory-300 pl-11 pr-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
           </div>
@@ -250,10 +266,10 @@ const Research = () => {
               <Quote className="w-8 h-8 text-ivory/85 shrink-0 mt-1" />
               <div>
                 <p className="font-serif-display italic text-ivory text-[20px] md:text-[22px] leading-snug">
-                  {RESEARCH.band.quote}
+                  {pageContent.band.quote}
                 </p>
                 <div className="mt-2 text-ivory/80 text-[13px]">
-                  {RESEARCH.band.author}
+                  {pageContent.band.author}
                 </div>
               </div>
             </div>
@@ -261,16 +277,16 @@ const Research = () => {
               <FileText className="w-7 h-7 text-ivory/85 shrink-0 mt-1" />
               <div>
                 <h3 className="font-serif-display text-ivory text-[20px] md:text-[22px]">
-                  {RESEARCH.band.integrity.title}
+                  {pageContent.band.integrity.title}
                 </h3>
                 <p className="mt-2 text-ivory/85 text-[13.5px] leading-relaxed">
-                  {RESEARCH.band.integrity.body}
+                  {pageContent.band.integrity.body}
                 </p>
                 <a
-                  href={RESEARCH.band.integrity.link.href}
+                  href={pageContent.band.integrity.link.href}
                   className="mt-2 inline-flex items-center gap-1 text-ivory font-semibold text-[13.5px]"
                 >
-                  {RESEARCH.band.integrity.link.label}{" "}
+                  {pageContent.band.integrity.link.label}{" "}
                   <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
@@ -298,10 +314,10 @@ const Research = () => {
           </div>
           <div>
             <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
-              {RESEARCH.newsletter.title}
+              {pageContent.newsletter.title}
             </h3>
             <p className="text-ink/80 text-[14px] mt-1">
-              {RESEARCH.newsletter.body}
+              {pageContent.newsletter.body}
             </p>
           </div>
           <form
@@ -313,14 +329,14 @@ const Research = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder={RESEARCH.newsletter.placeholder}
+              placeholder={pageContent.newsletter.placeholder}
               className="flex-1 md:w-[280px] rounded-full bg-ivory ring-1 ring-ivory-300 px-5 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
             <button
               disabled={loading}
               className="cta-btn rounded-full bg-burgundy text-ivory px-6 py-3 text-[14px] font-semibold hover:bg-burgundy-light disabled:opacity-70"
             >
-              {RESEARCH.newsletter.button}
+              {pageContent.newsletter.button}
             </button>
           </form>
         </div>
