@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Mail, Phone, MapPin, Clock, Send, ArrowRight } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BrushFrame from "../components/BrushFrame";
-import { CONTACT } from "../mock_pages2";
+import {
+  defaultContactPageContent,
+  getContactPageContent,
+} from "../services/pageContent";
 import { submitContact, subscribeNewsletter } from "../services/submissions";
 
 const iconMap = { mail: Mail, phone: Phone, "map-pin": MapPin, clock: Clock };
@@ -24,6 +27,19 @@ const Contact = () => {
   const [msg, setMsg] = useState(null);
   const [nlEmail, setNlEmail] = useState("");
   const [nlMsg, setNlMsg] = useState(null);
+  const [pageContent, setPageContent] = useState(() =>
+    defaultContactPageContent(),
+  );
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setPageContent(await getContactPageContent());
+      } catch (error) {
+        console.warn("Using built-in Contact page content.", error);
+      }
+    })();
+  }, []);
 
   const submitForm = async (e) => {
     e.preventDefault();
@@ -56,6 +72,8 @@ const Contact = () => {
   };
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const fieldPlaceholder = (name) =>
+    pageContent.form.find((field) => field.name === name)?.placeholder || "";
 
   return (
     <div className="min-h-screen bg-ivory">
@@ -65,16 +83,16 @@ const Contact = () => {
       <section className="mx-auto max-w-[1240px] px-4 md:px-8 pt-8 md:pt-14 pb-8 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
         <div className="order-2 lg:order-1">
           <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold fade-up">
-            {CONTACT.eyebrow}
+            {pageContent.eyebrow}
           </div>
           <h1 className="fade-up delay-1 mt-4 font-serif-display text-burgundy text-[42px] sm:text-[52px] md:text-[60px] leading-[1.02] font-semibold whitespace-pre-line">
-            {CONTACT.title}
+            {pageContent.title}
           </h1>
           <p className="fade-up delay-2 mt-6 text-[16px] md:text-[17px] leading-[1.7] text-ink/80 max-w-[520px]">
-            {CONTACT.body}
+            {pageContent.body}
           </p>
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {CONTACT.quickInfo.map((q) => {
+            {pageContent.quickInfo.map((q) => {
               const Icon = iconMap[q.icon];
               return (
                 <div key={q.label} className="flex items-start gap-3">
@@ -94,8 +112,8 @@ const Contact = () => {
         </div>
         <div className="order-1 lg:order-2 fade-up delay-2 relative">
           <BrushFrame
-            src={CONTACT.image}
-            alt={CONTACT.imageAlt}
+            src={pageContent.image}
+            alt={pageContent.imageAlt}
             aspect="aspect-[5/4]"
             objectPosition="center"
           />
@@ -106,7 +124,7 @@ const Contact = () => {
       <section className="mx-auto max-w-[1240px] px-4 md:px-8 pt-6 md:pt-8 pb-10 grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-8">
         <div>
           <h2 className="font-serif-display text-burgundy text-[24px] md:text-[26px] font-semibold inline-block border-b-2 border-burgundy/50 pb-1">
-            {CONTACT.formTitle}
+            {pageContent.formTitle}
           </h2>
           <form
             onSubmit={submitForm}
@@ -116,7 +134,7 @@ const Contact = () => {
               required
               value={form.name}
               onChange={set("name")}
-              placeholder="Your Name *"
+              placeholder={fieldPlaceholder("name")}
               className="rounded-lg ring-1 ring-ivory-300 bg-ivory-100 px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
             <input
@@ -124,21 +142,21 @@ const Contact = () => {
               type="email"
               value={form.email}
               onChange={set("email")}
-              placeholder="Email Address *"
+              placeholder={fieldPlaceholder("email")}
               className="rounded-lg ring-1 ring-ivory-300 bg-ivory-100 px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
             <input
               required
               value={form.subject}
               onChange={set("subject")}
-              placeholder="Subject *"
+              placeholder={fieldPlaceholder("subject")}
               className="md:col-span-2 rounded-lg ring-1 ring-ivory-300 bg-ivory-100 px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
             <textarea
               required
               value={form.message}
               onChange={set("message")}
-              placeholder="Your Message *"
+              placeholder={fieldPlaceholder("message")}
               rows={6}
               className="md:col-span-2 rounded-lg ring-1 ring-ivory-300 bg-ivory-100 px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40 resize-none"
             />
@@ -146,7 +164,7 @@ const Contact = () => {
               disabled={sending}
               className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-6 py-3.5 text-[14.5px] font-semibold hover:bg-burgundy-light disabled:opacity-70 w-fit"
             >
-              {sending ? "Sending…" : "Send Message"}
+              {sending ? "Sending…" : pageContent.sendButton}
               <Send className="w-4 h-4" />
             </button>
             {msg && (
@@ -162,10 +180,10 @@ const Contact = () => {
         <aside className="space-y-6">
           <div>
             <h3 className="font-serif-display text-burgundy text-[19px] font-semibold whitespace-pre-line leading-tight">
-              {CONTACT.sidebar.responseTitle}
+              {pageContent.sidebar.responseTitle}
             </h3>
             <ul className="mt-4 space-y-3">
-              {CONTACT.sidebar.details.map((d) => {
+              {pageContent.sidebar.details.map((d) => {
                 const Icon = iconMap[d.icon];
                 return (
                   <li key={d.label} className="flex items-start gap-3">
@@ -194,10 +212,10 @@ const Contact = () => {
                   <path d="M12 21s-7-4.35-7-10a5 5 0 019-3 5 5 0 019 3c0 5.65-7 10-7 10z" />
                 </svg>
               </span>
-              {CONTACT.sidebar.quote.title}
+              {pageContent.sidebar.quote.title}
             </h4>
             <p className="mt-3 text-ink/80 text-[13.5px] leading-relaxed">
-              {CONTACT.sidebar.quote.body}
+              {pageContent.sidebar.quote.body}
             </p>
             {/* Palette illustration */}
             <svg viewBox="0 0 220 90" className="mt-3 w-full h-20">
@@ -286,9 +304,9 @@ const Contact = () => {
           </svg>
           <div>
             <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
-              {CONTACT.newsletter.title}
+              {pageContent.newsletter.title}
             </h3>
-            <p className="text-ink/80 text-[14px]">{CONTACT.newsletter.body}</p>
+            <p className="text-ink/80 text-[14px]">{pageContent.newsletter.body}</p>
           </div>
           <form
             onSubmit={submitNl}
@@ -299,11 +317,11 @@ const Contact = () => {
               required
               value={nlEmail}
               onChange={(e) => setNlEmail(e.target.value)}
-              placeholder={CONTACT.newsletter.placeholder}
+              placeholder={pageContent.newsletter.placeholder}
               className="flex-1 md:w-[260px] rounded-full bg-ivory ring-1 ring-ivory-300 px-5 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
             <button className="cta-btn rounded-full bg-burgundy text-ivory px-6 py-3 text-[14px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2">
-              {CONTACT.newsletter.button} <ArrowRight className="w-4 h-4" />
+              {pageContent.newsletter.button} <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         </div>

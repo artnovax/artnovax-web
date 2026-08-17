@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { HERO, MISSION_BAND, WHAT_WE_DO } from '../mock';
 import { ABOUT, EVENTS, OUR_WORK } from '../mock_pages';
-import { APP, GET_INVOLVED, RESEARCH } from '../mock_pages2';
+import { APP, CONTACT, GET_INVOLVED, RESEARCH } from '../mock_pages2';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -72,6 +72,12 @@ export const defaultAppPageContent = () => ({
 export const defaultGetInvolvedPageContent = () => ({
   ...clone(GET_INVOLVED),
   imageMediaId: null,
+});
+
+export const defaultContactPageContent = () => ({
+  ...clone(CONTACT),
+  imageMediaId: null,
+  sendButton: 'Send Message',
 });
 
 const mergeHomePageContent = (rows = []) => {
@@ -401,6 +407,55 @@ export async function getGetInvolvedPageContent() {
   return mergeGetInvolvedPageContent(await getPageSections('get_involved'));
 }
 
+const mergeContactPageContent = (rows = []) => {
+  const defaults = defaultContactPageContent();
+  const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
+  const heroRow = bySection.hero;
+  const heroContent = heroRow?.content || {};
+  const quickInfoContent = bySection.quick_info?.content || {};
+  const formContent = bySection.form?.content || {};
+  const sidebarContent = bySection.sidebar?.content || {};
+  const newsletterContent = bySection.newsletter?.content || {};
+
+  return {
+    ...defaults,
+    ...heroContent,
+    image: heroRow?.image || defaults.image,
+    imageAlt: heroRow?.image_alt_text || defaults.imageAlt,
+    imageMediaId: heroRow?.image_media_id || null,
+    quickInfo: defaults.quickInfo.map((item, index) => ({
+      ...item,
+      ...(quickInfoContent.items?.[index] || {}),
+    })),
+    formTitle: formContent.formTitle || defaults.formTitle,
+    form: defaults.form.map((field, index) => ({
+      ...field,
+      ...(formContent.fields?.[index] || {}),
+    })),
+    sendButton: formContent.sendButton || defaults.sendButton,
+    sidebar: {
+      ...defaults.sidebar,
+      ...sidebarContent,
+      details: defaults.sidebar.details.map((item, index) => ({
+        ...item,
+        ...(sidebarContent.details?.[index] || {}),
+      })),
+      quote: {
+        ...defaults.sidebar.quote,
+        ...(sidebarContent.quote || {}),
+      },
+    },
+    newsletter: {
+      ...defaults.newsletter,
+      ...newsletterContent,
+    },
+  };
+};
+
+export async function getContactPageContent() {
+  return mergeContactPageContent(await getPageSections('contact'));
+}
+
 const upsertSection = async (pageKey, sectionKey, payload) => {
   const { data, error } = await supabase
     .from('page_sections')
@@ -716,4 +771,49 @@ export async function saveGetInvolvedPageContent(getInvolvedPage) {
   ]);
 
   return getGetInvolvedPageContent();
+}
+
+export async function saveContactPageContent(contactPage) {
+  await Promise.all([
+    upsertSection('contact', 'hero', {
+      content: {
+        eyebrow: contactPage.eyebrow,
+        title: contactPage.title,
+        body: contactPage.body,
+      },
+      image: contactPage.image || null,
+      image_media_id: contactPage.imageMediaId || null,
+      image_alt_text: contactPage.imageAlt || null,
+    }),
+    upsertSection('contact', 'quick_info', {
+      content: { items: contactPage.quickInfo },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('contact', 'form', {
+      content: {
+        formTitle: contactPage.formTitle,
+        fields: contactPage.form,
+        sendButton: contactPage.sendButton,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('contact', 'sidebar', {
+      content: contactPage.sidebar,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('contact', 'newsletter', {
+      content: contactPage.newsletter,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+  ]);
+
+  return getContactPageContent();
 }
