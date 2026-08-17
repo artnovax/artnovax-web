@@ -128,7 +128,7 @@ const About = () => {
       </section>
 
       {/* Pillars card */}
-      <section className="mx-auto max-w-[1180px] px-4 md:px-8 mt-4 md:mt-8">
+      <section id="story" className="scroll-mt-28 mx-auto max-w-[1180px] px-4 md:px-8 mt-4 md:mt-8">
         <div className="rounded-3xl bg-ivory-200/60 ring-1 ring-ivory-300 p-6 md:p-10 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 shadow-[0_20px_50px_-40px_rgba(92,21,25,0.35)]">
           {pageContent.pillars.map((p) => (
             <div key={p.title} className="flex gap-4">
@@ -161,7 +161,7 @@ const About = () => {
       </section>
 
       {/* Founders */}
-      <section className="mx-auto max-w-[1180px] px-4 md:px-8 pt-16 md:pt-24 pb-6">
+      <section id="founders" className="scroll-mt-28 mx-auto max-w-[1180px] px-4 md:px-8 pt-16 md:pt-24 pb-6">
         <div className="text-center">
           <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold">
             {pageContent.founders.eyebrow}

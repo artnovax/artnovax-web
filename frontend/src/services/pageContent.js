@@ -194,6 +194,126 @@ export const defaultPartnerPageContent = () => ({
   },
 });
 
+export const INFORMATION_PAGE_KEYS = [
+  'privacy',
+  'terms',
+  'accessibility',
+  'research_approach',
+];
+
+const INFORMATION_PAGE_DEFAULTS = {
+  privacy: {
+    eyebrow: 'LEGAL & TRUST',
+    title: 'Privacy Policy',
+    intro: 'This policy explains what information ArtNovaX collects through this website, why we use it, and the choices available to you.',
+    updatedLabel: 'Last updated: August 2026',
+    sections: [
+      {
+        title: 'Information we collect',
+        body: 'We collect information you choose to provide when you register for events, apply to volunteer, contact us, join a waitlist or newsletter, partner with us, purchase an item, or make a donation. This may include your name, contact details, responses, order information, and payment references.',
+      },
+      {
+        title: 'How we use information',
+        body: 'We use information to deliver requested services, respond to enquiries, manage events and applications, process transactions, communicate relevant updates, improve our programmes, and protect the security of our services.',
+      },
+      {
+        title: 'Service providers and sharing',
+        body: 'We may use trusted service providers for hosting, email, payments, analytics, and other operational needs. We do not sell personal information. We only share information when needed to provide a service, meet a legal obligation, or protect people and our organisation.',
+      },
+      {
+        title: 'Retention and security',
+        body: 'We retain information only for as long as reasonably necessary for the purpose it was collected, including legal, accounting, and safeguarding needs. We use appropriate technical and organisational safeguards, while recognising that no online system can guarantee absolute security.',
+      },
+      {
+        title: 'Your choices and contact',
+        body: 'You may ask to access, correct, or delete information we hold about you, subject to applicable requirements. You may also unsubscribe from newsletter emails at any time. Contact info@artnovax.org with a privacy question or request.',
+      },
+    ],
+  },
+  terms: {
+    eyebrow: 'LEGAL & TRUST',
+    title: 'Terms of Use',
+    intro: 'These terms describe the conditions for using the ArtNovaX website and its public services.',
+    updatedLabel: 'Last updated: August 2026',
+    sections: [
+      {
+        title: 'Using this website',
+        body: 'You may use this website for lawful personal and organisational purposes. You agree not to interfere with the site, attempt unauthorised access, submit harmful material, impersonate another person, or use our services in a way that harms others.',
+      },
+      {
+        title: 'Wellbeing information',
+        body: 'ArtNovaX provides creative-wellbeing education and non-clinical community experiences. Website content is not medical advice, diagnosis, emergency support, or a replacement for care from a qualified professional. If you are in immediate danger or crisis, contact local emergency or crisis services.',
+      },
+      {
+        title: 'Registrations, purchases, and donations',
+        body: 'Availability, pricing, event details, and programme details may change. Payments are handled through the payment methods shown at checkout. Additional terms or refund information may be presented during a registration, purchase, or donation process.',
+      },
+      {
+        title: 'Content and intellectual property',
+        body: 'Unless stated otherwise, ArtNovaX owns or is authorised to use the website design, text, graphics, and programme materials. You may not reproduce or commercially reuse them without permission, except as allowed by law.',
+      },
+      {
+        title: 'Changes and contact',
+        body: 'We may update the website or these terms as our services develop. Continued use after an update means the revised terms apply. Contact info@artnovax.org with questions about these terms.',
+      },
+    ],
+  },
+  accessibility: {
+    eyebrow: 'ACCESSIBILITY',
+    title: 'Accessibility at ArtNovaX',
+    intro: 'We want our digital experiences and creative-wellbeing resources to be usable by as many people as possible.',
+    updatedLabel: 'Last reviewed: August 2026',
+    sections: [
+      {
+        title: 'Our commitment',
+        body: 'We aim to design clear, calm, and inclusive experiences that work across devices and support different ways of navigating, reading, and understanding content.',
+      },
+      {
+        title: 'What we work toward',
+        body: 'Our ongoing work includes keyboard-friendly navigation, meaningful headings and labels, useful alternative text, readable contrast, responsive layouts, and content written in plain language where possible.',
+      },
+      {
+        title: 'Ongoing improvement',
+        body: 'Accessibility is an ongoing practice. We review new features and content, address reported barriers, and improve the website as standards, technology, and community needs evolve.',
+      },
+      {
+        title: 'Tell us about a barrier',
+        body: 'If you cannot access part of this website or need information in another format, email info@artnovax.org. Please include the page or task involved and the assistive technology or device you were using, if you are comfortable sharing it.',
+      },
+    ],
+  },
+  research_approach: {
+    eyebrow: 'RESEARCH & INSIGHTS',
+    title: 'Our Research Approach',
+    intro: 'We translate evidence about creativity and wellbeing into clear, responsible information without overstating what research can prove.',
+    updatedLabel: 'Last reviewed: August 2026',
+    sections: [
+      {
+        title: 'Evidence before certainty',
+        body: 'We look for credible, relevant research and pay attention to study quality, sample size, limitations, and whether findings have been repeated. We distinguish early findings from stronger bodies of evidence.',
+      },
+      {
+        title: 'Clear and accessible communication',
+        body: 'We explain technical ideas in plain language while preserving important nuance. When evidence is mixed, limited, or changing, we say so.',
+      },
+      {
+        title: 'Culture and lived experience',
+        body: 'Evidence does not exist outside culture. We consider whose experiences were represented, where research took place, and how local knowledge and lived experience can inform responsible interpretation.',
+      },
+      {
+        title: 'Boundaries and safety',
+        body: 'Creative-wellbeing activities can support reflection and connection, but they are not automatically art therapy or clinical treatment. We clearly distinguish non-clinical programmes from services delivered by qualified health professionals.',
+      },
+      {
+        title: 'Transparency and corrections',
+        body: 'We aim to name sources, conflicts, and limitations where relevant. If we identify a meaningful error or better evidence becomes available, we update the material and its review date.',
+      },
+    ],
+  },
+};
+
+export const defaultInformationPagesContent = () => clone(INFORMATION_PAGE_DEFAULTS);
+
 const mergeHomePageContent = (rows = []) => {
   const defaults = defaultHomePageContent();
   const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
@@ -691,6 +811,38 @@ const mergePartnerPageContent = (rows = []) => {
 
 export async function getPartnerPageContent() {
   return mergePartnerPageContent(await getPageSections('partner'));
+}
+
+const assertInformationPageKey = (pageKey) => {
+  if (!INFORMATION_PAGE_KEYS.includes(pageKey)) {
+    throw new Error(`Unknown information page: ${pageKey}`);
+  }
+};
+
+export async function getInformationPageContent(pageKey) {
+  assertInformationPageKey(pageKey);
+  const defaults = defaultInformationPagesContent()[pageKey];
+  const rows = await getPageSections(pageKey);
+  const saved = rows.find((row) => row.section_key === 'content')?.content || {};
+
+  return {
+    ...defaults,
+    ...saved,
+    sections: defaults.sections.map((section, index) => ({
+      ...section,
+      ...(saved.sections?.[index] || {}),
+    })),
+  };
+}
+
+export async function getInformationPagesContent() {
+  const entries = await Promise.all(
+    INFORMATION_PAGE_KEYS.map(async (pageKey) => [
+      pageKey,
+      await getInformationPageContent(pageKey),
+    ])
+  );
+  return Object.fromEntries(entries);
 }
 
 const upsertSection = async (pageKey, sectionKey, payload) => {
@@ -1201,4 +1353,21 @@ export async function savePartnerPageContent(partnerPage) {
   ]);
 
   return getPartnerPageContent();
+}
+
+export async function saveInformationPageContent(pageKey, informationPage) {
+  assertInformationPageKey(pageKey);
+  await upsertSection(pageKey, 'content', {
+    content: {
+      eyebrow: informationPage.eyebrow,
+      title: informationPage.title,
+      intro: informationPage.intro,
+      updatedLabel: informationPage.updatedLabel,
+      sections: informationPage.sections,
+    },
+    image: null,
+    image_media_id: null,
+    image_alt_text: null,
+  });
+  return getInformationPageContent(pageKey);
 }

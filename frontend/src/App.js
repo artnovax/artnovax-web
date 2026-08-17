@@ -27,6 +27,7 @@ import NewsletterDetail from './pages/NewsletterDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
+import InfoPage from './pages/InfoPage';
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
             <Route path="/support" element={<Support />} />
             <Route path="/support/thanks" element={<Support />} />
             <Route path="/research" element={<Research />} />
+            <Route path="/research/approach" element={<InfoPage pageKey="research_approach" activePath="/research" />} />
             <Route path="/research/:slug" element={<ArticleDetail />} />
             <Route path="/newsletters" element={<NewsletterArchive />} />
             <Route path="/newsletters/:slug" element={<NewsletterDetail />} />
@@ -60,6 +62,9 @@ function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<InfoPage pageKey="privacy" />} />
+            <Route path="/terms" element={<InfoPage pageKey="terms" />} />
+            <Route path="/accessibility" element={<InfoPage pageKey="accessibility" />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<Home />} />
           </Routes>

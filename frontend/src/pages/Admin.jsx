@@ -54,6 +54,7 @@ import {
   saveSupportPage,
   saveVolunteerPage,
   savePartnerPage,
+  saveInformationPage,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -80,6 +81,7 @@ const emptyData = {
   supportPage: null,
   volunteerPage: null,
   partnerPage: null,
+  informationPages: null,
   waitlist: [],
   messages: [],
   events: [],
@@ -322,6 +324,12 @@ const Admin = () => {
                 onClick={() => setTab("partnerpage")}
               />
               <TabPill
+                icon={Globe2}
+                label="Information Pages"
+                active={tab === "informationpages"}
+                onClick={() => setTab("informationpages")}
+              />
+              <TabPill
                 icon={Calendar}
                 label={`Events (${data.events.length})`}
                 active={tab === "events"}
@@ -432,6 +440,9 @@ const Admin = () => {
               )}
               {tab === "partnerpage" && data.partnerPage && (
                 <PartnerPageManager content={data.partnerPage} onChange={refresh} />
+              )}
+              {tab === "informationpages" && data.informationPages && (
+                <InformationPagesManager content={data.informationPages} onChange={refresh} />
               )}
               {tab === "events" && (
                 <EventsManager rows={data.events} onChange={refresh} />
@@ -4479,6 +4490,179 @@ const PartnerPageManager = ({ content, onChange }) => {
         >
           <Save className="w-4 h-4" />
           {saving ? "Saving…" : "Save Partner page"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// ---- Information Pages Manager ----
+const INFORMATION_PAGE_META = {
+  privacy: { label: "Privacy Policy", href: "/privacy" },
+  terms: { label: "Terms of Use", href: "/terms" },
+  accessibility: { label: "Accessibility", href: "/accessibility" },
+  research_approach: { label: "Research Approach", href: "/research/approach" },
+};
+
+const InformationPagesManager = ({ content, onChange }) => {
+  const [active, setActive] = useState("privacy");
+  const [form, setForm] = useState(() =>
+    JSON.parse(JSON.stringify(content.privacy)),
+  );
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm(JSON.parse(JSON.stringify(content[active])));
+  }, [active, content]);
+
+  const updateSection = (index, patch) => setForm((current) => ({
+    ...current,
+    sections: current.sections.map((section, sectionIndex) =>
+      sectionIndex === index ? { ...section, ...patch } : section
+    ),
+  }));
+
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await saveInformationPage(active, form);
+      onChange();
+      alert(`${INFORMATION_PAGE_META[active].label} saved.`);
+    } catch (error) {
+      alert(error?.message || "Information page save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+            Information Pages
+          </h3>
+          <p className="mt-1 text-ink/60 text-[13px]">
+            Manage the footer legal pages and the Research Approach page. Have legal wording reviewed for your organisation and jurisdiction before launch.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href={INFORMATION_PAGE_META[active].href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[13px] font-semibold hover:bg-burgundy/10 inline-flex items-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View page
+          </a>
+          <button
+            disabled={saving}
+            className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "Saving…" : `Save ${INFORMATION_PAGE_META[active].label}`}
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {Object.entries(INFORMATION_PAGE_META).map(([key, meta]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setActive(key)}
+            className={`rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${
+              active === key
+                ? "bg-burgundy text-ivory"
+                : "bg-ivory-100 text-ink/70 ring-1 ring-ivory-300 hover:text-burgundy"
+            }`}
+          >
+            {meta.label}
+          </button>
+        ))}
+      </div>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">
+            {INFORMATION_PAGE_META[active].label} introduction
+          </h4>
+        </div>
+        <Field label="Eyebrow">
+          <input
+            required
+            value={form.eyebrow || ""}
+            onChange={(event) => setForm({ ...form, eyebrow: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Title">
+          <input
+            required
+            value={form.title || ""}
+            onChange={(event) => setForm({ ...form, title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Introduction">
+            <textarea
+              required
+              rows={3}
+              value={form.intro || ""}
+              onChange={(event) => setForm({ ...form, intro: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Review/update label">
+            <input
+              required
+              value={form.updatedLabel || ""}
+              onChange={(event) => setForm({ ...form, updatedLabel: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Page sections</h4>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {form.sections.map((section, index) => (
+            <div key={index} className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+              <Field label={`Section ${index + 1} heading`}>
+                <input
+                  required
+                  value={section.title || ""}
+                  onChange={(event) => updateSection(index, { title: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Section text">
+                <textarea
+                  required
+                  rows={7}
+                  value={section.body || ""}
+                  onChange={(event) => updateSection(index, { body: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <button
+          disabled={saving}
+          className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving…" : `Save ${INFORMATION_PAGE_META[active].label}`}
         </button>
       </div>
     </form>
