@@ -53,6 +53,7 @@ import {
   saveShopPage,
   saveSupportPage,
   saveVolunteerPage,
+  savePartnerPage,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -78,6 +79,7 @@ const emptyData = {
   shopPage: null,
   supportPage: null,
   volunteerPage: null,
+  partnerPage: null,
   waitlist: [],
   messages: [],
   events: [],
@@ -314,6 +316,12 @@ const Admin = () => {
                 onClick={() => setTab("volunteerpage")}
               />
               <TabPill
+                icon={PanelsTopLeft}
+                label="Partner Page"
+                active={tab === "partnerpage"}
+                onClick={() => setTab("partnerpage")}
+              />
+              <TabPill
                 icon={Calendar}
                 label={`Events (${data.events.length})`}
                 active={tab === "events"}
@@ -421,6 +429,9 @@ const Admin = () => {
               )}
               {tab === "volunteerpage" && data.volunteerPage && (
                 <VolunteerPageManager content={data.volunteerPage} onChange={refresh} />
+              )}
+              {tab === "partnerpage" && data.partnerPage && (
+                <PartnerPageManager content={data.partnerPage} onChange={refresh} />
               )}
               {tab === "events" && (
                 <EventsManager rows={data.events} onChange={refresh} />
@@ -4097,6 +4108,377 @@ const VolunteerPageManager = ({ content, onChange }) => {
         >
           <Save className="w-4 h-4" />
           {saving ? "Saving…" : "Save Volunteer pages"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// ---- Partner Page Manager ----
+const PartnerPageManager = ({ content, onChange }) => {
+  const [form, setForm] = useState(() => JSON.parse(JSON.stringify(content)));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm(JSON.parse(JSON.stringify(content)));
+  }, [content]);
+
+  const updateOption = (key, index, value) => setForm((current) => ({
+    ...current,
+    [key]: current[key].map((option, optionIndex) =>
+      optionIndex === index ? value : option
+    ),
+  }));
+
+  const updateSuccess = (patch) => setForm((current) => ({
+    ...current,
+    success: { ...current.success, ...patch },
+  }));
+
+  const updateSuccessButton = (patch) => setForm((current) => ({
+    ...current,
+    success: {
+      ...current.success,
+      button: { ...current.success.button, ...patch },
+    },
+  }));
+
+  const save = async (event) => {
+    event.preventDefault();
+    if (
+      form.orgTypeOptions.some((option) => !option.trim()) ||
+      form.partnershipTypeOptions.some((option) => !option.trim())
+    ) {
+      alert("Organisation and partnership option labels cannot be empty.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await savePartnerPage(form);
+      onChange();
+      alert("Partner page content saved.");
+    } catch (error) {
+      alert(error?.message || "Partner page save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+            Partner Inquiry Page Content
+          </h3>
+          <p className="mt-1 text-ink/60 text-[13px]">
+            Inquiry field keys, required fields, and submission payloads remain system-controlled. Submitted enquiries remain under Partners.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="/get-involved/partner"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[13px] font-semibold hover:bg-burgundy/10 inline-flex items-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View Partner page
+          </a>
+          <button
+            disabled={saving}
+            className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "Saving…" : "Save Partner page"}
+          </button>
+        </div>
+      </div>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Introduction</h4>
+        </div>
+        <Field label="Eyebrow">
+          <input
+            required
+            value={form.eyebrow || ""}
+            onChange={(event) => setForm({ ...form, eyebrow: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Title">
+          <textarea
+            required
+            rows={3}
+            value={form.title || ""}
+            onChange={(event) => setForm({ ...form, title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Introduction text">
+            <textarea
+              required
+              rows={4}
+              value={form.body || ""}
+              onChange={(event) => setForm({ ...form, body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Organisation section</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Field label="Section heading">
+            <input
+              required
+              value={form.organisationHeading || ""}
+              onChange={(event) => setForm({ ...form, organisationHeading: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Organisation-name placeholder">
+            <input
+              required
+              value={form.orgNamePlaceholder || ""}
+              onChange={(event) => setForm({ ...form, orgNamePlaceholder: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Website placeholder">
+            <input
+              required
+              value={form.websitePlaceholder || ""}
+              onChange={(event) => setForm({ ...form, websitePlaceholder: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Organisation-type placeholder">
+            <input
+              required
+              value={form.orgTypePlaceholder || ""}
+              onChange={(event) => setForm({ ...form, orgTypePlaceholder: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Partnership-type placeholder">
+            <input
+              required
+              value={form.partnershipTypePlaceholder || ""}
+              onChange={(event) => setForm({ ...form, partnershipTypePlaceholder: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+            <div className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">Organisation-type options</div>
+            {form.orgTypeOptions.map((option, index) => (
+              <input
+                key={index}
+                required
+                value={option}
+                onChange={(event) => updateOption("orgTypeOptions", index, event.target.value)}
+                className={inputCls}
+              />
+            ))}
+          </div>
+          <div className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+            <div className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">Partnership-type options</div>
+            {form.partnershipTypeOptions.map((option, index) => (
+              <input
+                key={index}
+                required
+                value={option}
+                onChange={(event) => updateOption("partnershipTypeOptions", index, event.target.value)}
+                className={inputCls}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Point of contact section</h4>
+        </div>
+        <Field label="Section heading">
+          <input
+            required
+            value={form.contactHeading || ""}
+            onChange={(event) => setForm({ ...form, contactHeading: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Contact-name placeholder">
+          <input
+            required
+            value={form.contactNamePlaceholder || ""}
+            onChange={(event) => setForm({ ...form, contactNamePlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Role placeholder">
+          <input
+            required
+            value={form.rolePlaceholder || ""}
+            onChange={(event) => setForm({ ...form, rolePlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Email placeholder">
+          <input
+            required
+            value={form.emailPlaceholder || ""}
+            onChange={(event) => setForm({ ...form, emailPlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Phone placeholder">
+          <input
+            required
+            value={form.phonePlaceholder || ""}
+            onChange={(event) => setForm({ ...form, phonePlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Partnership details section</h4>
+        </div>
+        <Field label="Section heading">
+          <input
+            required
+            value={form.detailsHeading || ""}
+            onChange={(event) => setForm({ ...form, detailsHeading: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Goals placeholder">
+          <input
+            required
+            value={form.goalsPlaceholder || ""}
+            onChange={(event) => setForm({ ...form, goalsPlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Audience placeholder">
+          <input
+            required
+            value={form.audiencePlaceholder || ""}
+            onChange={(event) => setForm({ ...form, audiencePlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Timeline placeholder">
+          <input
+            required
+            value={form.timelinePlaceholder || ""}
+            onChange={(event) => setForm({ ...form, timelinePlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Budget placeholder">
+          <input
+            required
+            value={form.budgetPlaceholder || ""}
+            onChange={(event) => setForm({ ...form, budgetPlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Additional-message placeholder">
+          <input
+            required
+            value={form.messagePlaceholder || ""}
+            onChange={(event) => setForm({ ...form, messagePlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Response-time note">
+            <textarea
+              required
+              rows={2}
+              value={form.responseNote || ""}
+              onChange={(event) => setForm({ ...form, responseNote: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <Field label="Submit button label">
+          <input
+            required
+            value={form.submitLabel || ""}
+            onChange={(event) => setForm({ ...form, submitLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Submitting label">
+          <input
+            required
+            value={form.submittingLabel || ""}
+            onChange={(event) => setForm({ ...form, submittingLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Inquiry confirmation</h4>
+        </div>
+        <Field label="Title">
+          <input
+            required
+            value={form.success.title || ""}
+            onChange={(event) => updateSuccess({ title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Button label">
+          <input
+            required
+            value={form.success.button?.label || ""}
+            onChange={(event) => updateSuccessButton({ label: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Confirmation text">
+            <textarea
+              required
+              rows={3}
+              value={form.success.body || ""}
+              onChange={(event) => updateSuccess({ body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Button destination">
+            <input
+              required
+              value={form.success.button?.href || ""}
+              onChange={(event) => updateSuccessButton({ href: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <button
+          disabled={saving}
+          className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving…" : "Save Partner page"}
         </button>
       </div>
     </form>

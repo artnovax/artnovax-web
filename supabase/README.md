@@ -48,6 +48,8 @@ The Support and donation page also uses this foundation; Stripe checkout
 configuration remains separate and system-controlled.
 The Volunteer landing and shared application-screen copy use this foundation;
 role records, custom questions, and applications remain in their existing tables.
+The Partner inquiry page copy and select-option labels use this foundation;
+inquiry field keys and submissions remain in the existing partner workflow.
 Library hero and programme-card images are protected
 from deletion while attached.
 

@@ -148,6 +148,52 @@ export const defaultVolunteerPageContent = () => ({
   },
 });
 
+export const defaultPartnerPageContent = () => ({
+  eyebrow: 'PARTNER WITH US',
+  title: 'Let’s build something meaningful together.',
+  body: 'We collaborate with universities, community groups, mental-health organisations and mission-aligned brands. Tell us a little about your organisation and how you’d like to partner — our Partnerships & Mobilisation Lead will reach out.',
+  organisationHeading: 'ORGANISATION',
+  orgNamePlaceholder: 'Organisation name *',
+  websitePlaceholder: 'Website',
+  orgTypePlaceholder: 'Organisation type…',
+  orgTypeOptions: [
+    'University / School',
+    'NGO / Non-profit',
+    'Corporate / Brand',
+    'Government',
+    'Community group',
+    'Other',
+  ],
+  partnershipTypePlaceholder: 'Partnership type…',
+  partnershipTypeOptions: [
+    'Program collaboration',
+    'Event / Workshop',
+    'Sponsorship',
+    'Research collaboration',
+    'Content / Media',
+    'Other',
+  ],
+  contactHeading: 'POINT OF CONTACT',
+  contactNamePlaceholder: 'Contact name *',
+  rolePlaceholder: 'Role at your organisation',
+  emailPlaceholder: 'Work email *',
+  phonePlaceholder: 'Phone',
+  detailsHeading: 'PARTNERSHIP DETAILS',
+  goalsPlaceholder: 'What do you hope to achieve with ArtNovaX?',
+  audiencePlaceholder: 'Audience (e.g. university students, staff, community)',
+  timelinePlaceholder: 'Timeline (e.g. Q2 2026)',
+  budgetPlaceholder: 'Indicative budget (optional)',
+  messagePlaceholder: 'Anything else you’d like us to know',
+  responseNote: 'We reply to every serious inquiry within 5 business days.',
+  submitLabel: 'Submit inquiry',
+  submittingLabel: 'Sending…',
+  success: {
+    title: 'Thank you — we’ll be in touch.',
+    body: 'Purity, our Partnerships Lead, personally reviews every inquiry.',
+    button: { label: 'Back to home', href: '/' },
+  },
+});
+
 const mergeHomePageContent = (rows = []) => {
   const defaults = defaultHomePageContent();
   const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
@@ -615,6 +661,38 @@ export async function getVolunteerPageContent() {
   return mergeVolunteerPageContent(await getPageSections('volunteer'));
 }
 
+const mergePartnerPageContent = (rows = []) => {
+  const defaults = defaultPartnerPageContent();
+  const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
+  const introContent = bySection.intro?.content || {};
+  const formContent = bySection.form?.content || {};
+  const successContent = bySection.success?.content || {};
+
+  return {
+    ...defaults,
+    ...introContent,
+    ...formContent,
+    orgTypeOptions: Array.isArray(formContent.orgTypeOptions) && formContent.orgTypeOptions.length
+      ? formContent.orgTypeOptions
+      : defaults.orgTypeOptions,
+    partnershipTypeOptions: Array.isArray(formContent.partnershipTypeOptions) && formContent.partnershipTypeOptions.length
+      ? formContent.partnershipTypeOptions
+      : defaults.partnershipTypeOptions,
+    success: {
+      ...defaults.success,
+      ...successContent,
+      button: {
+        ...defaults.success.button,
+        ...(successContent.button || {}),
+      },
+    },
+  };
+};
+
+export async function getPartnerPageContent() {
+  return mergePartnerPageContent(await getPageSections('partner'));
+}
+
 const upsertSection = async (pageKey, sectionKey, payload) => {
   const { data, error } = await supabase
     .from('page_sections')
@@ -1072,4 +1150,55 @@ export async function saveVolunteerPageContent(volunteerPage) {
   ]);
 
   return getVolunteerPageContent();
+}
+
+export async function savePartnerPageContent(partnerPage) {
+  await Promise.all([
+    upsertSection('partner', 'intro', {
+      content: {
+        eyebrow: partnerPage.eyebrow,
+        title: partnerPage.title,
+        body: partnerPage.body,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('partner', 'form', {
+      content: {
+        organisationHeading: partnerPage.organisationHeading,
+        orgNamePlaceholder: partnerPage.orgNamePlaceholder,
+        websitePlaceholder: partnerPage.websitePlaceholder,
+        orgTypePlaceholder: partnerPage.orgTypePlaceholder,
+        orgTypeOptions: partnerPage.orgTypeOptions,
+        partnershipTypePlaceholder: partnerPage.partnershipTypePlaceholder,
+        partnershipTypeOptions: partnerPage.partnershipTypeOptions,
+        contactHeading: partnerPage.contactHeading,
+        contactNamePlaceholder: partnerPage.contactNamePlaceholder,
+        rolePlaceholder: partnerPage.rolePlaceholder,
+        emailPlaceholder: partnerPage.emailPlaceholder,
+        phonePlaceholder: partnerPage.phonePlaceholder,
+        detailsHeading: partnerPage.detailsHeading,
+        goalsPlaceholder: partnerPage.goalsPlaceholder,
+        audiencePlaceholder: partnerPage.audiencePlaceholder,
+        timelinePlaceholder: partnerPage.timelinePlaceholder,
+        budgetPlaceholder: partnerPage.budgetPlaceholder,
+        messagePlaceholder: partnerPage.messagePlaceholder,
+        responseNote: partnerPage.responseNote,
+        submitLabel: partnerPage.submitLabel,
+        submittingLabel: partnerPage.submittingLabel,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('partner', 'success', {
+      content: partnerPage.success,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+  ]);
+
+  return getPartnerPageContent();
 }

@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, Building2, Loader2 } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { submitPartnerInquiry } from "../services/submissions";
+import {
+  defaultPartnerPageContent,
+  getPartnerPageContent,
+} from "../services/pageContent";
 
 const PartnerForm = () => {
   const [form, setForm] = useState({
@@ -23,6 +27,20 @@ const PartnerForm = () => {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState(null);
+  const [pageContent, setPageContent] = useState(() =>
+    defaultPartnerPageContent(),
+  );
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setPageContent(await getPartnerPageContent());
+      } catch (error) {
+        console.warn("Using built-in Partner page content.", error);
+      }
+    })();
+  }, []);
+
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const submit = async (e) => {
@@ -49,16 +67,13 @@ const PartnerForm = () => {
       <Header activePath="/get-involved/partner" />
       <section className="mx-auto max-w-[1100px] px-4 md:px-8 pt-10 md:pt-14 pb-16">
         <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold">
-          PARTNER WITH US
+          {pageContent.eyebrow}
         </div>
         <h1 className="mt-3 font-serif-display text-burgundy text-[42px] md:text-[52px] leading-[1.05] font-semibold">
-          Let’s build something meaningful together.
+          {pageContent.title}
         </h1>
         <p className="mt-5 text-ink/80 max-w-[720px] text-[16px] leading-[1.7]">
-          We collaborate with universities, community groups, mental-health
-          organisations and mission-aligned brands. Tell us a little about your
-          organisation and how you’d like to partner — our Partnerships &
-          Mobilisation Lead will reach out.
+          {pageContent.body}
         </p>
 
         {done ? (
@@ -67,16 +82,16 @@ const PartnerForm = () => {
               <CheckCircle2 className="w-8 h-8 text-burgundy" />
             </div>
             <h2 className="mt-4 font-serif-display text-burgundy text-[28px] font-semibold">
-              Thank you — we’ll be in touch.
+              {pageContent.success.title}
             </h2>
             <p className="mt-2 text-ink/75 text-[14.5px]">
-              Purity, our Partnerships Lead, personally reviews every inquiry.
+              {pageContent.success.body}
             </p>
             <a
-              href="/"
+              href={pageContent.success.button.href}
               className="cta-btn mt-6 inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-6 py-3 text-[14px] font-semibold hover:bg-burgundy-light"
             >
-              Back to home <ArrowRight className="w-4 h-4" />
+              {pageContent.success.button.label} <ArrowRight className="w-4 h-4" />
             </a>
           </div>
         ) : (
@@ -85,17 +100,17 @@ const PartnerForm = () => {
             className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             <div className="md:col-span-2 text-burgundy tracking-widest text-[11px] font-semibold">
-              ORGANISATION
+              {pageContent.organisationHeading}
             </div>
             <input
               required
-              placeholder="Organisation name *"
+              placeholder={pageContent.orgNamePlaceholder}
               value={form.org_name}
               onChange={set("org_name")}
               className={cls}
             />
             <input
-              placeholder="Website"
+              placeholder={pageContent.websitePlaceholder}
               value={form.website}
               onChange={set("website")}
               className={cls}
@@ -105,39 +120,33 @@ const PartnerForm = () => {
               onChange={set("org_type")}
               className={cls}
             >
-              <option value="">Organisation type…</option>
-              <option>University / School</option>
-              <option>NGO / Non-profit</option>
-              <option>Corporate / Brand</option>
-              <option>Government</option>
-              <option>Community group</option>
-              <option>Other</option>
+              <option value="">{pageContent.orgTypePlaceholder}</option>
+              {pageContent.orgTypeOptions.map((option) => (
+                <option key={option}>{option}</option>
+              ))}
             </select>
             <select
               value={form.partnership_type}
               onChange={set("partnership_type")}
               className={cls}
             >
-              <option value="">Partnership type…</option>
-              <option>Program collaboration</option>
-              <option>Event / Workshop</option>
-              <option>Sponsorship</option>
-              <option>Research collaboration</option>
-              <option>Content / Media</option>
-              <option>Other</option>
+              <option value="">{pageContent.partnershipTypePlaceholder}</option>
+              {pageContent.partnershipTypeOptions.map((option) => (
+                <option key={option}>{option}</option>
+              ))}
             </select>
             <div className="md:col-span-2 text-burgundy tracking-widest text-[11px] font-semibold mt-2">
-              POINT OF CONTACT
+              {pageContent.contactHeading}
             </div>
             <input
               required
-              placeholder="Contact name *"
+              placeholder={pageContent.contactNamePlaceholder}
               value={form.contact_name}
               onChange={set("contact_name")}
               className={cls}
             />
             <input
-              placeholder="Role at your organisation"
+              placeholder={pageContent.rolePlaceholder}
               value={form.role}
               onChange={set("role")}
               className={cls}
@@ -145,47 +154,47 @@ const PartnerForm = () => {
             <input
               required
               type="email"
-              placeholder="Work email *"
+              placeholder={pageContent.emailPlaceholder}
               value={form.email}
               onChange={set("email")}
               className={cls}
             />
             <input
-              placeholder="Phone"
+              placeholder={pageContent.phonePlaceholder}
               value={form.phone}
               onChange={set("phone")}
               className={cls}
             />
             <div className="md:col-span-2 text-burgundy tracking-widest text-[11px] font-semibold mt-2">
-              PARTNERSHIP DETAILS
+              {pageContent.detailsHeading}
             </div>
             <textarea
-              placeholder="What do you hope to achieve with ArtNovaX?"
+              placeholder={pageContent.goalsPlaceholder}
               value={form.goals}
               onChange={set("goals")}
               rows={4}
               className={cls + " md:col-span-2"}
             />
             <input
-              placeholder="Audience (e.g. university students, staff, community)"
+              placeholder={pageContent.audiencePlaceholder}
               value={form.audience}
               onChange={set("audience")}
               className={cls}
             />
             <input
-              placeholder="Timeline (e.g. Q2 2026)"
+              placeholder={pageContent.timelinePlaceholder}
               value={form.timeline}
               onChange={set("timeline")}
               className={cls}
             />
             <input
-              placeholder="Indicative budget (optional)"
+              placeholder={pageContent.budgetPlaceholder}
               value={form.budget}
               onChange={set("budget")}
               className={cls}
             />
             <textarea
-              placeholder="Anything else you’d like us to know"
+              placeholder={pageContent.messagePlaceholder}
               value={form.message}
               onChange={set("message")}
               rows={4}
@@ -199,7 +208,7 @@ const PartnerForm = () => {
             <div className="md:col-span-2 flex justify-between items-center">
               <div className="text-ink/60 text-[12.5px] inline-flex items-center gap-1">
                 <Building2 className="w-3.5 h-3.5" />
-                We reply to every serious inquiry within 5 business days.
+                {pageContent.responseNote}
               </div>
               <button
                 disabled={submitting}
@@ -208,11 +217,11 @@ const PartnerForm = () => {
                 {submitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Sending…
+                    {pageContent.submittingLabel}
                   </>
                 ) : (
                   <>
-                    Submit inquiry <ArrowRight className="w-4 h-4" />
+                    {pageContent.submitLabel} <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
