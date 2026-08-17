@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { HERO, MISSION_BAND, WHAT_WE_DO } from '../mock';
 import { ABOUT, EVENTS, OUR_WORK } from '../mock_pages';
-import { APP, CONTACT, GET_INVOLVED, RESEARCH } from '../mock_pages2';
+import { APP, CONTACT, GET_INVOLVED, RESEARCH, SHOP } from '../mock_pages2';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -78,6 +78,12 @@ export const defaultContactPageContent = () => ({
   ...clone(CONTACT),
   imageMediaId: null,
   sendButton: 'Send Message',
+});
+
+export const defaultShopPageContent = () => ({
+  ...clone(SHOP),
+  imageMediaId: null,
+  allProductsLabel: 'All Products',
 });
 
 const mergeHomePageContent = (rows = []) => {
@@ -456,6 +462,42 @@ export async function getContactPageContent() {
   return mergeContactPageContent(await getPageSections('contact'));
 }
 
+const mergeShopPageContent = (rows = []) => {
+  const defaults = defaultShopPageContent();
+  const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
+  const heroRow = bySection.hero;
+  const heroContent = heroRow?.content || {};
+  const collectionContent = bySection.collection?.content || {};
+  const thanksContent = bySection.thanks?.content || {};
+
+  return {
+    ...defaults,
+    ...heroContent,
+    cta: { ...defaults.cta, ...(heroContent.cta || {}) },
+    bullets: defaults.bullets.map((bullet, index) => ({
+      ...bullet,
+      ...(heroContent.bullets?.[index] || {}),
+    })),
+    image: heroRow?.image || defaults.image,
+    imageAlt: heroRow?.image_alt_text || defaults.imageAlt,
+    imageMediaId: heroRow?.image_media_id || null,
+    collectionTitle: collectionContent.collectionTitle || defaults.collectionTitle,
+    allProductsLabel: collectionContent.allProductsLabel || defaults.allProductsLabel,
+    thanks: {
+      ...defaults.thanks,
+      ...thanksContent,
+      cta: {
+        ...defaults.thanks.cta,
+        ...(thanksContent.cta || {}),
+      },
+    },
+  };
+};
+
+export async function getShopPageContent() {
+  return mergeShopPageContent(await getPageSections('shop'));
+}
+
 const upsertSection = async (pageKey, sectionKey, payload) => {
   const { data, error } = await supabase
     .from('page_sections')
@@ -816,4 +858,38 @@ export async function saveContactPageContent(contactPage) {
   ]);
 
   return getContactPageContent();
+}
+
+export async function saveShopPageContent(shopPage) {
+  await Promise.all([
+    upsertSection('shop', 'hero', {
+      content: {
+        eyebrow: shopPage.eyebrow,
+        title: shopPage.title,
+        body: shopPage.body,
+        cta: shopPage.cta,
+        bullets: shopPage.bullets,
+      },
+      image: shopPage.image || null,
+      image_media_id: shopPage.imageMediaId || null,
+      image_alt_text: shopPage.imageAlt || null,
+    }),
+    upsertSection('shop', 'collection', {
+      content: {
+        collectionTitle: shopPage.collectionTitle,
+        allProductsLabel: shopPage.allProductsLabel,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('shop', 'thanks', {
+      content: shopPage.thanks,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+  ]);
+
+  return getShopPageContent();
 }

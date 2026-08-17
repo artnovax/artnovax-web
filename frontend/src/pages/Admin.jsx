@@ -50,6 +50,7 @@ import {
   saveAppPage,
   saveGetInvolvedPage,
   saveContactPage,
+  saveShopPage,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -72,6 +73,7 @@ const emptyData = {
   appPage: null,
   getInvolvedPage: null,
   contactPage: null,
+  shopPage: null,
   waitlist: [],
   messages: [],
   events: [],
@@ -290,6 +292,12 @@ const Admin = () => {
                 onClick={() => setTab("contactpage")}
               />
               <TabPill
+                icon={PanelsTopLeft}
+                label="Shop Page"
+                active={tab === "shoppage"}
+                onClick={() => setTab("shoppage")}
+              />
+              <TabPill
                 icon={Calendar}
                 label={`Events (${data.events.length})`}
                 active={tab === "events"}
@@ -388,6 +396,9 @@ const Admin = () => {
               )}
               {tab === "contactpage" && data.contactPage && (
                 <ContactPageManager content={data.contactPage} onChange={refresh} />
+              )}
+              {tab === "shoppage" && data.shopPage && (
+                <ShopPageManager content={data.shopPage} onChange={refresh} />
               )}
               {tab === "events" && (
                 <EventsManager rows={data.events} onChange={refresh} />
@@ -3161,6 +3172,279 @@ const ContactPageManager = ({ content, onChange }) => {
         >
           <Save className="w-4 h-4" />
           {saving ? "Saving…" : "Save Contact page"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// ---- Shop Landing Page Manager ----
+const ShopPageManager = ({ content, onChange }) => {
+  const [form, setForm] = useState(() => JSON.parse(JSON.stringify(content)));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm(JSON.parse(JSON.stringify(content)));
+  }, [content]);
+
+  const updateHeroCta = (patch) => setForm((current) => ({
+    ...current,
+    cta: { ...current.cta, ...patch },
+  }));
+
+  const updateBullet = (index, patch) => setForm((current) => ({
+    ...current,
+    bullets: current.bullets.map((bullet, bulletIndex) =>
+      bulletIndex === index ? { ...bullet, ...patch } : bullet
+    ),
+  }));
+
+  const updateThanks = (patch) => setForm((current) => ({
+    ...current,
+    thanks: { ...current.thanks, ...patch },
+  }));
+
+  const updateThanksCta = (patch) => setForm((current) => ({
+    ...current,
+    thanks: {
+      ...current.thanks,
+      cta: { ...current.thanks.cta, ...patch },
+    },
+  }));
+
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await saveShopPage(form);
+      onChange();
+      alert("Shop landing page content saved.");
+    } catch (error) {
+      alert(error?.message || "Shop page save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+            Shop Landing Page Content
+          </h3>
+          <p className="mt-1 text-ink/60 text-[13px]">
+            Individual products, prices, categories, availability, and galleries remain managed from the Products tab.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="/shop"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[13px] font-semibold hover:bg-burgundy/10 inline-flex items-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View Shop page
+          </a>
+          <button
+            disabled={saving}
+            className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "Saving…" : "Save Shop page"}
+          </button>
+        </div>
+      </div>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Hero</h4>
+        </div>
+        <Field label="Eyebrow">
+          <input
+            required
+            value={form.eyebrow || ""}
+            onChange={(event) => setForm({ ...form, eyebrow: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Title (line breaks are preserved)">
+          <textarea
+            required
+            rows={3}
+            value={form.title || ""}
+            onChange={(event) => setForm({ ...form, title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Introduction">
+            <textarea
+              required
+              rows={3}
+              value={form.body || ""}
+              onChange={(event) => setForm({ ...form, body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <Field label="Hero button label">
+          <input
+            required
+            value={form.cta?.label || ""}
+            onChange={(event) => updateHeroCta({ label: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Hero button destination">
+          <input
+            required
+            value={form.cta?.href || ""}
+            onChange={(event) => updateHeroCta({ href: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">Hero image</span>
+          <div className="mt-1">
+            <MediaPicker
+              value={form.image ? {
+                id: form.imageMediaId,
+                public_url: form.image,
+                alt_text: form.imageAlt,
+                title: "Shop page hero",
+              } : null}
+              onChange={(asset) => setForm({
+                ...form,
+                image: asset.public_url,
+                imageAlt: asset.alt_text || "",
+                imageMediaId: asset.id,
+              })}
+              buttonLabel={form.image ? "Replace hero image" : "Choose hero image"}
+            />
+          </div>
+          {form.image && !form.imageMediaId && (
+            <p className="mt-2 text-amber-800 text-[12px]">
+              This page still uses a legacy hero URL. Choose a library image to make it deletion-protected.
+            </p>
+          )}
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Hero image alt text">
+            <input
+              required={!!form.image}
+              value={form.imageAlt || ""}
+              onChange={(event) => setForm({ ...form, imageAlt: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <div>
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Hero impact points</h4>
+          <p className="mt-1 text-ink/60 text-[12px]">The three existing icons remain fixed.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {form.bullets.map((bullet, index) => (
+            <div key={bullet.icon} className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+              <Field label="Title">
+                <input
+                  required
+                  value={bullet.title || ""}
+                  onChange={(event) => updateBullet(index, { title: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Supporting text">
+                <textarea
+                  required
+                  rows={3}
+                  value={bullet.sub || ""}
+                  onChange={(event) => updateBullet(index, { sub: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Product collection heading</h4>
+          <p className="mt-1 text-ink/60 text-[12px]">Category filters are generated from active product records.</p>
+        </div>
+        <Field label="Collection title">
+          <input
+            required
+            value={form.collectionTitle || ""}
+            onChange={(event) => setForm({ ...form, collectionTitle: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="All-products filter label">
+          <input
+            required
+            value={form.allProductsLabel || ""}
+            onChange={(event) => setForm({ ...form, allProductsLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Thank-you panel</h4>
+        </div>
+        <Field label="Title">
+          <input
+            required
+            value={form.thanks.title || ""}
+            onChange={(event) => updateThanks({ title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Button label">
+          <input
+            required
+            value={form.thanks.cta?.label || ""}
+            onChange={(event) => updateThanksCta({ label: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Supporting text">
+            <textarea
+              required
+              rows={3}
+              value={form.thanks.body || ""}
+              onChange={(event) => updateThanks({ body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Button destination">
+            <input
+              required
+              value={form.thanks.cta?.href || ""}
+              onChange={(event) => updateThanksCta({ href: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <button
+          disabled={saving}
+          className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving…" : "Save Shop page"}
         </button>
       </div>
     </form>
