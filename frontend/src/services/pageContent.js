@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { HERO, MISSION_BAND, WHAT_WE_DO } from '../mock';
+import { ABOUT } from '../mock_pages';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -36,6 +37,8 @@ export const defaultHomePageContent = () => ({
   },
   whatWeDo: clone(WHAT_WE_DO),
 });
+
+export const defaultAboutPageContent = () => clone(ABOUT);
 
 const mergeHomePageContent = (rows = []) => {
   const defaults = defaultHomePageContent();
@@ -99,11 +102,60 @@ export async function getHomePageContent() {
   return mergeHomePageContent(await getPageSections('home'));
 }
 
-const upsertSection = async (sectionKey, payload) => {
+const mergeAboutPageContent = (rows = []) => {
+  const defaults = defaultAboutPageContent();
+  const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
+  const heroRow = bySection.hero;
+  const heroContent = heroRow?.content || {};
+  const pillarsContent = bySection.pillars?.content || {};
+  const foundersContent = bySection.founders?.content || {};
+  const statsContent = bySection.stats?.content || {};
+  const ctaContent = bySection.cta?.content || {};
+
+  return {
+    ...defaults,
+    ...heroContent,
+    image: heroRow?.image || defaults.image,
+    imageAlt: heroRow?.image_alt_text || defaults.imageAlt,
+    imageMediaId: heroRow?.image_media_id || null,
+    pillars: defaults.pillars.map((pillar, index) => ({
+      ...pillar,
+      ...(pillarsContent.items?.[index] || {}),
+      list: pillarsContent.items?.[index]?.list || pillar.list,
+    })),
+    founders: {
+      ...defaults.founders,
+      ...foundersContent,
+      people: defaults.founders.people,
+    },
+    stats: {
+      ...defaults.stats,
+      ...statsContent,
+      items: defaults.stats.items.map((item, index) => ({
+        ...item,
+        ...(statsContent.items?.[index] || {}),
+      })),
+    },
+    cta: {
+      ...defaults.cta,
+      ...ctaContent,
+      button: {
+        ...defaults.cta.button,
+        ...(ctaContent.button || {}),
+      },
+    },
+  };
+};
+
+export async function getAboutPageContent() {
+  return mergeAboutPageContent(await getPageSections('about'));
+}
+
+const upsertSection = async (pageKey, sectionKey, payload) => {
   const { data, error } = await supabase
     .from('page_sections')
     .upsert({
-      page_key: 'home',
+      page_key: pageKey,
       section_key: sectionKey,
       ...payload,
     }, { onConflict: 'page_key,section_key' })
@@ -119,7 +171,7 @@ export async function saveHomePageContent(homePage) {
   const whatWeDo = homePage.whatWeDo;
 
   await Promise.all([
-    upsertSection('hero', {
+    upsertSection('home', 'hero', {
       content: {
         eyebrow: hero.eyebrow,
         title: hero.title,
@@ -132,7 +184,7 @@ export async function saveHomePageContent(homePage) {
       image_media_id: hero.imageMediaId || null,
       image_alt_text: hero.imageAlt || null,
     }),
-    upsertSection('mission', {
+    upsertSection('home', 'mission', {
       content: {
         headlineMarkup: mission.headlineMarkup,
         subhead: mission.subhead,
@@ -141,7 +193,7 @@ export async function saveHomePageContent(homePage) {
       image_media_id: null,
       image_alt_text: null,
     }),
-    upsertSection('what_we_do', {
+    upsertSection('home', 'what_we_do', {
       content: {
         eyebrow: whatWeDo.eyebrow,
         title: whatWeDo.title,
@@ -154,4 +206,51 @@ export async function saveHomePageContent(homePage) {
   ]);
 
   return getHomePageContent();
+}
+
+export async function saveAboutPageContent(aboutPage) {
+  await Promise.all([
+    upsertSection('about', 'hero', {
+      content: {
+        eyebrow: aboutPage.eyebrow,
+        title: aboutPage.title,
+        body: aboutPage.body,
+      },
+      image: aboutPage.image || null,
+      image_media_id: aboutPage.imageMediaId || null,
+      image_alt_text: aboutPage.imageAlt || null,
+    }),
+    upsertSection('about', 'pillars', {
+      content: { items: aboutPage.pillars },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('about', 'founders', {
+      content: {
+        eyebrow: aboutPage.founders.eyebrow,
+        title: aboutPage.founders.title,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('about', 'stats', {
+      content: {
+        title: aboutPage.stats.title,
+        items: aboutPage.stats.items,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('about', 'cta', {
+      content: aboutPage.cta,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+  ]);
+
+  return getAboutPageContent();
 }

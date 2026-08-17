@@ -43,6 +43,7 @@ import {
   updateNewsletterIssue,
   deleteNewsletterIssue,
   saveHomepage,
+  saveAboutPage,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -58,6 +59,7 @@ const emptyData = {
   subscribers: [],
   newsletters: [],
   homePage: null,
+  aboutPage: null,
   waitlist: [],
   messages: [],
   events: [],
@@ -234,6 +236,12 @@ const Admin = () => {
                 onClick={() => setTab("homepage")}
               />
               <TabPill
+                icon={PanelsTopLeft}
+                label="About Page"
+                active={tab === "aboutpage"}
+                onClick={() => setTab("aboutpage")}
+              />
+              <TabPill
                 icon={Calendar}
                 label={`Events (${data.events.length})`}
                 active={tab === "events"}
@@ -311,6 +319,9 @@ const Admin = () => {
               {tab === "media" && <MediaLibrary />}
               {tab === "homepage" && data.homePage && (
                 <HomepageManager content={data.homePage} onChange={refresh} />
+              )}
+              {tab === "aboutpage" && data.aboutPage && (
+                <AboutPageManager content={data.aboutPage} onChange={refresh} />
               )}
               {tab === "events" && (
                 <EventsManager rows={data.events} onChange={refresh} />
@@ -843,6 +854,327 @@ const HomepageManager = ({ content, onChange }) => {
         >
           <Save className="w-4 h-4" />
           {saving ? "Saving…" : "Save homepage"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// ---- About Page Manager ----
+const AboutPageManager = ({ content, onChange }) => {
+  const [form, setForm] = useState(() => JSON.parse(JSON.stringify(content)));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm(JSON.parse(JSON.stringify(content)));
+  }, [content]);
+
+  const updatePillar = (index, patch) => setForm((current) => ({
+    ...current,
+    pillars: current.pillars.map((pillar, pillarIndex) =>
+      pillarIndex === index ? { ...pillar, ...patch } : pillar
+    ),
+  }));
+
+  const updateFounders = (patch) => setForm((current) => ({
+    ...current,
+    founders: { ...current.founders, ...patch },
+  }));
+
+  const updateStat = (index, patch) => setForm((current) => ({
+    ...current,
+    stats: {
+      ...current.stats,
+      items: current.stats.items.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...patch } : item
+      ),
+    },
+  }));
+
+  const updateCta = (patch) => setForm((current) => ({
+    ...current,
+    cta: { ...current.cta, ...patch },
+  }));
+
+  const updateCtaButton = (patch) => setForm((current) => ({
+    ...current,
+    cta: {
+      ...current.cta,
+      button: { ...current.cta.button, ...patch },
+    },
+  }));
+
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await saveAboutPage(form);
+      onChange();
+      alert("About page content saved.");
+    } catch (error) {
+      alert(error?.message || "About page save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+            About Page Content
+          </h3>
+          <p className="mt-1 text-ink/60 text-[13px]">
+            Team member profiles remain managed from the Team tab. These changes become public immediately.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="/about"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[13px] font-semibold hover:bg-burgundy/10 inline-flex items-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View About page
+          </a>
+          <button
+            disabled={saving}
+            className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "Saving…" : "Save About page"}
+          </button>
+        </div>
+      </div>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Hero</h4>
+        </div>
+        <Field label="Eyebrow">
+          <input
+            required
+            value={form.eyebrow || ""}
+            onChange={(event) => setForm({ ...form, eyebrow: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Title (line breaks are preserved)">
+          <textarea
+            required
+            rows={3}
+            value={form.title || ""}
+            onChange={(event) => setForm({ ...form, title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Introduction">
+            <textarea
+              required
+              rows={3}
+              value={form.body || ""}
+              onChange={(event) => setForm({ ...form, body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="md:col-span-2">
+          <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">
+            Hero image
+          </span>
+          <div className="mt-1">
+            <MediaPicker
+              value={form.image ? {
+                id: form.imageMediaId,
+                public_url: form.image,
+                alt_text: form.imageAlt,
+                title: "About page hero",
+              } : null}
+              onChange={(asset) => setForm({
+                ...form,
+                image: asset.public_url,
+                imageAlt: asset.alt_text || "",
+                imageMediaId: asset.id,
+              })}
+              buttonLabel={form.image ? "Replace hero image" : "Choose hero image"}
+            />
+          </div>
+          {form.image && !form.imageMediaId && (
+            <p className="mt-2 text-amber-800 text-[12px]">
+              This page still uses its legacy image URL. Choose a library image to make it deletion-protected.
+            </p>
+          )}
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Hero image alt text">
+            <input
+              required={!!form.image}
+              value={form.imageAlt || ""}
+              onChange={(event) => setForm({ ...form, imageAlt: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">
+          Mission, vision and values
+        </h4>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {form.pillars.map((pillar, index) => (
+            <div key={pillar.icon} className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+              <Field label="Title">
+                <input
+                  required
+                  value={pillar.title || ""}
+                  onChange={(event) => updatePillar(index, { title: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              {pillar.list ? (
+                <Field label="Values (one per line)">
+                  <textarea
+                    required
+                    rows={6}
+                    value={pillar.list.join("\n")}
+                    onChange={(event) => updatePillar(index, {
+                      list: event.target.value.split("\n").map((value) => value.trim()).filter(Boolean),
+                    })}
+                    className={inputCls}
+                  />
+                </Field>
+              ) : (
+                <Field label="Description">
+                  <textarea
+                    required
+                    rows={6}
+                    value={pillar.body || ""}
+                    onChange={(event) => updatePillar(index, { body: event.target.value })}
+                    className={inputCls}
+                  />
+                </Field>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Team section heading</h4>
+          <p className="mt-1 text-ink/55 text-[11.5px]">Edit individual people from the separate Team tab.</p>
+        </div>
+        <Field label="Eyebrow">
+          <input
+            required
+            value={form.founders.eyebrow || ""}
+            onChange={(event) => updateFounders({ eyebrow: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Title">
+          <input
+            required
+            value={form.founders.title || ""}
+            onChange={(event) => updateFounders({ title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Impact band</h4>
+        <Field label="Band title (line breaks are preserved)">
+          <textarea
+            required
+            rows={2}
+            value={form.stats.title || ""}
+            onChange={(event) => setForm({
+              ...form,
+              stats: { ...form.stats, title: event.target.value },
+            })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {form.stats.items.map((item, index) => (
+            <div key={item.icon} className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+              <Field label="Value">
+                <input
+                  required
+                  value={item.value || ""}
+                  onChange={(event) => updateStat(index, { value: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Label (line breaks are preserved)">
+                <textarea
+                  required
+                  rows={2}
+                  value={item.label || ""}
+                  onChange={(event) => updateStat(index, { label: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Closing call to action</h4>
+        </div>
+        <Field label="Title">
+          <input
+            required
+            value={form.cta.title || ""}
+            onChange={(event) => updateCta({ title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Button label">
+          <input
+            required
+            value={form.cta.button?.label || ""}
+            onChange={(event) => updateCtaButton({ label: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Supporting text">
+            <textarea
+              required
+              rows={2}
+              value={form.cta.body || ""}
+              onChange={(event) => updateCta({ body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Button destination">
+            <input
+              required
+              value={form.cta.button?.href || ""}
+              onChange={(event) => updateCtaButton({ href: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <button
+          disabled={saving}
+          className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving…" : "Save About page"}
         </button>
       </div>
     </form>
