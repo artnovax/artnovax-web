@@ -33,7 +33,7 @@ const EventCard = ({ ev }) => (
     >
       <img
         src={ev.img}
-        alt={ev.title}
+        alt={ev.imgAlt || ev.title}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
       />
       {ev.featured && (
@@ -173,7 +173,7 @@ const Events = () => {
                 <div className="relative aspect-square overflow-hidden bg-ivory-200">
                   <img
                     src={f.img}
-                    alt={f.title}
+                    alt={f.imgAlt || f.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                   />
                 </div>

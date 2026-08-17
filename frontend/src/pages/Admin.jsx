@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import MediaLibrary from "../components/admin/MediaLibrary";
+import MediaLibrary, { MediaPicker } from "../components/admin/MediaLibrary";
 import {
   signInAdmin,
   signOutAdmin,
@@ -515,6 +515,8 @@ const EventsManager = ({ rows, onChange }) => {
       location: "",
       body: "",
       img: "",
+      imgAlt: "",
+      posterMediaId: null,
       status: "upcoming",
       featured: false,
       partners: "",
@@ -631,10 +633,53 @@ const EventsManager = ({ rows, onChange }) => {
               <option value="past">Past</option>
             </select>
           </Field>
-          <Field label="Image URL">
+          <div className="md:col-span-2">
+            <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">
+              Event poster
+            </span>
+            <div className="mt-1 flex items-end gap-2 flex-wrap">
+              <MediaPicker
+                value={form.img ? {
+                  id: form.posterMediaId,
+                  public_url: form.img,
+                  alt_text: form.imgAlt,
+                  title: form.title ? `${form.title} poster` : "Event poster",
+                } : null}
+                onChange={(asset) => setForm({
+                  ...form,
+                  img: asset.public_url,
+                  imgAlt: asset.alt_text || "",
+                  posterMediaId: asset.id,
+                })}
+                buttonLabel={form.img ? "Replace poster" : "Choose poster"}
+              />
+              {form.img && (
+                <button
+                  type="button"
+                  onClick={() => setForm({
+                    ...form,
+                    img: "",
+                    imgAlt: "",
+                    posterMediaId: null,
+                  })}
+                  className="rounded-full ring-1 ring-ivory-300 px-4 py-2 text-[13px] font-semibold text-ink/70 hover:bg-ivory-200"
+                >
+                  Remove poster
+                </button>
+              )}
+            </div>
+            {form.img && !form.posterMediaId && (
+              <p className="mt-2 text-amber-800 text-[12px]">
+                This event still uses a legacy image URL. Choose a library image to protect it from accidental deletion.
+              </p>
+            )}
+          </div>
+          <Field label="Poster alt text">
             <input
-              value={form.img || ""}
-              onChange={(e) => setForm({ ...form, img: e.target.value })}
+              required={!!form.img}
+              value={form.imgAlt || ""}
+              onChange={(e) => setForm({ ...form, imgAlt: e.target.value })}
+              placeholder="Describe the poster image"
               className={inputCls}
             />
           </Field>

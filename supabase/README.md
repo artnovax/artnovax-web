@@ -12,6 +12,17 @@ Run the SQL scripts in **Supabase Dashboard → SQL Editor** in this order. Each
 8. `sql/07_contact.sql`
 9. `sql/08_partners.sql`
 10. `sql/09_products.sql`
+11. `sql/10_payments.sql`
+12. `sql/11_mpesa.sql`
+13. `sql/12_email_delivery.sql`
+14. `sql/13_email_workflows.sql`
+15. `sql/14_lockdown_public_submissions.sql`
+16. `sql/15_media_library.sql`
+17. `sql/16_event_media.sql`
+
+The Media Library is introduced in `15_media_library.sql`. Run
+`16_event_media.sql` afterward to let events reference library posters and to
+prevent deletion of poster images that are still attached to an event.
 
 ## First admin
 

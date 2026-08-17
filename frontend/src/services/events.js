@@ -6,6 +6,8 @@ function toFrontendEvent(row) {
     ...row,
     date: row.date_text ?? row.date ?? '',
     img: row.image_path ?? row.img ?? null,
+    imgAlt: row.image_alt_text ?? row.imgAlt ?? '',
+    posterMediaId: row.poster_media_id ?? row.posterMediaId ?? null,
   };
 }
 
@@ -22,6 +24,8 @@ function toDatabaseEvent(event) {
     tags: normalizeList(event.tags),
     body: event.body || null,
     image_path: event.img ?? event.image_path ?? null,
+    image_alt_text: event.imgAlt ?? event.image_alt_text ?? null,
+    poster_media_id: event.posterMediaId ?? event.poster_media_id ?? null,
     status: event.status || 'upcoming',
     featured: !!event.featured,
     partners: normalizeList(event.partners),
