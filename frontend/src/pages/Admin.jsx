@@ -819,6 +819,8 @@ const ArticlesManager = ({ rows, onChange }) => {
       read: "6 min read",
       updated: "",
       hero: "",
+      heroAlt: "",
+      heroMediaId: null,
       lead: "",
       bodyText: "",
       tags: "",
@@ -895,6 +897,8 @@ const ArticlesManager = ({ rows, onChange }) => {
       read: form.read,
       updated: form.updated,
       hero: form.hero,
+      heroAlt: form.heroAlt,
+      heroMediaId: form.heroMediaId,
       lead: form.lead,
       blocks: parseBody(form.bodyText),
       tags: (form.tags || "")
@@ -984,10 +988,53 @@ const ArticlesManager = ({ rows, onChange }) => {
               className={inputCls}
             />
           </Field>
-          <Field label="Hero image URL">
+          <div className="md:col-span-2">
+            <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">
+              Hero image
+            </span>
+            <div className="mt-1 flex items-end gap-2 flex-wrap">
+              <MediaPicker
+                value={form.hero ? {
+                  id: form.heroMediaId,
+                  public_url: form.hero,
+                  alt_text: form.heroAlt,
+                  title: form.title ? `${form.title} hero` : "Article hero",
+                } : null}
+                onChange={(asset) => setForm({
+                  ...form,
+                  hero: asset.public_url,
+                  heroAlt: asset.alt_text || "",
+                  heroMediaId: asset.id,
+                })}
+                buttonLabel={form.hero ? "Replace hero" : "Choose hero"}
+              />
+              {form.hero && (
+                <button
+                  type="button"
+                  onClick={() => setForm({
+                    ...form,
+                    hero: "",
+                    heroAlt: "",
+                    heroMediaId: null,
+                  })}
+                  className="rounded-full ring-1 ring-ivory-300 px-4 py-2 text-[13px] font-semibold text-ink/70 hover:bg-ivory-200"
+                >
+                  Remove hero
+                </button>
+              )}
+            </div>
+            {form.hero && !form.heroMediaId && (
+              <p className="mt-2 text-amber-800 text-[12px]">
+                This article still uses a legacy hero URL. Choose a library image to protect it from accidental deletion.
+              </p>
+            )}
+          </div>
+          <Field label="Hero alt text">
             <input
-              value={form.hero || ""}
-              onChange={(e) => setForm({ ...form, hero: e.target.value })}
+              required={!!form.hero}
+              value={form.heroAlt || ""}
+              onChange={(e) => setForm({ ...form, heroAlt: e.target.value })}
+              placeholder="Describe the article hero image"
               className={inputCls}
             />
           </Field>

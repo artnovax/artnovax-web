@@ -212,7 +212,7 @@ const Research = () => {
               <div className="aspect-[16/10] bg-ivory-200 overflow-hidden">
                 <img
                   src={a.hero}
-                  alt={a.title}
+                  alt={a.heroAlt || a.title}
                   className="w-full h-full object-cover"
                 />
               </div>

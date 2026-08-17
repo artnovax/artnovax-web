@@ -71,14 +71,20 @@ const toFrontendFounder = (row) => ({
 export async function getArticles() {
   const { data, error } = await supabase.from('articles').select('*').eq('status', 'published').order('created_at', { ascending: false });
   if (error) throw error;
-  return data || [];
+  return (data || []).map(toFrontendArticle);
 }
 
 export async function getArticle(slug) {
   const { data, error } = await supabase.from('articles').select('*').eq('slug', slug).single();
   if (error) throw error;
-  return data;
+  return toFrontendArticle(data);
 }
+
+const toFrontendArticle = (row) => ({
+  ...row,
+  heroAlt: row.hero_alt_text ?? row.heroAlt ?? '',
+  heroMediaId: row.hero_media_id ?? row.heroMediaId ?? null,
+});
 
 export async function getProducts({ includeInactive = false } = {}) {
   let q = supabase.from('products').select('*').order('created_at', { ascending: false });
@@ -110,7 +116,9 @@ export const dbPayloads = {
   }),
   article: (a) => ({
     slug: a.slug || slugify(a.title), topic: a.topic, title: a.title, excerpt: a.excerpt || null,
-    read: a.read || '6 min read', updated: a.updated || null, hero: a.hero || null, lead: a.lead || null,
+    read: a.read || '6 min read', updated: a.updated || null, hero: a.hero || null,
+    hero_alt_text: a.heroAlt ?? a.hero_alt_text ?? null,
+    hero_media_id: a.heroMediaId ?? a.hero_media_id ?? null, lead: a.lead || null,
     blocks: a.blocks || [], takeaways: normalizeList(a.takeaways), tags: normalizeList(a.tags), status: a.status || 'published',
   }),
   product: (p) => ({

@@ -172,7 +172,7 @@ const ArticleDetail = () => {
         <div className="rounded-3xl overflow-hidden aspect-[16/9] md:aspect-[21/9] bg-ivory-200">
           <img
             src={article.hero}
-            alt={article.title}
+            alt={article.heroAlt || article.title}
             className="w-full h-full object-cover"
           />
         </div>
