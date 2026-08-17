@@ -52,6 +52,7 @@ import {
   saveContactPage,
   saveShopPage,
   saveSupportPage,
+  saveVolunteerPage,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -76,6 +77,7 @@ const emptyData = {
   contactPage: null,
   shopPage: null,
   supportPage: null,
+  volunteerPage: null,
   waitlist: [],
   messages: [],
   events: [],
@@ -306,6 +308,12 @@ const Admin = () => {
                 onClick={() => setTab("supportpage")}
               />
               <TabPill
+                icon={PanelsTopLeft}
+                label="Volunteer Pages"
+                active={tab === "volunteerpage"}
+                onClick={() => setTab("volunteerpage")}
+              />
+              <TabPill
                 icon={Calendar}
                 label={`Events (${data.events.length})`}
                 active={tab === "events"}
@@ -410,6 +418,9 @@ const Admin = () => {
               )}
               {tab === "supportpage" && data.supportPage && (
                 <SupportPageManager content={data.supportPage} onChange={refresh} />
+              )}
+              {tab === "volunteerpage" && data.volunteerPage && (
+                <VolunteerPageManager content={data.volunteerPage} onChange={refresh} />
               )}
               {tab === "events" && (
                 <EventsManager rows={data.events} onChange={refresh} />
@@ -3774,6 +3785,318 @@ const SupportPageManager = ({ content, onChange }) => {
         >
           <Save className="w-4 h-4" />
           {saving ? "Saving…" : "Save Support page"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// ---- Volunteer Pages Manager ----
+const VolunteerPageManager = ({ content, onChange }) => {
+  const [form, setForm] = useState(() => JSON.parse(JSON.stringify(content)));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm(JSON.parse(JSON.stringify(content)));
+  }, [content]);
+
+  const updateLanding = (patch) => setForm((current) => ({
+    ...current,
+    landing: { ...current.landing, ...patch },
+  }));
+
+  const updateApplication = (patch) => setForm((current) => ({
+    ...current,
+    application: { ...current.application, ...patch },
+  }));
+
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await saveVolunteerPage(form);
+      onChange();
+      alert("Volunteer page content saved.");
+    } catch (error) {
+      alert(error?.message || "Volunteer page save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+            Volunteer Landing and Application Content
+          </h3>
+          <p className="mt-1 text-ink/60 text-[13px]">
+            Role content and custom application questions remain managed from Volunteer Roles. Submitted applications remain under Applications.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="/get-involved/volunteer"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[13px] font-semibold hover:bg-burgundy/10 inline-flex items-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View Volunteer page
+          </a>
+          <button
+            disabled={saving}
+            className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "Saving…" : "Save Volunteer pages"}
+          </button>
+        </div>
+      </div>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Volunteer landing page</h4>
+        </div>
+        <Field label="Eyebrow">
+          <input
+            required
+            value={form.landing.eyebrow || ""}
+            onChange={(event) => updateLanding({ eyebrow: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Title (line breaks are preserved)">
+          <textarea
+            required
+            rows={3}
+            value={form.landing.title || ""}
+            onChange={(event) => updateLanding({ title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Introduction">
+            <textarea
+              required
+              rows={3}
+              value={form.landing.body || ""}
+              onChange={(event) => updateLanding({ body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <Field label="Loading message">
+          <input
+            required
+            value={form.landing.loadingText || ""}
+            onChange={(event) => updateLanding({ loadingText: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Default department label">
+          <input
+            required
+            value={form.landing.defaultDepartmentLabel || ""}
+            onChange={(event) => updateLanding({ defaultDepartmentLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Empty-state text before contact link">
+            <textarea
+              required
+              rows={2}
+              value={form.landing.emptyPrefix || ""}
+              onChange={(event) => updateLanding({ emptyPrefix: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <Field label="Empty-state contact label">
+          <input
+            required
+            value={form.landing.emptyContactLabel || ""}
+            onChange={(event) => updateLanding({ emptyContactLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Empty-state contact destination">
+          <input
+            required
+            value={form.landing.emptyContactHref || ""}
+            onChange={(event) => updateLanding({ emptyContactHref: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Text after contact link">
+          <input
+            value={form.landing.emptySuffix || ""}
+            onChange={(event) => updateLanding({ emptySuffix: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Apply button label">
+          <input
+            required
+            value={form.landing.applyLabel || ""}
+            onChange={(event) => updateLanding({ applyLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="View-details link label">
+          <input
+            required
+            value={form.landing.detailsLabel || ""}
+            onChange={(event) => updateLanding({ detailsLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Volunteer application screen</h4>
+        </div>
+        <Field label="Loading message">
+          <input
+            required
+            value={form.application.loadingText || ""}
+            onChange={(event) => updateApplication({ loadingText: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Role-not-found title">
+          <input
+            required
+            value={form.application.notFoundTitle || ""}
+            onChange={(event) => updateApplication({ notFoundTitle: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Back-to-roles label">
+          <input
+            required
+            value={form.application.backLabel || ""}
+            onChange={(event) => updateApplication({ backLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Form title">
+          <input
+            required
+            value={form.application.formTitle || ""}
+            onChange={(event) => updateApplication({ formTitle: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Responsibilities heading">
+          <input
+            required
+            value={form.application.responsibilitiesLabel || ""}
+            onChange={(event) => updateApplication({ responsibilitiesLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Requirements heading">
+          <input
+            required
+            value={form.application.requirementsLabel || ""}
+            onChange={(event) => updateApplication({ requirementsLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Name placeholder">
+          <input
+            required
+            value={form.application.namePlaceholder || ""}
+            onChange={(event) => updateApplication({ namePlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Email placeholder">
+          <input
+            required
+            value={form.application.emailPlaceholder || ""}
+            onChange={(event) => updateApplication({ emailPlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Phone placeholder">
+          <input
+            required
+            value={form.application.phonePlaceholder || ""}
+            onChange={(event) => updateApplication({ phonePlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Select-field placeholder">
+          <input
+            required
+            value={form.application.selectPlaceholder || ""}
+            onChange={(event) => updateApplication({ selectPlaceholder: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Submit button label">
+          <input
+            required
+            value={form.application.submitLabel || ""}
+            onChange={(event) => updateApplication({ submitLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Submitting label">
+          <input
+            required
+            value={form.application.submittingLabel || ""}
+            onChange={(event) => updateApplication({ submittingLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Application confirmation</h4>
+        </div>
+        <Field label="Title">
+          <input
+            required
+            value={form.application.successTitle || ""}
+            onChange={(event) => updateApplication({ successTitle: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Button label">
+          <input
+            required
+            value={form.application.successButtonLabel || ""}
+            onChange={(event) => updateApplication({ successButtonLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Confirmation text">
+            <textarea
+              required
+              rows={3}
+              value={form.application.successBody || ""}
+              onChange={(event) => updateApplication({ successBody: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <button
+          disabled={saving}
+          className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving…" : "Save Volunteer pages"}
         </button>
       </div>
     </form>

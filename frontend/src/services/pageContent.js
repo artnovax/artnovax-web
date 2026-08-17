@@ -115,6 +115,39 @@ export const defaultSupportPageContent = () => ({
   },
 });
 
+export const defaultVolunteerPageContent = () => ({
+  landing: {
+    eyebrow: 'VOLUNTEER WITH US',
+    title: 'Bring your care.\nBring your craft.',
+    body: 'Explore open volunteer roles at ArtNovaX. Every role is designed so you can contribute meaningfully in just a few hours a week.',
+    loadingText: 'Loading roles…',
+    emptyPrefix: 'No open roles right now. Check back soon or send us a note via ',
+    emptyContactLabel: 'Contact',
+    emptyContactHref: '/contact',
+    emptySuffix: '.',
+    defaultDepartmentLabel: 'Volunteer',
+    applyLabel: 'Apply',
+    detailsLabel: 'View details',
+  },
+  application: {
+    loadingText: 'Loading…',
+    notFoundTitle: 'Role not found',
+    backLabel: 'All roles',
+    responsibilitiesLabel: 'RESPONSIBILITIES',
+    requirementsLabel: 'REQUIREMENTS',
+    formTitle: 'Application',
+    namePlaceholder: 'Full name *',
+    emailPlaceholder: 'Email *',
+    phonePlaceholder: 'Phone (optional)',
+    selectPlaceholder: 'Select…',
+    submitLabel: 'Submit application',
+    submittingLabel: 'Submitting…',
+    successTitle: 'Thank you — we’ve got your application.',
+    successBody: 'Our team reviews applications every week and will be in touch.',
+    successButtonLabel: 'See other roles',
+  },
+});
+
 const mergeHomePageContent = (rows = []) => {
   const defaults = defaultHomePageContent();
   const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
@@ -562,6 +595,26 @@ export async function getSupportPageContent() {
   return mergeSupportPageContent(await getPageSections('support'));
 }
 
+const mergeVolunteerPageContent = (rows = []) => {
+  const defaults = defaultVolunteerPageContent();
+  const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
+
+  return {
+    landing: {
+      ...defaults.landing,
+      ...(bySection.landing?.content || {}),
+    },
+    application: {
+      ...defaults.application,
+      ...(bySection.application?.content || {}),
+    },
+  };
+};
+
+export async function getVolunteerPageContent() {
+  return mergeVolunteerPageContent(await getPageSections('volunteer'));
+}
+
 const upsertSection = async (pageKey, sectionKey, payload) => {
   const { data, error } = await supabase
     .from('page_sections')
@@ -1000,4 +1053,23 @@ export async function saveSupportPageContent(supportPage) {
   ]);
 
   return getSupportPageContent();
+}
+
+export async function saveVolunteerPageContent(volunteerPage) {
+  await Promise.all([
+    upsertSection('volunteer', 'landing', {
+      content: volunteerPage.landing,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('volunteer', 'application', {
+      content: volunteerPage.application,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+  ]);
+
+  return getVolunteerPageContent();
 }

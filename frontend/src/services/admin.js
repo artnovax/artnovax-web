@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { createEvent, updateEvent, deleteEvent, getEvents } from './events';
 import { dbPayloads, getArticles, getFounders, getNewsletterIssues, getProducts } from './content';
-import { getAboutPageContent, getAppPageContent, getContactPageContent, getEventsPageContent, getGetInvolvedPageContent, getHomePageContent, getOurWorkPageContent, getResearchPageContent, getShopPageContent, getSupportPageContent, saveAboutPageContent, saveAppPageContent, saveContactPageContent, saveEventsPageContent, saveGetInvolvedPageContent, saveHomePageContent, saveOurWorkPageContent, saveResearchPageContent, saveShopPageContent, saveSupportPageContent } from './pageContent';
+import { getAboutPageContent, getAppPageContent, getContactPageContent, getEventsPageContent, getGetInvolvedPageContent, getHomePageContent, getOurWorkPageContent, getResearchPageContent, getShopPageContent, getSupportPageContent, getVolunteerPageContent, saveAboutPageContent, saveAppPageContent, saveContactPageContent, saveEventsPageContent, saveGetInvolvedPageContent, saveHomePageContent, saveOurWorkPageContent, saveResearchPageContent, saveShopPageContent, saveSupportPageContent, saveVolunteerPageContent } from './pageContent';
 
 export async function signInAdmin(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -31,7 +31,7 @@ const list = async (table, orderCol = 'created_at', ascending = false) => {
 };
 
 export async function loadAdminDashboard() {
-  const [subscribers, newsletters, waitlist, messages, events, articles, products, registrations, applicationsRaw, inquiries, roles, founders, homePage, aboutPage, ourWorkPage, eventsPage, researchPage, appPage, getInvolvedPage, contactPage, shopPage, supportPage] = await Promise.all([
+  const [subscribers, newsletters, waitlist, messages, events, articles, products, registrations, applicationsRaw, inquiries, roles, founders, homePage, aboutPage, ourWorkPage, eventsPage, researchPage, appPage, getInvolvedPage, contactPage, shopPage, supportPage, volunteerPage] = await Promise.all([
     list('newsletter_subscribers', 'subscribed_at'),
     getNewsletterIssues({ includeDrafts: true }),
     list('app_waitlist'),
@@ -54,9 +54,10 @@ export async function loadAdminDashboard() {
     getContactPageContent(),
     getShopPageContent(),
     getSupportPageContent(),
+    getVolunteerPageContent(),
   ]);
   const applications = applicationsRaw.map((a) => ({ ...a, role_title: a.volunteer_roles?.title, role_slug: a.volunteer_roles?.slug }));
-  return { subscribers, newsletters, waitlist, messages, events, articles, products, registrations, applications, inquiries, roles, founders, homePage, aboutPage, ourWorkPage, eventsPage, researchPage, appPage, getInvolvedPage, contactPage, shopPage, supportPage };
+  return { subscribers, newsletters, waitlist, messages, events, articles, products, registrations, applications, inquiries, roles, founders, homePage, aboutPage, ourWorkPage, eventsPage, researchPage, appPage, getInvolvedPage, contactPage, shopPage, supportPage, volunteerPage };
 }
 
 const insert = async (table, payload) => { const { data, error } = await supabase.from(table).insert(payload).select().single(); if (error) throw error; return data; };
@@ -80,6 +81,7 @@ export const saveGetInvolvedPage = (payload) => saveGetInvolvedPageContent(paylo
 export const saveContactPage = (payload) => saveContactPageContent(payload);
 export const saveShopPage = (payload) => saveShopPageContent(payload);
 export const saveSupportPage = (payload) => saveSupportPageContent(payload);
+export const saveVolunteerPage = (payload) => saveVolunteerPageContent(payload);
 export const createProduct = (p) => insert('products', dbPayloads.product(p));
 export const updateProduct = (id, p) => update('products', id, dbPayloads.product(p));
 export const deleteProduct = (id) => remove('products', id);
