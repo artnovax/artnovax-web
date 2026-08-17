@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { HERO, MISSION_BAND, WHAT_WE_DO } from '../mock';
-import { ABOUT, OUR_WORK } from '../mock_pages';
+import { ABOUT, EVENTS, OUR_WORK } from '../mock_pages';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -48,6 +48,11 @@ export const defaultOurWorkPageContent = () => ({
     imgAlt: program.imgAlt || program.title.replace(/\n/g, ' '),
     imageMediaId: null,
   })),
+});
+
+export const defaultEventsPageContent = () => ({
+  ...clone(EVENTS),
+  imageMediaId: null,
 });
 
 const mergeHomePageContent = (rows = []) => {
@@ -214,6 +219,41 @@ export async function getOurWorkPageContent() {
   return mergeOurWorkPageContent(await getPageSections('our_work'));
 }
 
+const mergeEventsPageContent = (rows = []) => {
+  const defaults = defaultEventsPageContent();
+  const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
+  const heroRow = bySection.hero;
+  const heroContent = heroRow?.content || {};
+  const testimonialContent = bySection.testimonials?.content || {};
+  const ideaContent = bySection.idea_cta?.content || {};
+
+  return {
+    ...defaults,
+    ...heroContent,
+    primaryCta: { ...defaults.primaryCta, ...(heroContent.primaryCta || {}) },
+    secondaryCta: { ...defaults.secondaryCta, ...(heroContent.secondaryCta || {}) },
+    image: heroRow?.image || defaults.image,
+    imageAlt: heroRow?.image_alt_text || defaults.imageAlt,
+    imageMediaId: heroRow?.image_media_id || null,
+    testimonials: defaults.testimonials.map((testimonial, index) => ({
+      ...testimonial,
+      ...(testimonialContent.items?.[index] || {}),
+    })),
+    ideaCta: {
+      ...defaults.ideaCta,
+      ...ideaContent,
+      button: {
+        ...defaults.ideaCta.button,
+        ...(ideaContent.button || {}),
+      },
+    },
+  };
+};
+
+export async function getEventsPageContent() {
+  return mergeEventsPageContent(await getPageSections('events'));
+}
+
 const upsertSection = async (pageKey, sectionKey, payload) => {
   const { data, error } = await supabase
     .from('page_sections')
@@ -370,4 +410,35 @@ export async function saveOurWorkPageContent(ourWorkPage) {
   ]);
 
   return getOurWorkPageContent();
+}
+
+export async function saveEventsPageContent(eventsPage) {
+  await Promise.all([
+    upsertSection('events', 'hero', {
+      content: {
+        eyebrow: eventsPage.eyebrow,
+        title: eventsPage.title,
+        body: eventsPage.body,
+        primaryCta: eventsPage.primaryCta,
+        secondaryCta: eventsPage.secondaryCta,
+      },
+      image: eventsPage.image || null,
+      image_media_id: eventsPage.imageMediaId || null,
+      image_alt_text: eventsPage.imageAlt || null,
+    }),
+    upsertSection('events', 'testimonials', {
+      content: { items: eventsPage.testimonials },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('events', 'idea_cta', {
+      content: eventsPage.ideaCta,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+  ]);
+
+  return getEventsPageContent();
 }
