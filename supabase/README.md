@@ -41,8 +41,8 @@ Run `21_newsletter_issues.sql` to add draft/published newsletter archive issues,
 protected library hero images, and staff-only draft preview access. This script
 does not send email to subscribers.
 Run `22_page_sections.sql` to add reusable public page-content rows. The
-homepage and About page use this foundation, and each library hero image is
-protected from deletion while attached.
+homepage, About page, and Our Work page use this foundation. Library hero and
+programme-card images are protected from deletion while attached.
 
 ## First admin
 

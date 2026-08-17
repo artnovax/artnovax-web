@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { HERO, MISSION_BAND, WHAT_WE_DO } from '../mock';
-import { ABOUT } from '../mock_pages';
+import { ABOUT, OUR_WORK } from '../mock_pages';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -39,6 +39,16 @@ export const defaultHomePageContent = () => ({
 });
 
 export const defaultAboutPageContent = () => clone(ABOUT);
+
+export const defaultOurWorkPageContent = () => ({
+  ...clone(OUR_WORK),
+  imageMediaId: null,
+  programs: clone(OUR_WORK.programs).map((program) => ({
+    ...program,
+    imgAlt: program.imgAlt || program.title.replace(/\n/g, ' '),
+    imageMediaId: null,
+  })),
+});
 
 const mergeHomePageContent = (rows = []) => {
   const defaults = defaultHomePageContent();
@@ -151,6 +161,59 @@ export async function getAboutPageContent() {
   return mergeAboutPageContent(await getPageSections('about'));
 }
 
+const mergeOurWorkPageContent = (rows = []) => {
+  const defaults = defaultOurWorkPageContent();
+  const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
+  const heroRow = bySection.hero;
+  const heroContent = heroRow?.content || {};
+  const headingContent = bySection.programs_heading?.content || {};
+  const statsContent = bySection.stats?.content || {};
+  const partnerContent = bySection.partner_cta?.content || {};
+
+  return {
+    ...defaults,
+    ...heroContent,
+    cta: { ...defaults.cta, ...(heroContent.cta || {}) },
+    image: heroRow?.image || defaults.image,
+    imageAlt: heroRow?.image_alt_text || defaults.imageAlt,
+    imageMediaId: heroRow?.image_media_id || null,
+    programsEyebrow: headingContent.programsEyebrow || defaults.programsEyebrow,
+    programsTitle: headingContent.programsTitle || defaults.programsTitle,
+    programs: defaults.programs.map((program, index) => {
+      const row = bySection[`program_${index + 1}`];
+      const programContent = row?.content || {};
+      return {
+        ...program,
+        ...programContent,
+        link: { ...program.link, ...(programContent.link || {}) },
+        img: row?.image || program.img,
+        imgAlt: row?.image_alt_text || program.imgAlt,
+        imageMediaId: row?.image_media_id || null,
+      };
+    }),
+    stats: {
+      ...defaults.stats,
+      ...statsContent,
+      items: defaults.stats.items.map((item, index) => ({
+        ...item,
+        ...(statsContent.items?.[index] || {}),
+      })),
+    },
+    partnerCta: {
+      ...defaults.partnerCta,
+      ...partnerContent,
+      button: {
+        ...defaults.partnerCta.button,
+        ...(partnerContent.button || {}),
+      },
+    },
+  };
+};
+
+export async function getOurWorkPageContent() {
+  return mergeOurWorkPageContent(await getPageSections('our_work'));
+}
+
 const upsertSection = async (pageKey, sectionKey, payload) => {
   const { data, error } = await supabase
     .from('page_sections')
@@ -253,4 +316,58 @@ export async function saveAboutPageContent(aboutPage) {
   ]);
 
   return getAboutPageContent();
+}
+
+export async function saveOurWorkPageContent(ourWorkPage) {
+  const programmeRows = ourWorkPage.programs.map((program, index) =>
+    upsertSection('our_work', `program_${index + 1}`, {
+      content: {
+        icon: program.icon,
+        title: program.title,
+        body: program.body,
+        link: program.link,
+      },
+      image: program.img || null,
+      image_media_id: program.imageMediaId || null,
+      image_alt_text: program.imgAlt || null,
+    })
+  );
+
+  await Promise.all([
+    upsertSection('our_work', 'hero', {
+      content: {
+        eyebrow: ourWorkPage.eyebrow,
+        title: ourWorkPage.title,
+        body: ourWorkPage.body,
+        cta: ourWorkPage.cta,
+      },
+      image: ourWorkPage.image || null,
+      image_media_id: ourWorkPage.imageMediaId || null,
+      image_alt_text: ourWorkPage.imageAlt || null,
+    }),
+    upsertSection('our_work', 'programs_heading', {
+      content: {
+        programsEyebrow: ourWorkPage.programsEyebrow,
+        programsTitle: ourWorkPage.programsTitle,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    ...programmeRows,
+    upsertSection('our_work', 'stats', {
+      content: ourWorkPage.stats,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('our_work', 'partner_cta', {
+      content: ourWorkPage.partnerCta,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+  ]);
+
+  return getOurWorkPageContent();
 }

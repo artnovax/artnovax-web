@@ -44,6 +44,7 @@ import {
   deleteNewsletterIssue,
   saveHomepage,
   saveAboutPage,
+  saveOurWorkPage,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -60,6 +61,7 @@ const emptyData = {
   newsletters: [],
   homePage: null,
   aboutPage: null,
+  ourWorkPage: null,
   waitlist: [],
   messages: [],
   events: [],
@@ -242,6 +244,12 @@ const Admin = () => {
                 onClick={() => setTab("aboutpage")}
               />
               <TabPill
+                icon={PanelsTopLeft}
+                label="Our Work Page"
+                active={tab === "ourworkpage"}
+                onClick={() => setTab("ourworkpage")}
+              />
+              <TabPill
                 icon={Calendar}
                 label={`Events (${data.events.length})`}
                 active={tab === "events"}
@@ -322,6 +330,9 @@ const Admin = () => {
               )}
               {tab === "aboutpage" && data.aboutPage && (
                 <AboutPageManager content={data.aboutPage} onChange={refresh} />
+              )}
+              {tab === "ourworkpage" && data.ourWorkPage && (
+                <OurWorkPageManager content={data.ourWorkPage} onChange={refresh} />
               )}
               {tab === "events" && (
                 <EventsManager rows={data.events} onChange={refresh} />
@@ -1175,6 +1186,383 @@ const AboutPageManager = ({ content, onChange }) => {
         >
           <Save className="w-4 h-4" />
           {saving ? "Saving…" : "Save About page"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// ---- Our Work Page Manager ----
+const OurWorkPageManager = ({ content, onChange }) => {
+  const [form, setForm] = useState(() => JSON.parse(JSON.stringify(content)));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm(JSON.parse(JSON.stringify(content)));
+  }, [content]);
+
+  const updateHeroCta = (patch) => setForm((current) => ({
+    ...current,
+    cta: { ...current.cta, ...patch },
+  }));
+
+  const updateProgram = (index, patch) => setForm((current) => ({
+    ...current,
+    programs: current.programs.map((program, programIndex) =>
+      programIndex === index ? { ...program, ...patch } : program
+    ),
+  }));
+
+  const updateProgramLink = (index, patch) => setForm((current) => ({
+    ...current,
+    programs: current.programs.map((program, programIndex) =>
+      programIndex === index
+        ? { ...program, link: { ...program.link, ...patch } }
+        : program
+    ),
+  }));
+
+  const updateStat = (index, patch) => setForm((current) => ({
+    ...current,
+    stats: {
+      ...current.stats,
+      items: current.stats.items.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...patch } : item
+      ),
+    },
+  }));
+
+  const updatePartnerCta = (patch) => setForm((current) => ({
+    ...current,
+    partnerCta: { ...current.partnerCta, ...patch },
+  }));
+
+  const updatePartnerButton = (patch) => setForm((current) => ({
+    ...current,
+    partnerCta: {
+      ...current.partnerCta,
+      button: { ...current.partnerCta.button, ...patch },
+    },
+  }));
+
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await saveOurWorkPage(form);
+      onChange();
+      alert("Our Work page content saved.");
+    } catch (error) {
+      alert(error?.message || "Our Work page save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+            Our Work Page Content
+          </h3>
+          <p className="mt-1 text-ink/60 text-[13px]">
+            Edit programme descriptions and impact messaging. Event records remain managed from Events.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="/our-work"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[13px] font-semibold hover:bg-burgundy/10 inline-flex items-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View Our Work
+          </a>
+          <button
+            disabled={saving}
+            className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "Saving…" : "Save Our Work page"}
+          </button>
+        </div>
+      </div>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Hero</h4>
+        </div>
+        <Field label="Eyebrow">
+          <input
+            required
+            value={form.eyebrow || ""}
+            onChange={(event) => setForm({ ...form, eyebrow: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Title (line breaks are preserved)">
+          <textarea
+            required
+            rows={4}
+            value={form.title || ""}
+            onChange={(event) => setForm({ ...form, title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Introduction">
+            <textarea
+              required
+              rows={3}
+              value={form.body || ""}
+              onChange={(event) => setForm({ ...form, body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <Field label="Hero button label">
+          <input
+            required
+            value={form.cta?.label || ""}
+            onChange={(event) => updateHeroCta({ label: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Hero button destination">
+          <input
+            required
+            value={form.cta?.href || ""}
+            onChange={(event) => updateHeroCta({ href: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">Hero image</span>
+          <div className="mt-1">
+            <MediaPicker
+              value={form.image ? {
+                id: form.imageMediaId,
+                public_url: form.image,
+                alt_text: form.imageAlt,
+                title: "Our Work hero",
+              } : null}
+              onChange={(asset) => setForm({
+                ...form,
+                image: asset.public_url,
+                imageAlt: asset.alt_text || "",
+                imageMediaId: asset.id,
+              })}
+              buttonLabel={form.image ? "Replace hero image" : "Choose hero image"}
+            />
+          </div>
+          {form.image && !form.imageMediaId && (
+            <p className="mt-2 text-amber-800 text-[12px]">
+              This page still uses a legacy hero URL. Choose a library image to make it deletion-protected.
+            </p>
+          )}
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Hero image alt text">
+            <input
+              required={!!form.image}
+              value={form.imageAlt || ""}
+              onChange={(event) => setForm({ ...form, imageAlt: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Field label="Programme section eyebrow">
+            <input
+              required
+              value={form.programsEyebrow || ""}
+              onChange={(event) => setForm({ ...form, programsEyebrow: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Programme section title">
+            <input
+              required
+              value={form.programsTitle || ""}
+              onChange={(event) => setForm({ ...form, programsTitle: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {form.programs.map((program, index) => (
+            <div key={program.icon} className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+              <div className="text-[11px] tracking-widest uppercase text-burgundy font-semibold">Programme {index + 1}</div>
+              <Field label="Title (line breaks are preserved)">
+                <textarea
+                  required
+                  rows={2}
+                  value={program.title || ""}
+                  onChange={(event) => updateProgram(index, { title: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Description">
+                <textarea
+                  required
+                  rows={5}
+                  value={program.body || ""}
+                  onChange={(event) => updateProgram(index, { body: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Link label">
+                <input
+                  required
+                  value={program.link?.label || ""}
+                  onChange={(event) => updateProgramLink(index, { label: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Link destination">
+                <input
+                  required
+                  value={program.link?.href || ""}
+                  onChange={(event) => updateProgramLink(index, { href: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <div>
+                <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">Programme image</span>
+                <div className="mt-1">
+                  <MediaPicker
+                    value={program.img ? {
+                      id: program.imageMediaId,
+                      public_url: program.img,
+                      alt_text: program.imgAlt,
+                      title: program.title,
+                    } : null}
+                    onChange={(asset) => updateProgram(index, {
+                      img: asset.public_url,
+                      imgAlt: asset.alt_text || "",
+                      imageMediaId: asset.id,
+                    })}
+                    buttonLabel={program.img ? "Replace image" : "Choose image"}
+                  />
+                </div>
+                {program.img && !program.imageMediaId && (
+                  <p className="mt-2 text-amber-800 text-[11.5px]">
+                    Legacy image—choose a library image for deletion protection.
+                  </p>
+                )}
+              </div>
+              <Field label="Image alt text">
+                <input
+                  required={!!program.img}
+                  value={program.imgAlt || ""}
+                  onChange={(event) => updateProgram(index, { imgAlt: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Impact band</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Field label="Title (line breaks are preserved)">
+            <textarea
+              required
+              rows={2}
+              value={form.stats.title || ""}
+              onChange={(event) => setForm({ ...form, stats: { ...form.stats, title: event.target.value } })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Supporting text">
+            <textarea
+              required
+              rows={2}
+              value={form.stats.body || ""}
+              onChange={(event) => setForm({ ...form, stats: { ...form.stats, body: event.target.value } })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {form.stats.items.map((item, index) => (
+            <div key={item.icon} className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+              <Field label="Value">
+                <input
+                  required
+                  value={item.value || ""}
+                  onChange={(event) => updateStat(index, { value: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Label (line breaks are preserved)">
+                <textarea
+                  required
+                  rows={2}
+                  value={item.label || ""}
+                  onChange={(event) => updateStat(index, { label: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+        <Field label="Footnote">
+          <input
+            value={form.stats.footnote || ""}
+            onChange={(event) => setForm({ ...form, stats: { ...form.stats, footnote: event.target.value } })}
+            className={inputCls}
+          />
+        </Field>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Partner call to action</h4>
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Message">
+            <textarea
+              required
+              rows={2}
+              value={form.partnerCta.body || ""}
+              onChange={(event) => updatePartnerCta({ body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <Field label="Button label">
+          <input
+            required
+            value={form.partnerCta.button?.label || ""}
+            onChange={(event) => updatePartnerButton({ label: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Button destination">
+          <input
+            required
+            value={form.partnerCta.button?.href || ""}
+            onChange={(event) => updatePartnerButton({ href: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+      </section>
+
+      <div className="flex justify-end">
+        <button
+          disabled={saving}
+          className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving…" : "Save Our Work page"}
         </button>
       </div>
     </form>

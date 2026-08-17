@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { createEvent, updateEvent, deleteEvent, getEvents } from './events';
 import { dbPayloads, getArticles, getFounders, getNewsletterIssues, getProducts } from './content';
-import { getAboutPageContent, getHomePageContent, saveAboutPageContent, saveHomePageContent } from './pageContent';
+import { getAboutPageContent, getHomePageContent, getOurWorkPageContent, saveAboutPageContent, saveHomePageContent, saveOurWorkPageContent } from './pageContent';
 
 export async function signInAdmin(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -31,7 +31,7 @@ const list = async (table, orderCol = 'created_at', ascending = false) => {
 };
 
 export async function loadAdminDashboard() {
-  const [subscribers, newsletters, waitlist, messages, events, articles, products, registrations, applicationsRaw, inquiries, roles, founders, homePage, aboutPage] = await Promise.all([
+  const [subscribers, newsletters, waitlist, messages, events, articles, products, registrations, applicationsRaw, inquiries, roles, founders, homePage, aboutPage, ourWorkPage] = await Promise.all([
     list('newsletter_subscribers', 'subscribed_at'),
     getNewsletterIssues({ includeDrafts: true }),
     list('app_waitlist'),
@@ -46,9 +46,10 @@ export async function loadAdminDashboard() {
     getFounders(),
     getHomePageContent(),
     getAboutPageContent(),
+    getOurWorkPageContent(),
   ]);
   const applications = applicationsRaw.map((a) => ({ ...a, role_title: a.volunteer_roles?.title, role_slug: a.volunteer_roles?.slug }));
-  return { subscribers, newsletters, waitlist, messages, events, articles, products, registrations, applications, inquiries, roles, founders, homePage, aboutPage };
+  return { subscribers, newsletters, waitlist, messages, events, articles, products, registrations, applications, inquiries, roles, founders, homePage, aboutPage, ourWorkPage };
 }
 
 const insert = async (table, payload) => { const { data, error } = await supabase.from(table).insert(payload).select().single(); if (error) throw error; return data; };
@@ -64,6 +65,7 @@ export const updateNewsletterIssue = (id, p) => update('newsletter_issues', id, 
 export const deleteNewsletterIssue = (id) => remove('newsletter_issues', id);
 export const saveHomepage = (payload) => saveHomePageContent(payload);
 export const saveAboutPage = (payload) => saveAboutPageContent(payload);
+export const saveOurWorkPage = (payload) => saveOurWorkPageContent(payload);
 export const createProduct = (p) => insert('products', dbPayloads.product(p));
 export const updateProduct = (id, p) => update('products', id, dbPayloads.product(p));
 export const deleteProduct = (id) => remove('products', id);
