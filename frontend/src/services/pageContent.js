@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { HERO, MISSION_BAND, WHAT_WE_DO } from '../mock';
 import { ABOUT, EVENTS, OUR_WORK } from '../mock_pages';
-import { APP, RESEARCH } from '../mock_pages2';
+import { APP, GET_INVOLVED, RESEARCH } from '../mock_pages2';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -67,6 +67,11 @@ export const defaultResearchPageContent = () => ({
 export const defaultAppPageContent = () => ({
   ...clone(APP),
   statusLabel: 'In development · Launching later this year',
+});
+
+export const defaultGetInvolvedPageContent = () => ({
+  ...clone(GET_INVOLVED),
+  imageMediaId: null,
 });
 
 const mergeHomePageContent = (rows = []) => {
@@ -358,6 +363,44 @@ export async function getAppPageContent() {
   return mergeAppPageContent(await getPageSections('app'));
 }
 
+const mergeGetInvolvedPageContent = (rows = []) => {
+  const defaults = defaultGetInvolvedPageContent();
+  const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
+  const heroRow = bySection.hero;
+  const heroContent = heroRow?.content || {};
+  const waysContent = bySection.ways?.content || {};
+  const strongerContent = bySection.stronger?.content || {};
+
+  return {
+    ...defaults,
+    ...heroContent,
+    image: heroRow?.image || defaults.image,
+    imageAlt: heroRow?.image_alt_text || defaults.imageAlt,
+    imageMediaId: heroRow?.image_media_id || null,
+    waysTitle: waysContent.waysTitle || defaults.waysTitle,
+    ways: defaults.ways.map((way, index) => ({
+      ...way,
+      ...(waysContent.items?.[index] || {}),
+      link: {
+        ...way.link,
+        ...(waysContent.items?.[index]?.link || {}),
+      },
+    })),
+    stronger: {
+      ...defaults.stronger,
+      ...strongerContent,
+      cta: {
+        ...defaults.stronger.cta,
+        ...(strongerContent.cta || {}),
+      },
+    },
+  };
+};
+
+export async function getGetInvolvedPageContent() {
+  return mergeGetInvolvedPageContent(await getPageSections('get_involved'));
+}
+
 const upsertSection = async (pageKey, sectionKey, payload) => {
   const { data, error } = await supabase
     .from('page_sections')
@@ -640,4 +683,37 @@ export async function saveAppPageContent(appPage) {
   ]);
 
   return getAppPageContent();
+}
+
+export async function saveGetInvolvedPageContent(getInvolvedPage) {
+  await Promise.all([
+    upsertSection('get_involved', 'hero', {
+      content: {
+        eyebrow: getInvolvedPage.eyebrow,
+        title: getInvolvedPage.title,
+        body: getInvolvedPage.body,
+        tagline: getInvolvedPage.tagline,
+      },
+      image: getInvolvedPage.image || null,
+      image_media_id: getInvolvedPage.imageMediaId || null,
+      image_alt_text: getInvolvedPage.imageAlt || null,
+    }),
+    upsertSection('get_involved', 'ways', {
+      content: {
+        waysTitle: getInvolvedPage.waysTitle,
+        items: getInvolvedPage.ways,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('get_involved', 'stronger', {
+      content: getInvolvedPage.stronger,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+  ]);
+
+  return getGetInvolvedPageContent();
 }

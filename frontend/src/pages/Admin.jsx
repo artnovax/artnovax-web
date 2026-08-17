@@ -48,6 +48,7 @@ import {
   saveEventsPage,
   saveResearchPage,
   saveAppPage,
+  saveGetInvolvedPage,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -68,6 +69,7 @@ const emptyData = {
   eventsPage: null,
   researchPage: null,
   appPage: null,
+  getInvolvedPage: null,
   waitlist: [],
   messages: [],
   events: [],
@@ -274,6 +276,12 @@ const Admin = () => {
                 onClick={() => setTab("apppage")}
               />
               <TabPill
+                icon={PanelsTopLeft}
+                label="Get Involved Page"
+                active={tab === "getinvolvedpage"}
+                onClick={() => setTab("getinvolvedpage")}
+              />
+              <TabPill
                 icon={Calendar}
                 label={`Events (${data.events.length})`}
                 active={tab === "events"}
@@ -366,6 +374,9 @@ const Admin = () => {
               )}
               {tab === "apppage" && data.appPage && (
                 <AppPageManager content={data.appPage} onChange={refresh} />
+              )}
+              {tab === "getinvolvedpage" && data.getInvolvedPage && (
+                <GetInvolvedPageManager content={data.getInvolvedPage} onChange={refresh} />
               )}
               {tab === "events" && (
                 <EventsManager rows={data.events} onChange={refresh} />
@@ -2536,6 +2547,276 @@ const AppPageManager = ({ content, onChange }) => {
         >
           <Save className="w-4 h-4" />
           {saving ? "Saving…" : "Save App page"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// ---- Get Involved Landing Page Manager ----
+const GetInvolvedPageManager = ({ content, onChange }) => {
+  const [form, setForm] = useState(() => JSON.parse(JSON.stringify(content)));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm(JSON.parse(JSON.stringify(content)));
+  }, [content]);
+
+  const updateWay = (index, patch) => setForm((current) => ({
+    ...current,
+    ways: current.ways.map((way, wayIndex) =>
+      wayIndex === index ? { ...way, ...patch } : way
+    ),
+  }));
+
+  const updateWayLink = (index, patch) => setForm((current) => ({
+    ...current,
+    ways: current.ways.map((way, wayIndex) =>
+      wayIndex === index
+        ? { ...way, link: { ...way.link, ...patch } }
+        : way
+    ),
+  }));
+
+  const updateStronger = (patch) => setForm((current) => ({
+    ...current,
+    stronger: { ...current.stronger, ...patch },
+  }));
+
+  const updateStrongerCta = (patch) => setForm((current) => ({
+    ...current,
+    stronger: {
+      ...current.stronger,
+      cta: { ...current.stronger.cta, ...patch },
+    },
+  }));
+
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await saveGetInvolvedPage(form);
+      onChange();
+      alert("Get Involved page content saved.");
+    } catch (error) {
+      alert(error?.message || "Get Involved page save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+            Get Involved Overview Content
+          </h3>
+          <p className="mt-1 text-ink/60 text-[13px]">
+            Volunteer roles, applications, partner enquiries, and products remain managed from their dedicated tabs.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="/get-involved"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[13px] font-semibold hover:bg-burgundy/10 inline-flex items-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View Get Involved page
+          </a>
+          <button
+            disabled={saving}
+            className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "Saving…" : "Save Get Involved page"}
+          </button>
+        </div>
+      </div>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Hero</h4>
+        </div>
+        <Field label="Eyebrow">
+          <input
+            required
+            value={form.eyebrow || ""}
+            onChange={(event) => setForm({ ...form, eyebrow: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Title (line breaks are preserved)">
+          <textarea
+            required
+            rows={3}
+            value={form.title || ""}
+            onChange={(event) => setForm({ ...form, title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Introduction">
+          <textarea
+            required
+            rows={4}
+            value={form.body || ""}
+            onChange={(event) => setForm({ ...form, body: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Hero tagline (line breaks are preserved)">
+          <textarea
+            required
+            rows={3}
+            value={form.tagline || ""}
+            onChange={(event) => setForm({ ...form, tagline: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">Hero image</span>
+          <div className="mt-1">
+            <MediaPicker
+              value={form.image ? {
+                id: form.imageMediaId,
+                public_url: form.image,
+                alt_text: form.imageAlt,
+                title: "Get Involved page hero",
+              } : null}
+              onChange={(asset) => setForm({
+                ...form,
+                image: asset.public_url,
+                imageAlt: asset.alt_text || "",
+                imageMediaId: asset.id,
+              })}
+              buttonLabel={form.image ? "Replace hero image" : "Choose hero image"}
+            />
+          </div>
+          {form.image && !form.imageMediaId && (
+            <p className="mt-2 text-amber-800 text-[12px]">
+              This page still uses a legacy hero URL. Choose a library image to make it deletion-protected.
+            </p>
+          )}
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Hero image alt text">
+            <input
+              required={!!form.image}
+              value={form.imageAlt || ""}
+              onChange={(event) => setForm({ ...form, imageAlt: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <div>
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Ways to get involved</h4>
+          <p className="mt-1 text-ink/60 text-[12px]">The five existing card icons remain fixed.</p>
+        </div>
+        <Field label="Section title">
+          <input
+            required
+            value={form.waysTitle || ""}
+            onChange={(event) => setForm({ ...form, waysTitle: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {form.ways.map((way, index) => (
+            <div key={way.icon} className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+              <Field label="Card title">
+                <input
+                  required
+                  value={way.title || ""}
+                  onChange={(event) => updateWay(index, { title: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Description">
+                <textarea
+                  required
+                  rows={5}
+                  value={way.body || ""}
+                  onChange={(event) => updateWay(index, { body: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Link label">
+                <input
+                  required
+                  value={way.link?.label || ""}
+                  onChange={(event) => updateWayLink(index, { label: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Link destination">
+                <input
+                  required
+                  value={way.link?.href || ""}
+                  onChange={(event) => updateWayLink(index, { href: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Stronger together call to action</h4>
+          <p className="mt-1 text-ink/60 text-[12px]">The community illustration remains design-controlled.</p>
+        </div>
+        <Field label="Title">
+          <input
+            required
+            value={form.stronger.title || ""}
+            onChange={(event) => updateStronger({ title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Button label">
+          <input
+            required
+            value={form.stronger.cta?.label || ""}
+            onChange={(event) => updateStrongerCta({ label: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Supporting text">
+            <textarea
+              required
+              rows={3}
+              value={form.stronger.body || ""}
+              onChange={(event) => updateStronger({ body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Button destination">
+            <input
+              required
+              value={form.stronger.cta?.href || ""}
+              onChange={(event) => updateStrongerCta({ href: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <button
+          disabled={saving}
+          className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving…" : "Save Get Involved page"}
         </button>
       </div>
     </form>
