@@ -54,7 +54,7 @@ const FounderDetail = () => {
             <div className="rounded-3xl overflow-hidden aspect-[4/5] ring-1 ring-ivory-300 bg-ivory-200">
               <img
                 src={p.img}
-                alt={p.name}
+                alt={p.imgAlt || p.name}
                 className="w-full h-full object-cover"
               />
             </div>

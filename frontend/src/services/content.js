@@ -52,14 +52,21 @@ export async function submitVolunteerApplication({
 export async function getFounders() {
   const { data, error } = await supabase.from('founders').select('*').order('display_order', { ascending: true });
   if (error) throw error;
-  return (data || []).map((row) => ({ ...row, order: row.display_order }));
+  return (data || []).map(toFrontendFounder);
 }
 
 export async function getFounder(slug) {
   const { data, error } = await supabase.from('founders').select('*').eq('slug', slug).single();
   if (error) throw error;
-  return { ...data, order: data.display_order };
+  return toFrontendFounder(data);
 }
+
+const toFrontendFounder = (row) => ({
+  ...row,
+  order: row.display_order,
+  imgAlt: row.image_alt_text ?? row.imgAlt ?? '',
+  photoMediaId: row.photo_media_id ?? row.photoMediaId ?? null,
+});
 
 export async function getArticles() {
   const { data, error } = await supabase.from('articles').select('*').eq('status', 'published').order('created_at', { ascending: false });
@@ -96,7 +103,9 @@ export const dbPayloads = {
   }),
   founder: (f) => ({
     slug: f.slug || slugify(f.name), name: f.name, role: f.role || null, short: f.short || null,
-    bio: f.bio || null, img: f.img || null, linkedin: f.linkedin || null, funfact: f.funfact || null,
+    bio: f.bio || null, img: f.img || null, image_alt_text: f.imgAlt ?? f.image_alt_text ?? null,
+    photo_media_id: f.photoMediaId ?? f.photo_media_id ?? null,
+    linkedin: f.linkedin || null, funfact: f.funfact || null,
     medium: f.medium || null, why_art: f.why_art || null, display_order: Number(f.order ?? f.display_order ?? 0),
   }),
   article: (a) => ({

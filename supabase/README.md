@@ -19,10 +19,13 @@ Run the SQL scripts in **Supabase Dashboard → SQL Editor** in this order. Each
 15. `sql/14_lockdown_public_submissions.sql`
 16. `sql/15_media_library.sql`
 17. `sql/16_event_media.sql`
+18. `sql/17_team_media.sql`
 
 The Media Library is introduced in `15_media_library.sql`. Run
 `16_event_media.sql` afterward to let events reference library posters and to
 prevent deletion of poster images that are still attached to an event.
+Run `17_team_media.sql` to provide the same library selection and deletion
+protection for team photographs.
 
 ## First admin
 

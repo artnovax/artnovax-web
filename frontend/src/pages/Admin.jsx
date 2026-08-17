@@ -1523,6 +1523,8 @@ const FoundersManager = ({ rows, onChange }) => {
       short: "",
       bio: "",
       img: "",
+      imgAlt: "",
+      photoMediaId: null,
       linkedin: "",
       funfact: "",
       medium: "",
@@ -1595,10 +1597,53 @@ const FoundersManager = ({ rows, onChange }) => {
               className={inputCls}
             />
           </Field>
-          <Field label="Photo URL">
+          <div className="md:col-span-2">
+            <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">
+              Team photograph
+            </span>
+            <div className="mt-1 flex items-end gap-2 flex-wrap">
+              <MediaPicker
+                value={form.img ? {
+                  id: form.photoMediaId,
+                  public_url: form.img,
+                  alt_text: form.imgAlt,
+                  title: form.name ? `${form.name} photograph` : "Team photograph",
+                } : null}
+                onChange={(asset) => setForm({
+                  ...form,
+                  img: asset.public_url,
+                  imgAlt: asset.alt_text || "",
+                  photoMediaId: asset.id,
+                })}
+                buttonLabel={form.img ? "Replace photograph" : "Choose photograph"}
+              />
+              {form.img && (
+                <button
+                  type="button"
+                  onClick={() => setForm({
+                    ...form,
+                    img: "",
+                    imgAlt: "",
+                    photoMediaId: null,
+                  })}
+                  className="rounded-full ring-1 ring-ivory-300 px-4 py-2 text-[13px] font-semibold text-ink/70 hover:bg-ivory-200"
+                >
+                  Remove photograph
+                </button>
+              )}
+            </div>
+            {form.img && !form.photoMediaId && (
+              <p className="mt-2 text-amber-800 text-[12px]">
+                This profile still uses a legacy image URL. Choose a library image to protect it from accidental deletion.
+              </p>
+            )}
+          </div>
+          <Field label="Photograph alt text">
             <input
-              value={form.img || ""}
-              onChange={(e) => setForm({ ...form, img: e.target.value })}
+              required={!!form.img}
+              value={form.imgAlt || ""}
+              onChange={(e) => setForm({ ...form, imgAlt: e.target.value })}
+              placeholder="Describe the team photograph"
               className={inputCls}
             />
           </Field>
@@ -1696,7 +1741,7 @@ const FoundersManager = ({ rows, onChange }) => {
                 {r.img && (
                   <img
                     src={r.img}
-                    alt={r.name}
+                    alt={r.imgAlt || r.name}
                     className="w-full h-full object-cover"
                   />
                 )}

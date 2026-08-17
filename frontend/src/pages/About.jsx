@@ -163,7 +163,7 @@ const About = () => {
               <div className="rounded-2xl overflow-hidden aspect-[4/5] bg-ivory-200 ring-1 ring-ivory-300">
                 <img
                   src={p.img}
-                  alt={p.name}
+                  alt={p.imgAlt || p.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               </div>
