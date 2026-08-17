@@ -22,6 +22,7 @@ import {
   Images,
   ExternalLink,
   Globe2,
+  PanelsTopLeft,
 } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -41,6 +42,7 @@ import {
   createNewsletterIssue,
   updateNewsletterIssue,
   deleteNewsletterIssue,
+  saveHomepage,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -55,6 +57,7 @@ import {
 const emptyData = {
   subscribers: [],
   newsletters: [],
+  homePage: null,
   waitlist: [],
   messages: [],
   events: [],
@@ -225,6 +228,12 @@ const Admin = () => {
                 onClick={() => setTab("media")}
               />
               <TabPill
+                icon={PanelsTopLeft}
+                label="Homepage"
+                active={tab === "homepage"}
+                onClick={() => setTab("homepage")}
+              />
+              <TabPill
                 icon={Calendar}
                 label={`Events (${data.events.length})`}
                 active={tab === "events"}
@@ -300,6 +309,9 @@ const Admin = () => {
 
             <div className="mt-8">
               {tab === "media" && <MediaLibrary />}
+              {tab === "homepage" && data.homePage && (
+                <HomepageManager content={data.homePage} onChange={refresh} />
+              )}
               {tab === "events" && (
                 <EventsManager rows={data.events} onChange={refresh} />
               )}
@@ -516,6 +528,326 @@ const Field = ({ label, children }) => (
 
 const inputCls =
   "w-full rounded-lg ring-1 ring-ivory-300 bg-ivory px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40";
+
+// ---- Homepage Manager ----
+const HomepageManager = ({ content, onChange }) => {
+  const [form, setForm] = useState(() => JSON.parse(JSON.stringify(content)));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm(JSON.parse(JSON.stringify(content)));
+  }, [content]);
+
+  const updateHero = (patch) => setForm((current) => ({
+    ...current,
+    hero: { ...current.hero, ...patch },
+  }));
+
+  const updateMission = (patch) => setForm((current) => ({
+    ...current,
+    mission: { ...current.mission, ...patch },
+  }));
+
+  const updateWhatWeDo = (patch) => setForm((current) => ({
+    ...current,
+    whatWeDo: { ...current.whatWeDo, ...patch },
+  }));
+
+  const updateWhatItem = (index, patch) => setForm((current) => ({
+    ...current,
+    whatWeDo: {
+      ...current.whatWeDo,
+      items: current.whatWeDo.items.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...patch } : item
+      ),
+    },
+  }));
+
+  const updateWhatLink = (index, patch) => setForm((current) => ({
+    ...current,
+    whatWeDo: {
+      ...current.whatWeDo,
+      items: current.whatWeDo.items.map((item, itemIndex) =>
+        itemIndex === index
+          ? { ...item, link: { ...item.link, ...patch } }
+          : item
+      ),
+    },
+  }));
+
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await saveHomepage(form);
+      onChange();
+      alert("Homepage content saved.");
+    } catch (error) {
+      alert(error?.message || "Homepage save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+            Homepage Content
+          </h3>
+          <p className="mt-1 text-ink/60 text-[13px]">
+            Changes become public immediately after saving. Existing built-in content remains the fallback.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[13px] font-semibold hover:bg-burgundy/10 inline-flex items-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View homepage
+          </a>
+          <button
+            disabled={saving}
+            className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "Saving…" : "Save homepage"}
+          </button>
+        </div>
+      </div>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Hero</h4>
+        </div>
+        <Field label="Eyebrow words (comma-separated)">
+          <input
+            required
+            value={(form.hero.eyebrow || []).join(", ")}
+            onChange={(event) => updateHero({
+              eyebrow: event.target.value.split(",").map((value) => value.trim()).filter(Boolean),
+            })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Hero title (line breaks are preserved)">
+          <textarea
+            required
+            rows={3}
+            value={form.hero.title || ""}
+            onChange={(event) => updateHero({ title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Hero introduction">
+            <textarea
+              required
+              rows={3}
+              value={form.hero.body || ""}
+              onChange={(event) => updateHero({ body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <Field label="Primary button label">
+          <input
+            required
+            value={form.hero.primaryCta?.label || ""}
+            onChange={(event) => updateHero({
+              primaryCta: { ...form.hero.primaryCta, label: event.target.value },
+            })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Primary button link">
+          <input
+            required
+            value={form.hero.primaryCta?.href || ""}
+            onChange={(event) => updateHero({
+              primaryCta: { ...form.hero.primaryCta, href: event.target.value },
+            })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Secondary button label">
+          <input
+            required
+            value={form.hero.secondaryCta?.label || ""}
+            onChange={(event) => updateHero({
+              secondaryCta: { ...form.hero.secondaryCta, label: event.target.value },
+            })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Secondary button link">
+          <input
+            required
+            value={form.hero.secondaryCta?.href || ""}
+            onChange={(event) => updateHero({
+              secondaryCta: { ...form.hero.secondaryCta, href: event.target.value },
+            })}
+            className={inputCls}
+          />
+        </Field>
+        {(form.hero.bullets || []).map((bullet, index) => (
+          <Field key={bullet.icon} label={`Highlight ${index + 1}`}>
+            <input
+              required
+              value={bullet.label || ""}
+              onChange={(event) => updateHero({
+                bullets: form.hero.bullets.map((item, itemIndex) =>
+                  itemIndex === index ? { ...item, label: event.target.value } : item
+                ),
+              })}
+              className={inputCls}
+            />
+          </Field>
+        ))}
+        <div className="md:col-span-2">
+          <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">
+            Hero image
+          </span>
+          <div className="mt-1">
+            <MediaPicker
+              value={form.hero.image ? {
+                id: form.hero.imageMediaId,
+                public_url: form.hero.image,
+                alt_text: form.hero.imageAlt,
+                title: "Homepage hero",
+              } : null}
+              onChange={(asset) => updateHero({
+                image: asset.public_url,
+                imageAlt: asset.alt_text || "",
+                imageMediaId: asset.id,
+              })}
+              buttonLabel={form.hero.image ? "Replace hero image" : "Choose hero image"}
+            />
+          </div>
+          {form.hero.image && !form.hero.imageMediaId && (
+            <p className="mt-2 text-amber-800 text-[12px]">
+              The homepage still uses its built-in image. Choose a library image to make it CMS-managed and deletion-protected.
+            </p>
+          )}
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Hero image alt text">
+            <input
+              required={!!form.hero.image}
+              value={form.hero.imageAlt || ""}
+              onChange={(event) => updateHero({ imageAlt: event.target.value })}
+              className={inputCls}
+              placeholder="Describe what is visible in the image"
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 gap-3">
+        <div>
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Mission band</h4>
+          <p className="mt-1 text-ink/55 text-[11.5px]">Wrap words in underscores to display them in italics, for example _art_.</p>
+        </div>
+        <Field label="Mission headline">
+          <textarea
+            required
+            rows={2}
+            value={form.mission.headlineMarkup || ""}
+            onChange={(event) => updateMission({ headlineMarkup: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Mission supporting text">
+          <textarea
+            required
+            rows={2}
+            value={form.mission.subhead || ""}
+            onChange={(event) => updateMission({ subhead: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <div>
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">What We Do</h4>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Field label="Section eyebrow">
+            <input
+              required
+              value={form.whatWeDo.eyebrow || ""}
+              onChange={(event) => updateWhatWeDo({ eyebrow: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Section title">
+            <input
+              required
+              value={form.whatWeDo.title || ""}
+              onChange={(event) => updateWhatWeDo({ title: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {(form.whatWeDo.items || []).map((item, index) => (
+            <div key={item.icon} className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+              <div className="text-[11px] tracking-widest uppercase text-burgundy font-semibold">Card {index + 1}</div>
+              <Field label="Title">
+                <input
+                  required
+                  value={item.title || ""}
+                  onChange={(event) => updateWhatItem(index, { title: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Description">
+                <textarea
+                  required
+                  rows={5}
+                  value={item.body || ""}
+                  onChange={(event) => updateWhatItem(index, { body: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Link label">
+                <input
+                  required
+                  value={item.link?.label || ""}
+                  onChange={(event) => updateWhatLink(index, { label: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Link destination">
+                <input
+                  required
+                  value={item.link?.href || ""}
+                  onChange={(event) => updateWhatLink(index, { href: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <button
+          disabled={saving}
+          className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving…" : "Save homepage"}
+        </button>
+      </div>
+    </form>
+  );
+};
 
 // ---- Newsletter Issues Manager ----
 const NewsletterManager = ({ rows, onChange }) => {

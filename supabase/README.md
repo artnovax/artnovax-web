@@ -24,6 +24,7 @@ Run the SQL scripts in **Supabase Dashboard → SQL Editor** in this order. Each
 20. `sql/19_article_inline_media.sql`
 21. `sql/20_product_gallery.sql`
 22. `sql/21_newsletter_issues.sql`
+23. `sql/22_page_sections.sql`
 
 The Media Library is introduced in `15_media_library.sql`. Run
 `16_event_media.sql` afterward to let events reference library posters and to
@@ -39,6 +40,9 @@ image and deletion protection for every attached media asset.
 Run `21_newsletter_issues.sql` to add draft/published newsletter archive issues,
 protected library hero images, and staff-only draft preview access. This script
 does not send email to subscribers.
+Run `22_page_sections.sql` to add reusable public page-content rows. The first
+connected page is the homepage, and its library hero image is protected from
+deletion while attached.
 
 ## First admin
 
