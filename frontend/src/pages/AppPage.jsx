@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowRight,
   Play,
@@ -16,7 +16,10 @@ import {
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-import { APP } from "../mock_pages2";
+import {
+  defaultAppPageContent,
+  getAppPageContent,
+} from "../services/pageContent";
 import { joinAppWaitlist } from "../services/submissions";
 
 const featIcon = (key) => {
@@ -165,6 +168,18 @@ const AppPage = () => {
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [pageContent, setPageContent] = useState(() => defaultAppPageContent());
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setPageContent(await getAppPageContent());
+      } catch (error) {
+        console.warn("Using built-in App page content.", error);
+      }
+    })();
+  }, []);
+
   const submit = async (e) => {
     e.preventDefault();
     if (!email || loading) return;
@@ -190,40 +205,35 @@ const AppPage = () => {
       <section className="mx-auto max-w-[1240px] px-4 md:px-8 pt-8 md:pt-14 pb-10 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-10 items-center">
         <div>
           <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold fade-up flex items-center gap-2">
-            <span>{APP.eyebrow}</span>
+            <span>{pageContent.eyebrow}</span>
           </div>
           <span className="fade-up delay-1 mt-3 inline-block rounded-full bg-burgundy/10 text-burgundy text-[11.5px] font-semibold tracking-wider px-3 py-1">
-            In development · Launching later this year
+            {pageContent.statusLabel}
           </span>
           <h1 className="fade-up delay-1 mt-4 font-serif-display text-burgundy text-[46px] sm:text-[56px] md:text-[64px] leading-[1.02] font-semibold whitespace-pre-line">
-            {APP.title}
+            {pageContent.title}
           </h1>
           <p className="fade-up delay-2 mt-6 text-[16px] md:text-[17px] leading-[1.7] text-ink/80 max-w-[520px]">
-            {APP.body}
+            {pageContent.body}
           </p>
           <div className="fade-up delay-3 mt-8 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() =>
-                document
-                  .getElementById("waitlist")
-                  ?.scrollIntoView({ behavior: "smooth", block: "center" })
-              }
+            <a
+              href={pageContent.primaryCta.href}
               className="cta-btn inline-flex items-center gap-3 rounded-full bg-burgundy text-ivory px-6 py-4 text-[15px] font-semibold hover:bg-burgundy-light shadow-[0_14px_30px_-14px_rgba(92,21,25,0.7)]"
             >
-              {APP.primaryCta.label}
+              {pageContent.primaryCta.label}
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </a>
             <a
-              href={APP.secondaryCta.href}
+              href={pageContent.secondaryCta.href}
               className="cta-btn inline-flex items-center gap-3 rounded-full border-2 border-burgundy text-burgundy px-6 py-4 text-[15px] font-semibold hover:bg-burgundy hover:text-ivory"
             >
-              {APP.secondaryCta.label}
+              {pageContent.secondaryCta.label}
               <Play className="w-4 h-4" />
             </a>
           </div>
           <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4">
-            {APP.bullets.map((b) => (
+            {pageContent.bullets.map((b) => (
               <div key={b.title} className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-burgundy/10 flex items-center justify-center">
                   {smallIcon(b.icon)}
@@ -250,12 +260,12 @@ const AppPage = () => {
       >
         <div className="text-center">
           <h2 className="font-serif-display text-ink text-[28px] md:text-[34px] font-medium">
-            {APP.featuresTitle}
+            {pageContent.featuresTitle}
           </h2>
           <div className="mx-auto mt-2 w-16 h-0.5 bg-burgundy/40" />
         </div>
         <div className="mt-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          {APP.features.map((f) => (
+          {pageContent.features.map((f) => (
             <div key={f.title} className="text-center">
               <div className="mx-auto w-16 h-16 rounded-2xl bg-ivory-200 flex items-center justify-center">
                 {featIcon(f.icon)}
@@ -278,13 +288,13 @@ const AppPage = () => {
       >
         <div className="text-center">
           <h2 className="font-serif-display text-ink text-[26px] md:text-[32px] font-medium">
-            {APP.howTitle}
+            {pageContent.howTitle}
           </h2>
           <div className="mx-auto mt-2 w-16 h-0.5 bg-burgundy/40" />
         </div>
         <div className="mt-10 grid grid-cols-1 lg:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)] gap-8 items-start">
           <div className="flex flex-wrap md:flex-nowrap items-start gap-3 md:gap-1 justify-between">
-            {APP.steps.map((s, i) => (
+            {pageContent.steps.map((s, i) => (
               <React.Fragment key={s.title}>
                 <div className="flex flex-col items-center text-center max-w-[160px]">
                   <div className="w-14 h-14 rounded-full bg-ivory-200 flex items-center justify-center">
@@ -297,7 +307,7 @@ const AppPage = () => {
                     {s.body}
                   </p>
                 </div>
-                {i < APP.steps.length - 1 && (
+                {i < pageContent.steps.length - 1 && (
                   <ArrowRight className="hidden md:block w-6 h-6 text-burgundy/60 mt-4 shrink-0" />
                 )}
               </React.Fragment>
@@ -305,10 +315,10 @@ const AppPage = () => {
           </div>
           <div className="rounded-3xl bg-ivory-200/70 ring-1 ring-ivory-300 p-5 md:p-6 relative overflow-hidden">
             <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">
-              {APP.journey.title}
+              {pageContent.journey.title}
             </h3>
             <p className="mt-2 text-ink/80 text-[13.5px] leading-relaxed max-w-[240px]">
-              {APP.journey.body}
+              {pageContent.journey.body}
             </p>
             {/* Illustration */}
             <div className="mt-4 relative h-32">
@@ -377,10 +387,10 @@ const AppPage = () => {
             </svg>
             <div>
               <div className="font-serif-display text-ivory text-[20px] md:text-[22px]">
-                {APP.waitlist.title}
+                {pageContent.waitlist.title}
               </div>
               <div className="text-ivory/85 text-[13.5px] mt-1">
-                {APP.waitlist.body}
+                {pageContent.waitlist.body}
               </div>
             </div>
             <form
@@ -392,14 +402,14 @@ const AppPage = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={APP.waitlist.placeholder}
+                placeholder={pageContent.waitlist.placeholder}
                 className="flex-1 md:w-[280px] rounded-full bg-ivory ring-1 ring-ivory-300 px-5 py-3 text-[14px] text-ink focus:outline-none"
               />
               <button
                 disabled={loading}
                 className="cta-btn rounded-full bg-ivory text-burgundy px-6 py-3 text-[14px] font-semibold hover:bg-white disabled:opacity-70"
               >
-                {APP.waitlist.button}
+                {pageContent.waitlist.button}
               </button>
             </form>
           </div>

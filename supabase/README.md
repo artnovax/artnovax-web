@@ -41,8 +41,8 @@ Run `21_newsletter_issues.sql` to add draft/published newsletter archive issues,
 protected library hero images, and staff-only draft preview access. This script
 does not send email to subscribers.
 Run `22_page_sections.sql` to add reusable public page-content rows. The
-homepage, About page, Our Work page, Events landing page, and Research landing
-page use this foundation. Library hero and programme-card images are protected
+homepage, About page, Our Work page, Events landing page, Research landing
+page, and ArtNovaX App landing page use this foundation. Library hero and programme-card images are protected
 from deletion while attached.
 
 ## First admin

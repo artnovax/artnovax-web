@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { HERO, MISSION_BAND, WHAT_WE_DO } from '../mock';
 import { ABOUT, EVENTS, OUR_WORK } from '../mock_pages';
-import { RESEARCH } from '../mock_pages2';
+import { APP, RESEARCH } from '../mock_pages2';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -62,6 +62,11 @@ export const defaultResearchPageContent = () => ({
   libraryEyebrow: 'INSIGHTS LIBRARY',
   libraryTitle: 'Read the full articles',
   searchPlaceholder: 'Search insights…',
+});
+
+export const defaultAppPageContent = () => ({
+  ...clone(APP),
+  statusLabel: 'In development · Launching later this year',
 });
 
 const mergeHomePageContent = (rows = []) => {
@@ -311,6 +316,48 @@ export async function getResearchPageContent() {
   return mergeResearchPageContent(await getPageSections('research'));
 }
 
+const mergeAppPageContent = (rows = []) => {
+  const defaults = defaultAppPageContent();
+  const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
+  const heroContent = bySection.hero?.content || {};
+  const featuresContent = bySection.features?.content || {};
+  const howContent = bySection.how_it_works?.content || {};
+  const waitlistContent = bySection.waitlist?.content || {};
+
+  return {
+    ...defaults,
+    ...heroContent,
+    primaryCta: { ...defaults.primaryCta, ...(heroContent.primaryCta || {}) },
+    secondaryCta: { ...defaults.secondaryCta, ...(heroContent.secondaryCta || {}) },
+    bullets: defaults.bullets.map((bullet, index) => ({
+      ...bullet,
+      ...(heroContent.bullets?.[index] || {}),
+    })),
+    featuresTitle: featuresContent.featuresTitle || defaults.featuresTitle,
+    features: defaults.features.map((feature, index) => ({
+      ...feature,
+      ...(featuresContent.items?.[index] || {}),
+    })),
+    howTitle: howContent.howTitle || defaults.howTitle,
+    steps: defaults.steps.map((step, index) => ({
+      ...step,
+      ...(howContent.steps?.[index] || {}),
+    })),
+    journey: {
+      ...defaults.journey,
+      ...(howContent.journey || {}),
+    },
+    waitlist: {
+      ...defaults.waitlist,
+      ...waitlistContent,
+    },
+  };
+};
+
+export async function getAppPageContent() {
+  return mergeAppPageContent(await getPageSections('app'));
+}
+
 const upsertSection = async (pageKey, sectionKey, payload) => {
   const { data, error } = await supabase
     .from('page_sections')
@@ -547,4 +594,50 @@ export async function saveResearchPageContent(researchPage) {
   ]);
 
   return getResearchPageContent();
+}
+
+export async function saveAppPageContent(appPage) {
+  await Promise.all([
+    upsertSection('app', 'hero', {
+      content: {
+        eyebrow: appPage.eyebrow,
+        statusLabel: appPage.statusLabel,
+        title: appPage.title,
+        body: appPage.body,
+        primaryCta: appPage.primaryCta,
+        secondaryCta: appPage.secondaryCta,
+        bullets: appPage.bullets,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('app', 'features', {
+      content: {
+        featuresTitle: appPage.featuresTitle,
+        items: appPage.features,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('app', 'how_it_works', {
+      content: {
+        howTitle: appPage.howTitle,
+        steps: appPage.steps,
+        journey: appPage.journey,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('app', 'waitlist', {
+      content: appPage.waitlist,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+  ]);
+
+  return getAppPageContent();
 }

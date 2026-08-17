@@ -47,6 +47,7 @@ import {
   saveOurWorkPage,
   saveEventsPage,
   saveResearchPage,
+  saveAppPage,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -66,6 +67,7 @@ const emptyData = {
   ourWorkPage: null,
   eventsPage: null,
   researchPage: null,
+  appPage: null,
   waitlist: [],
   messages: [],
   events: [],
@@ -266,6 +268,12 @@ const Admin = () => {
                 onClick={() => setTab("researchpage")}
               />
               <TabPill
+                icon={PanelsTopLeft}
+                label="App Page"
+                active={tab === "apppage"}
+                onClick={() => setTab("apppage")}
+              />
+              <TabPill
                 icon={Calendar}
                 label={`Events (${data.events.length})`}
                 active={tab === "events"}
@@ -355,6 +363,9 @@ const Admin = () => {
               )}
               {tab === "researchpage" && data.researchPage && (
                 <ResearchPageManager content={data.researchPage} onChange={refresh} />
+              )}
+              {tab === "apppage" && data.appPage && (
+                <AppPageManager content={data.appPage} onChange={refresh} />
               )}
               {tab === "events" && (
                 <EventsManager rows={data.events} onChange={refresh} />
@@ -2205,6 +2216,326 @@ const ResearchPageManager = ({ content, onChange }) => {
         >
           <Save className="w-4 h-4" />
           {saving ? "Saving…" : "Save Research page"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// ---- App Landing Page Manager ----
+const AppPageManager = ({ content, onChange }) => {
+  const [form, setForm] = useState(() => JSON.parse(JSON.stringify(content)));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm(JSON.parse(JSON.stringify(content)));
+  }, [content]);
+
+  const updateCta = (key, patch) => setForm((current) => ({
+    ...current,
+    [key]: { ...current[key], ...patch },
+  }));
+
+  const updateListItem = (key, index, patch) => setForm((current) => ({
+    ...current,
+    [key]: current[key].map((item, itemIndex) =>
+      itemIndex === index ? { ...item, ...patch } : item
+    ),
+  }));
+
+  const updateJourney = (patch) => setForm((current) => ({
+    ...current,
+    journey: { ...current.journey, ...patch },
+  }));
+
+  const updateWaitlist = (patch) => setForm((current) => ({
+    ...current,
+    waitlist: { ...current.waitlist, ...patch },
+  }));
+
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await saveAppPage(form);
+      onChange();
+      alert("App landing page content saved.");
+    } catch (error) {
+      alert(error?.message || "App page save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+            ArtNovaX App Landing Page Content
+          </h3>
+          <p className="mt-1 text-ink/60 text-[13px]">
+            Waitlist submissions remain available from the App Waitlist tab. Icons and the tablet preview stay design-controlled.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="/app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[13px] font-semibold hover:bg-burgundy/10 inline-flex items-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View App page
+          </a>
+          <button
+            disabled={saving}
+            className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "Saving…" : "Save App page"}
+          </button>
+        </div>
+      </div>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Hero</h4>
+        </div>
+        <Field label="Eyebrow">
+          <input
+            required
+            value={form.eyebrow || ""}
+            onChange={(event) => setForm({ ...form, eyebrow: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Development status badge">
+          <input
+            required
+            value={form.statusLabel || ""}
+            onChange={(event) => setForm({ ...form, statusLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Title (line breaks are preserved)">
+          <textarea
+            required
+            rows={3}
+            value={form.title || ""}
+            onChange={(event) => setForm({ ...form, title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Introduction">
+          <textarea
+            required
+            rows={4}
+            value={form.body || ""}
+            onChange={(event) => setForm({ ...form, body: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Primary button label">
+          <input
+            required
+            value={form.primaryCta?.label || ""}
+            onChange={(event) => updateCta("primaryCta", { label: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Primary button destination">
+          <input
+            required
+            value={form.primaryCta?.href || ""}
+            onChange={(event) => updateCta("primaryCta", { href: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Secondary button label">
+          <input
+            required
+            value={form.secondaryCta?.label || ""}
+            onChange={(event) => updateCta("secondaryCta", { label: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Secondary button destination">
+          <input
+            required
+            value={form.secondaryCta?.href || ""}
+            onChange={(event) => updateCta("secondaryCta", { href: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <div>
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Hero trust points</h4>
+          <p className="mt-1 text-ink/60 text-[12px]">The four existing icons remain fixed.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {form.bullets.map((bullet, index) => (
+            <div key={bullet.icon} className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+              <Field label="Title">
+                <input
+                  required
+                  value={bullet.title || ""}
+                  onChange={(event) => updateListItem("bullets", index, { title: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Supporting text">
+                <input
+                  required
+                  value={bullet.sub || ""}
+                  onChange={(event) => updateListItem("bullets", index, { sub: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <Field label="Features section title">
+          <input
+            required
+            value={form.featuresTitle || ""}
+            onChange={(event) => setForm({ ...form, featuresTitle: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {form.features.map((feature, index) => (
+            <div key={feature.icon} className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+              <Field label="Feature title">
+                <input
+                  required
+                  value={feature.title || ""}
+                  onChange={(event) => updateListItem("features", index, { title: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Description">
+                <textarea
+                  required
+                  rows={3}
+                  value={feature.body || ""}
+                  onChange={(event) => updateListItem("features", index, { body: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <Field label="How it works section title">
+          <input
+            required
+            value={form.howTitle || ""}
+            onChange={(event) => setForm({ ...form, howTitle: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {form.steps.map((step, index) => (
+            <div key={step.icon} className="rounded-xl bg-ivory ring-1 ring-ivory-300 p-4 space-y-3">
+              <Field label="Step title">
+                <input
+                  required
+                  value={step.title || ""}
+                  onChange={(event) => updateListItem("steps", index, { title: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Description">
+                <textarea
+                  required
+                  rows={4}
+                  value={step.body || ""}
+                  onChange={(event) => updateListItem("steps", index, { body: event.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Field label="Journey panel title">
+            <input
+              required
+              value={form.journey.title || ""}
+              onChange={(event) => updateJourney({ title: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Journey panel text">
+            <textarea
+              required
+              rows={3}
+              value={form.journey.body || ""}
+              onChange={(event) => updateJourney({ body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Waitlist prompt</h4>
+        </div>
+        <Field label="Title">
+          <input
+            required
+            value={form.waitlist.title || ""}
+            onChange={(event) => updateWaitlist({ title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Button label">
+          <input
+            required
+            value={form.waitlist.button || ""}
+            onChange={(event) => updateWaitlist({ button: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Supporting text">
+            <textarea
+              required
+              rows={2}
+              value={form.waitlist.body || ""}
+              onChange={(event) => updateWaitlist({ body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Email placeholder">
+            <input
+              required
+              value={form.waitlist.placeholder || ""}
+              onChange={(event) => updateWaitlist({ placeholder: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <button
+          disabled={saving}
+          className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving…" : "Save App page"}
         </button>
       </div>
     </form>
