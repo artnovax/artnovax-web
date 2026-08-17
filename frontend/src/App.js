@@ -21,6 +21,7 @@ import AppPage from './pages/AppPage';
 import GetInvolved from './pages/GetInvolved';
 import Contact from './pages/Contact';
 import Shop from './pages/Shop';
+import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
@@ -49,7 +50,9 @@ function App() {
             <Route path="/app" element={<AppPage />} />
             <Route path="/get-involved" element={<GetInvolved />} />
             <Route path="/get-involved/shop" element={<Shop />} />
+            <Route path="/get-involved/shop/:id" element={<ProductDetail />} />
             <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/contact" element={<Contact />} />

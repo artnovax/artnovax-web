@@ -139,21 +139,36 @@ const Shop = () => {
         <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
           {products.map((p) => (
             <article
-              key={p.name}
+              key={p.id || p.name}
               className="wwd-card rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 overflow-hidden"
             >
-              <div className="aspect-square bg-ivory-200">
-                <img
-                  src={p.img}
-                  alt={p.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              {p.id ? (
+                <a href={`/shop/${p.id}`} className="relative block aspect-square bg-ivory-200 overflow-hidden group">
+                  <img
+                    src={p.img}
+                    alt={p.imgAlt || p.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                  {(p.images || []).length > 1 && (
+                    <span className="absolute right-2 bottom-2 rounded-full bg-ink/70 text-ivory px-2 py-1 text-[10px] font-semibold">
+                      {p.images.length} photos
+                    </span>
+                  )}
+                </a>
+              ) : (
+                <div className="aspect-square bg-ivory-200">
+                  <img src={p.img} alt={p.imgAlt || p.name} className="w-full h-full object-cover" />
+                </div>
+              )}
               <div className="px-3 py-3 flex items-start justify-between gap-2">
                 <div>
-                  <div className="text-[13.5px] font-semibold text-ink">
-                    {p.name}
-                  </div>
+                  {p.id ? (
+                    <a href={`/shop/${p.id}`} className="text-[13.5px] font-semibold text-ink hover:text-burgundy">
+                      {p.name}
+                    </a>
+                  ) : (
+                    <div className="text-[13.5px] font-semibold text-ink">{p.name}</div>
+                  )}
                   <div className="text-[12.5px] text-ink/70">{p.price}</div>
                 </div>
                 <button

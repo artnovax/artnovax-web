@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { createEvent, updateEvent, deleteEvent, getEvents } from './events';
-import { dbPayloads } from './content';
+import { dbPayloads, getArticles, getFounders, getProducts } from './content';
 
 export async function signInAdmin(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -30,21 +30,20 @@ const list = async (table, orderCol = 'created_at', ascending = false) => {
 };
 
 export async function loadAdminDashboard() {
-  const [subscribers, waitlist, messages, events, articles, products, registrations, applicationsRaw, inquiries, roles, foundersRaw] = await Promise.all([
+  const [subscribers, waitlist, messages, events, articles, products, registrations, applicationsRaw, inquiries, roles, founders] = await Promise.all([
     list('newsletter_subscribers', 'subscribed_at'),
     list('app_waitlist'),
     list('contact_messages', 'submitted_at'),
     getEvents({ includeDrafts: true }),
-    list('articles'),
-    list('products'),
+    getArticles({ includeDrafts: true }),
+    getProducts({ includeInactive: true }),
     list('event_registrations'),
     supabase.from('volunteer_applications').select('*, volunteer_roles(title, slug)').order('created_at', { ascending: false }).then(({ data, error }) => { if (error) throw error; return data || []; }),
     list('partner_inquiries'),
     list('volunteer_roles'),
-    list('founders', 'display_order', true),
+    getFounders(),
   ]);
   const applications = applicationsRaw.map((a) => ({ ...a, role_title: a.volunteer_roles?.title, role_slug: a.volunteer_roles?.slug }));
-  const founders = foundersRaw.map((f) => ({ ...f, order: f.display_order }));
   return { subscribers, waitlist, messages, events, articles, products, registrations, applications, inquiries, roles, founders };
 }
 

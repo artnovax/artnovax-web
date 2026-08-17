@@ -22,6 +22,7 @@ Run the SQL scripts in **Supabase Dashboard → SQL Editor** in this order. Each
 18. `sql/17_team_media.sql`
 19. `sql/18_article_hero_media.sql`
 20. `sql/19_article_inline_media.sql`
+21. `sql/20_product_gallery.sql`
 
 The Media Library is introduced in `15_media_library.sql`. Run
 `16_event_media.sql` afterward to let events reference library posters and to
@@ -32,6 +33,8 @@ Run `18_article_hero_media.sql` to connect article hero images to the library
 and protect heroes that are still attached to an article.
 Run `19_article_inline_media.sql` to protect library images inserted into an
 article body while retaining legacy URL-based image blocks.
+Run `20_product_gallery.sql` to add ordered product galleries with one primary
+image and deletion protection for every attached media asset.
 
 ## First admin
 

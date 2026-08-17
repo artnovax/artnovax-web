@@ -68,8 +68,10 @@ const toFrontendFounder = (row) => ({
   photoMediaId: row.photo_media_id ?? row.photoMediaId ?? null,
 });
 
-export async function getArticles() {
-  const { data, error } = await supabase.from('articles').select('*').eq('status', 'published').order('created_at', { ascending: false });
+export async function getArticles({ includeDrafts = false } = {}) {
+  let query = supabase.from('articles').select('*').order('created_at', { ascending: false });
+  if (!includeDrafts) query = query.eq('status', 'published');
+  const { data, error } = await query;
   if (error) throw error;
   return (data || []).map(toFrontendArticle);
 }
@@ -86,13 +88,72 @@ const toFrontendArticle = (row) => ({
   heroMediaId: row.hero_media_id ?? row.heroMediaId ?? null,
 });
 
+const toFrontendProductImages = (images = []) => {
+  const ordered = (Array.isArray(images) ? images : []).map((image, index) => ({
+    mediaAssetId: image.media_asset_id ?? image.mediaAssetId ?? null,
+    publicUrl: image.src ?? image.publicUrl ?? '',
+    altText: image.alt ?? image.altText ?? '',
+    caption: image.caption ?? '',
+    isPrimary: image.is_primary ?? image.isPrimary ?? false,
+    order: Number(image.display_order ?? image.order ?? index),
+  }))
+  .sort((a, b) => a.order - b.order)
+  .map((image, index) => ({ ...image, order: index }));
+  const primaryIndex = ordered.findIndex((image) => image.isPrimary);
+  const normalizedPrimaryIndex = primaryIndex >= 0 ? primaryIndex : 0;
+  return ordered.map((image, index) => ({
+    ...image,
+    isPrimary: index === normalizedPrimaryIndex,
+  }));
+};
+
+const toFrontendProduct = (row) => {
+  const images = toFrontendProductImages(row.images);
+  const primary = images.find((image) => image.isPrimary) || images[0];
+  return {
+    ...row,
+    images,
+    img: primary?.publicUrl || row.img || null,
+    imgAlt: primary?.altText || row.name,
+  };
+};
+
 export async function getProducts({ includeInactive = false } = {}) {
   let q = supabase.from('products').select('*').order('created_at', { ascending: false });
   if (!includeInactive) q = q.eq('active', true);
   const { data, error } = await q;
   if (error) throw error;
-  return data || [];
+  return (data || []).map(toFrontendProduct);
 }
+
+export async function getProduct(id) {
+  const { data, error } = await supabase.from('products').select('*').eq('id', id).single();
+  if (error) throw error;
+  return toFrontendProduct(data);
+}
+
+const toDatabaseProduct = (product) => {
+  const images = toFrontendProductImages(product.images).map((image, index) => ({
+    media_asset_id: image.mediaAssetId,
+    src: image.publicUrl,
+    alt: image.altText || '',
+    caption: image.caption || '',
+    display_order: index,
+    is_primary: !!image.isPrimary,
+  }));
+  const primary = images.find((image) => image.is_primary) || images[0];
+
+  return {
+    name: product.name,
+    price: Number(product.price || 0),
+    currency: product.currency || 'KES',
+    category: product.category || 'All Products',
+    img: primary?.src || product.img || null,
+    images,
+    description: product.description || null,
+    active: product.active !== false,
+  };
+};
 
 export const dbPayloads = {
   volunteerRole: (r) => ({
@@ -121,8 +182,5 @@ export const dbPayloads = {
     hero_media_id: a.heroMediaId ?? a.hero_media_id ?? null, lead: a.lead || null,
     blocks: a.blocks || [], takeaways: normalizeList(a.takeaways), tags: normalizeList(a.tags), status: a.status || 'published',
   }),
-  product: (p) => ({
-    name: p.name, price: Number(p.price || 0), currency: p.currency || 'KES', category: p.category || 'All Products',
-    img: p.img || null, description: p.description || null, active: p.active !== false,
-  }),
+  product: toDatabaseProduct,
 };

@@ -958,6 +958,7 @@ const ArticlesManager = ({ rows, onChange }) => {
         .map((s) => s.trim())
         .filter(Boolean),
       slug: form.slug,
+      status: form.status,
     };
     try {
       if (editing === "new") await createArticle(payload);
@@ -1221,13 +1222,14 @@ const ProductsManager = ({ rows, onChange }) => {
       price: 0,
       category: "Accessories",
       img: "",
+      images: [],
       description: "",
       active: true,
     });
     setEditing("new");
   };
   const startEdit = (row) => {
-    setForm({ ...row });
+    setForm({ ...row, images: row.images || [] });
     setEditing(row.id);
   };
   const cancel = () => {
@@ -1256,6 +1258,67 @@ const ProductsManager = ({ rows, onChange }) => {
     } catch (e) {
       alert(e?.message || "Delete failed");
     }
+  };
+
+  const normalizeImages = (images) => images.map((image, index) => ({
+    ...image,
+    order: index,
+  }));
+
+  const addGalleryImage = (asset) => {
+    const images = form.images || [];
+    if (images.some((image) => image.mediaAssetId === asset.id)) {
+      window.alert("That image is already in this product gallery.");
+      return;
+    }
+    const added = {
+      mediaAssetId: asset.id,
+      publicUrl: asset.public_url,
+      altText: asset.alt_text || "",
+      caption: asset.caption || "",
+      isPrimary: images.length === 0,
+      order: images.length,
+    };
+    const nextImages = [...images, added];
+    setForm({
+      ...form,
+      images: nextImages,
+      img: images.length === 0 ? asset.public_url : form.img,
+    });
+  };
+
+  const updateGalleryImage = (index, patch) => {
+    setForm({
+      ...form,
+      images: (form.images || []).map((image, imageIndex) =>
+        imageIndex === index ? { ...image, ...patch } : image
+      ),
+    });
+  };
+
+  const makePrimary = (index) => {
+    const images = (form.images || []).map((image, imageIndex) => ({
+      ...image,
+      isPrimary: imageIndex === index,
+    }));
+    setForm({ ...form, images, img: images[index]?.publicUrl || "" });
+  };
+
+  const moveGalleryImage = (index, direction) => {
+    const destination = index + direction;
+    const images = [...(form.images || [])];
+    if (destination < 0 || destination >= images.length) return;
+    [images[index], images[destination]] = [images[destination], images[index]];
+    setForm({ ...form, images: normalizeImages(images) });
+  };
+
+  const removeGalleryImage = (index) => {
+    const current = form.images || [];
+    const removedWasPrimary = current[index]?.isPrimary;
+    const images = normalizeImages(current.filter((_, imageIndex) => imageIndex !== index));
+    if (removedWasPrimary && images.length) images[0] = { ...images[0], isPrimary: true };
+    const primary = images.find((image) => image.isPrimary) || images[0];
+    setForm({ ...form, images, img: primary?.publicUrl || "" });
   };
 
   return (
@@ -1314,13 +1377,103 @@ const ProductsManager = ({ rows, onChange }) => {
               ))}
             </select>
           </Field>
-          <Field label="Image URL">
-            <input
-              value={form.img || ""}
-              onChange={(e) => setForm({ ...form, img: e.target.value })}
-              className={inputCls}
-            />
-          </Field>
+          <div className="md:col-span-2">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">
+                  Product gallery
+                </span>
+                <p className="mt-1 text-ink/55 text-[11.5px]">
+                  Add multiple images, arrange their order, and choose the primary shop image.
+                </p>
+              </div>
+              <MediaPicker
+                value={null}
+                onChange={addGalleryImage}
+                buttonLabel="Add gallery image"
+              />
+            </div>
+
+            {(form.images || []).length > 0 && (
+              <div className="mt-4 space-y-3">
+                {(form.images || []).map((image, index) => (
+                  <div
+                    key={image.mediaAssetId}
+                    className={`rounded-xl p-3 grid grid-cols-[88px_minmax(0,1fr)_auto] gap-3 items-center ${image.isPrimary ? "ring-2 ring-burgundy bg-burgundy/5" : "ring-1 ring-ivory-300 bg-ivory"}`}
+                  >
+                    <img
+                      src={image.publicUrl}
+                      alt={image.altText || ""}
+                      className="w-[88px] h-[88px] rounded-lg object-cover bg-ivory-200"
+                    />
+                    <div>
+                      <Field label="Image alt text">
+                        <input
+                          required
+                          value={image.altText || ""}
+                          onChange={(event) => updateGalleryImage(index, { altText: event.target.value })}
+                          className={inputCls}
+                          placeholder="Describe this product image"
+                        />
+                      </Field>
+                      <button
+                        type="button"
+                        onClick={() => makePrimary(index)}
+                        className={`mt-2 rounded-full px-3 py-1 text-[11.5px] font-semibold ${image.isPrimary ? "bg-burgundy text-ivory" : "ring-1 ring-burgundy/30 text-burgundy hover:bg-burgundy/10"}`}
+                      >
+                        {image.isPrimary ? "Primary image" : "Make primary"}
+                      </button>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        aria-label="Move image up"
+                        disabled={index === 0}
+                        onClick={() => moveGalleryImage(index, -1)}
+                        className="w-8 h-8 rounded-full hover:bg-ivory-200 flex items-center justify-center text-burgundy disabled:opacity-30"
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Move image down"
+                        disabled={index === form.images.length - 1}
+                        onClick={() => moveGalleryImage(index, 1)}
+                        className="w-8 h-8 rounded-full hover:bg-ivory-200 flex items-center justify-center text-burgundy disabled:opacity-30"
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Remove image from gallery"
+                        onClick={() => removeGalleryImage(index)}
+                        className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {(form.images || []).length === 0 && form.img && (
+              <div className="mt-4 rounded-xl bg-amber-50 ring-1 ring-amber-200 p-3 flex items-center gap-3">
+                <img src={form.img} alt={form.name || "Legacy product"} className="w-16 h-16 rounded-lg object-cover" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-amber-900 text-[12.5px] font-semibold">Legacy product image</div>
+                  <p className="text-amber-800 text-[11.5px]">Add a library image to create a protected gallery.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, img: "" })}
+                  className="rounded-full ring-1 ring-amber-300 px-3 py-1.5 text-[11.5px] font-semibold text-amber-900 hover:bg-amber-100"
+                >
+                  Remove legacy image
+                </button>
+              </div>
+            )}
+          </div>
           <div className="md:col-span-2">
             <Field label="Description">
               <textarea
@@ -1380,7 +1533,7 @@ const ProductsManager = ({ rows, onChange }) => {
                 {r.img && (
                   <img
                     src={r.img}
-                    alt={r.name}
+                    alt={r.imgAlt || r.name}
                     className="w-full h-full object-cover"
                   />
                 )}
@@ -1397,6 +1550,11 @@ const ProductsManager = ({ rows, onChange }) => {
                 <div className="text-ink/60 text-[12px] line-clamp-1">
                   {r.description}
                 </div>
+                {(r.images || []).length > 0 && (
+                  <div className="text-burgundy/70 text-[11px] mt-0.5">
+                    {r.images.length} gallery {r.images.length === 1 ? "image" : "images"}
+                  </div>
+                )}
               </div>
               <div className="text-ink/70">{r.category}</div>
               <div className="text-burgundy font-semibold">
