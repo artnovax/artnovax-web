@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Lock,
   Mail,
@@ -810,6 +810,7 @@ const EventsManager = ({ rows, onChange }) => {
 const ArticlesManager = ({ rows, onChange }) => {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
+  const bodyTextareaRef = useRef(null);
 
   const startNew = () => {
     setForm({
@@ -823,12 +824,21 @@ const ArticlesManager = ({ rows, onChange }) => {
       heroMediaId: null,
       lead: "",
       bodyText: "",
+      inlineMediaByUrl: {},
       tags: "",
       takeaways: "",
     });
     setEditing("new");
   };
   const startEdit = (row) => {
+    const inlineMediaByUrl = Object.fromEntries(
+      (row.blocks || [])
+        .filter((block) => block.type === "img" && block.src && (block.media_asset_id || block.mediaAssetId))
+        .map((block) => [
+          block.src,
+          { id: block.media_asset_id || block.mediaAssetId },
+        ]),
+    );
     const bodyText = (row.blocks || [])
       .map((b) => {
         if (b.type === "h2") return `## ${b.text}`;
@@ -844,6 +854,7 @@ const ArticlesManager = ({ rows, onChange }) => {
     setForm({
       ...row,
       bodyText,
+      inlineMediaByUrl,
       tags: (row.tags || []).join(", "),
       takeaways: (row.takeaways || []).join("\n"),
     });
@@ -854,7 +865,7 @@ const ArticlesManager = ({ rows, onChange }) => {
     setForm({});
   };
 
-  const parseBody = (text) => {
+  const parseBody = (text, inlineMediaByUrl = {}) => {
     const blocks = [];
     const paragraphs = (text || "").split(/\n\s*\n/);
     for (const raw of paragraphs) {
@@ -876,16 +887,53 @@ const ArticlesManager = ({ rows, onChange }) => {
         else blocks.push({ type: "quote", text: rest });
       } else if (p.startsWith("!")) {
         const m = p.match(/!\[([^\]]*)\]\(([^)]+)\)(?:\s+[—-]\s+(.+))?/);
-        if (m)
-          blocks.push({
+        if (m) {
+          const imageBlock = {
             type: "img",
             alt: m[1],
             src: m[2],
             caption: m[3] || "",
-          });
+          };
+          const mediaAssetId = inlineMediaByUrl[m[2]]?.id;
+          if (mediaAssetId) imageBlock.media_asset_id = mediaAssetId;
+          blocks.push(imageBlock);
+        }
       } else blocks.push({ type: "p", text: p });
     }
     return blocks;
+  };
+
+  const insertInlineImage = (asset) => {
+    const textarea = bodyTextareaRef.current;
+    const current = form.bodyText || "";
+    const start = textarea?.selectionStart ?? current.length;
+    const end = textarea?.selectionEnd ?? start;
+    const alt = String(asset.alt_text || asset.title || "Article image")
+      .replace(/[\[\]]/g, "")
+      .trim();
+    const caption = String(asset.caption || "").trim();
+    const imageMarkup = `![${alt}](${asset.public_url})${caption ? ` — ${caption}` : ""}`;
+    const before = current.slice(0, start);
+    const after = current.slice(end);
+    const leadingBreak = before && !before.endsWith("\n\n") ? "\n\n" : "";
+    const trailingBreak = after && !after.startsWith("\n\n") ? "\n\n" : "";
+    const insertion = `${leadingBreak}${imageMarkup}${trailingBreak}`;
+    const nextBody = `${before}${insertion}${after}`;
+    const nextCursor = before.length + insertion.length;
+
+    setForm({
+      ...form,
+      bodyText: nextBody,
+      inlineMediaByUrl: {
+        ...(form.inlineMediaByUrl || {}),
+        [asset.public_url]: { id: asset.id },
+      },
+    });
+
+    window.requestAnimationFrame(() => {
+      bodyTextareaRef.current?.focus();
+      bodyTextareaRef.current?.setSelectionRange(nextCursor, nextCursor);
+    });
   };
 
   const save = async (e) => {
@@ -900,7 +948,7 @@ const ArticlesManager = ({ rows, onChange }) => {
       heroAlt: form.heroAlt,
       heroMediaId: form.heroMediaId,
       lead: form.lead,
-      blocks: parseBody(form.bodyText),
+      blocks: parseBody(form.bodyText, form.inlineMediaByUrl),
       tags: (form.tags || "")
         .split(",")
         .map((s) => s.trim())
@@ -1064,15 +1112,27 @@ const ArticlesManager = ({ rows, onChange }) => {
             </Field>
           </div>
           <div className="md:col-span-2">
-            <Field label="Body (markdown-lite: ## heading, ### subheading, > quote — author, ![alt](url) — caption)">
-              <textarea
-                rows={12}
-                value={form.bodyText || ""}
-                onChange={(e) => setForm({ ...form, bodyText: e.target.value })}
-                className={inputCls + " font-mono text-[13px]"}
-                placeholder="## First section&#10;Paragraph text here…&#10;&#10;![Alt text](https://example.com/image.jpg) — optional caption&#10;&#10;> Blockquote text — Author"
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">
+                Body
+              </span>
+              <MediaPicker
+                value={null}
+                onChange={insertInlineImage}
+                buttonLabel="Insert library image"
               />
-            </Field>
+            </div>
+            <p className="mt-1 text-ink/55 text-[11.5px]">
+              Place the cursor where the image should appear. Markdown-lite supports ## heading, ### subheading, &gt; quote — author, and ![alt](url) — caption. Manually entered image URLs remain unprotected.
+            </p>
+            <textarea
+              ref={bodyTextareaRef}
+              rows={12}
+              value={form.bodyText || ""}
+              onChange={(e) => setForm({ ...form, bodyText: e.target.value })}
+              className={inputCls + " mt-2 font-mono text-[13px]"}
+              placeholder="## First section&#10;Paragraph text here…&#10;&#10;![Alt text](https://example.com/image.jpg) — optional caption&#10;&#10;> Blockquote text — Author"
+            />
           </div>
           <div className="md:col-span-2">
             <Field label="Takeaways (one per line)">
