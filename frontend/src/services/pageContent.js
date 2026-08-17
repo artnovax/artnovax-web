@@ -86,6 +86,35 @@ export const defaultShopPageContent = () => ({
   allProductsLabel: 'All Products',
 });
 
+export const defaultSupportPageContent = () => ({
+  eyebrow: 'SUPPORT OUR WORK',
+  title: 'Your gift makes creative wellbeing possible.',
+  body: 'Every shilling helps us bring guided art sessions, research and community care to young people across Kenya. You can give once today, or reach out to set up a longer-term commitment.',
+  impactItems: [
+    'KES 1,000 helps stock materials for one campus session.',
+    'KES 5,000 sponsors a small circle of care for a term.',
+    'Any amount goes 100% to program delivery and research.',
+  ],
+  formTitle: 'Give today',
+  presets: [500, 1000, 2500, 5000, 10000],
+  customAmountLabel: 'Or custom amount (KES)',
+  customAmountPlaceholder: 'e.g. 750',
+  namePlaceholder: 'Your name (optional)',
+  emailPlaceholder: 'Email (for receipt)',
+  messagePlaceholder: 'A note (optional)',
+  donateButtonLabel: 'Donate',
+  loadingLabel: 'Redirecting…',
+  securityPrefix: 'Secured by Stripe. We also welcome bank transfers and pledges: ',
+  contactLabel: 'contact us',
+  contactHref: '/contact',
+  securitySuffix: '.',
+  thanks: {
+    title: "Thank you — we're moved.",
+    body: 'Your checkout was completed. Stripe is securely confirming the payment with ArtNovaX, and your gift will help us reach more young people through art.',
+    button: { label: 'Back to home', href: '/' },
+  },
+});
+
 const mergeHomePageContent = (rows = []) => {
   const defaults = defaultHomePageContent();
   const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
@@ -498,6 +527,41 @@ export async function getShopPageContent() {
   return mergeShopPageContent(await getPageSections('shop'));
 }
 
+const mergeSupportPageContent = (rows = []) => {
+  const defaults = defaultSupportPageContent();
+  const bySection = Object.fromEntries(rows.map((row) => [row.section_key, row]));
+  const introContent = bySection.intro?.content || {};
+  const donationContent = bySection.donation?.content || {};
+  const thanksContent = bySection.thanks?.content || {};
+  const savedPresets = Array.isArray(donationContent.presets)
+    ? donationContent.presets
+      .map(Number)
+      .filter((value) => Number.isFinite(value) && value >= 100)
+    : [];
+
+  return {
+    ...defaults,
+    ...introContent,
+    impactItems: defaults.impactItems.map((item, index) =>
+      introContent.impactItems?.[index] || item
+    ),
+    ...donationContent,
+    presets: savedPresets.length ? savedPresets : defaults.presets,
+    thanks: {
+      ...defaults.thanks,
+      ...thanksContent,
+      button: {
+        ...defaults.thanks.button,
+        ...(thanksContent.button || {}),
+      },
+    },
+  };
+};
+
+export async function getSupportPageContent() {
+  return mergeSupportPageContent(await getPageSections('support'));
+}
+
 const upsertSection = async (pageKey, sectionKey, payload) => {
   const { data, error } = await supabase
     .from('page_sections')
@@ -892,4 +956,48 @@ export async function saveShopPageContent(shopPage) {
   ]);
 
   return getShopPageContent();
+}
+
+export async function saveSupportPageContent(supportPage) {
+  await Promise.all([
+    upsertSection('support', 'intro', {
+      content: {
+        eyebrow: supportPage.eyebrow,
+        title: supportPage.title,
+        body: supportPage.body,
+        impactItems: supportPage.impactItems,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('support', 'donation', {
+      content: {
+        formTitle: supportPage.formTitle,
+        presets: supportPage.presets.map(Number),
+        customAmountLabel: supportPage.customAmountLabel,
+        customAmountPlaceholder: supportPage.customAmountPlaceholder,
+        namePlaceholder: supportPage.namePlaceholder,
+        emailPlaceholder: supportPage.emailPlaceholder,
+        messagePlaceholder: supportPage.messagePlaceholder,
+        donateButtonLabel: supportPage.donateButtonLabel,
+        loadingLabel: supportPage.loadingLabel,
+        securityPrefix: supportPage.securityPrefix,
+        contactLabel: supportPage.contactLabel,
+        contactHref: supportPage.contactHref,
+        securitySuffix: supportPage.securitySuffix,
+      },
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+    upsertSection('support', 'thanks', {
+      content: supportPage.thanks,
+      image: null,
+      image_media_id: null,
+      image_alt_text: null,
+    }),
+  ]);
+
+  return getSupportPageContent();
 }

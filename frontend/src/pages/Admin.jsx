@@ -51,6 +51,7 @@ import {
   saveGetInvolvedPage,
   saveContactPage,
   saveShopPage,
+  saveSupportPage,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -74,6 +75,7 @@ const emptyData = {
   getInvolvedPage: null,
   contactPage: null,
   shopPage: null,
+  supportPage: null,
   waitlist: [],
   messages: [],
   events: [],
@@ -298,6 +300,12 @@ const Admin = () => {
                 onClick={() => setTab("shoppage")}
               />
               <TabPill
+                icon={PanelsTopLeft}
+                label="Support Page"
+                active={tab === "supportpage"}
+                onClick={() => setTab("supportpage")}
+              />
+              <TabPill
                 icon={Calendar}
                 label={`Events (${data.events.length})`}
                 active={tab === "events"}
@@ -399,6 +407,9 @@ const Admin = () => {
               )}
               {tab === "shoppage" && data.shopPage && (
                 <ShopPageManager content={data.shopPage} onChange={refresh} />
+              )}
+              {tab === "supportpage" && data.supportPage && (
+                <SupportPageManager content={data.supportPage} onChange={refresh} />
               )}
               {tab === "events" && (
                 <EventsManager rows={data.events} onChange={refresh} />
@@ -3445,6 +3456,324 @@ const ShopPageManager = ({ content, onChange }) => {
         >
           <Save className="w-4 h-4" />
           {saving ? "Saving…" : "Save Shop page"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// ---- Support Page Manager ----
+const SupportPageManager = ({ content, onChange }) => {
+  const [form, setForm] = useState(() => JSON.parse(JSON.stringify(content)));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm(JSON.parse(JSON.stringify(content)));
+  }, [content]);
+
+  const updateImpact = (index, value) => setForm((current) => ({
+    ...current,
+    impactItems: current.impactItems.map((item, itemIndex) =>
+      itemIndex === index ? value : item
+    ),
+  }));
+
+  const updatePreset = (index, value) => setForm((current) => ({
+    ...current,
+    presets: current.presets.map((preset, presetIndex) =>
+      presetIndex === index ? value : preset
+    ),
+  }));
+
+  const updateThanks = (patch) => setForm((current) => ({
+    ...current,
+    thanks: { ...current.thanks, ...patch },
+  }));
+
+  const updateThanksButton = (patch) => setForm((current) => ({
+    ...current,
+    thanks: {
+      ...current.thanks,
+      button: { ...current.thanks.button, ...patch },
+    },
+  }));
+
+  const save = async (event) => {
+    event.preventDefault();
+    const presets = form.presets.map(Number);
+    if (presets.some((value) => !Number.isFinite(value) || value < 100)) {
+      alert("Every donation preset must be at least KES 100.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await saveSupportPage({ ...form, presets });
+      onChange();
+      alert("Support page content saved.");
+    } catch (error) {
+      alert(error?.message || "Support page save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+            Support and Donation Page Content
+          </h3>
+          <p className="mt-1 text-ink/60 text-[13px]">
+            Stripe checkout configuration, the Edge Function contract, success detection, and the KES 100 minimum remain system-controlled.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="/support"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[13px] font-semibold hover:bg-burgundy/10 inline-flex items-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View Support page
+          </a>
+          <button
+            disabled={saving}
+            className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "Saving…" : "Save Support page"}
+          </button>
+        </div>
+      </div>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Introduction</h4>
+        </div>
+        <Field label="Eyebrow">
+          <input
+            required
+            value={form.eyebrow || ""}
+            onChange={(event) => setForm({ ...form, eyebrow: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Title">
+          <textarea
+            required
+            rows={3}
+            value={form.title || ""}
+            onChange={(event) => setForm({ ...form, title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Introduction text">
+            <textarea
+              required
+              rows={4}
+              value={form.body || ""}
+              onChange={(event) => setForm({ ...form, body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        {form.impactItems.map((item, index) => (
+          <div key={index} className={index === 2 ? "md:col-span-2" : ""}>
+            <Field label={`Impact statement ${index + 1}`}>
+              <textarea
+                required
+                rows={2}
+                value={item || ""}
+                onChange={(event) => updateImpact(index, event.target.value)}
+                className={inputCls}
+              />
+            </Field>
+          </div>
+        ))}
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 space-y-4">
+        <div>
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Donation panel</h4>
+          <p className="mt-1 text-ink/60 text-[12px]">Preset amounts must each be at least KES 100.</p>
+        </div>
+        <Field label="Panel title">
+          <input
+            required
+            value={form.formTitle || ""}
+            onChange={(event) => setForm({ ...form, formTitle: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {form.presets.map((preset, index) => (
+            <Field key={index} label={`Preset ${index + 1} (KES)`}>
+              <input
+                required
+                type="number"
+                min="100"
+                step="1"
+                value={preset}
+                onChange={(event) => updatePreset(index, event.target.value)}
+                className={inputCls}
+              />
+            </Field>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Field label="Custom amount label">
+            <input
+              required
+              value={form.customAmountLabel || ""}
+              onChange={(event) => setForm({ ...form, customAmountLabel: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Custom amount placeholder">
+            <input
+              required
+              value={form.customAmountPlaceholder || ""}
+              onChange={(event) => setForm({ ...form, customAmountPlaceholder: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Name placeholder">
+            <input
+              required
+              value={form.namePlaceholder || ""}
+              onChange={(event) => setForm({ ...form, namePlaceholder: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Email placeholder">
+            <input
+              required
+              value={form.emailPlaceholder || ""}
+              onChange={(event) => setForm({ ...form, emailPlaceholder: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Message placeholder">
+            <input
+              required
+              value={form.messagePlaceholder || ""}
+              onChange={(event) => setForm({ ...form, messagePlaceholder: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Donate button label">
+            <input
+              required
+              value={form.donateButtonLabel || ""}
+              onChange={(event) => setForm({ ...form, donateButtonLabel: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Loading label">
+            <input
+              required
+              value={form.loadingLabel || ""}
+              onChange={(event) => setForm({ ...form, loadingLabel: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Checkout reassurance</h4>
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Text before contact link">
+            <textarea
+              required
+              rows={2}
+              value={form.securityPrefix || ""}
+              onChange={(event) => setForm({ ...form, securityPrefix: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <Field label="Contact-link label">
+          <input
+            required
+            value={form.contactLabel || ""}
+            onChange={(event) => setForm({ ...form, contactLabel: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Contact-link destination">
+          <input
+            required
+            value={form.contactHref || ""}
+            onChange={(event) => setForm({ ...form, contactHref: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Text after contact link">
+          <input
+            value={form.securitySuffix || ""}
+            onChange={(event) => setForm({ ...form, securitySuffix: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+      </section>
+
+      <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="md:col-span-2">
+          <h4 className="font-serif-display text-burgundy text-[19px] font-semibold">Successful-checkout message</h4>
+        </div>
+        <Field label="Title">
+          <input
+            required
+            value={form.thanks.title || ""}
+            onChange={(event) => updateThanks({ title: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Button label">
+          <input
+            required
+            value={form.thanks.button?.label || ""}
+            onChange={(event) => updateThanksButton({ label: event.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Confirmation text">
+            <textarea
+              required
+              rows={3}
+              value={form.thanks.body || ""}
+              onChange={(event) => updateThanks({ body: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <div className="md:col-span-2">
+          <Field label="Button destination">
+            <input
+              required
+              value={form.thanks.button?.href || ""}
+              onChange={(event) => updateThanksButton({ href: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <button
+          disabled={saving}
+          className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-2 disabled:opacity-60"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving…" : "Save Support page"}
         </button>
       </div>
     </form>

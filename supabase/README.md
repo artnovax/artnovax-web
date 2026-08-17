@@ -44,6 +44,8 @@ Run `22_page_sections.sql` to add reusable public page-content rows. The
 homepage, About page, Our Work page, Events landing page, Research landing
 page, ArtNovaX App landing page, Get Involved overview, Contact page, and Shop
 landing page use this foundation.
+The Support and donation page also uses this foundation; Stripe checkout
+configuration remains separate and system-controlled.
 Library hero and programme-card images are protected
 from deletion while attached.
 
