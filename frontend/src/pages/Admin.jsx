@@ -19,9 +19,11 @@ import {
   UserSquare2,
   ArrowUp,
   ArrowDown,
+  Images,
 } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import MediaLibrary from "../components/admin/MediaLibrary";
 import {
   signInAdmin,
   signOutAdmin,
@@ -211,6 +213,12 @@ const Admin = () => {
 
             <div className="mt-6 flex flex-wrap gap-2">
               <TabPill
+                icon={Images}
+                label="Media Library"
+                active={tab === "media"}
+                onClick={() => setTab("media")}
+              />
+              <TabPill
                 icon={Calendar}
                 label={`Events (${data.events.length})`}
                 active={tab === "events"}
@@ -279,6 +287,7 @@ const Admin = () => {
             </div>
 
             <div className="mt-8">
+              {tab === "media" && <MediaLibrary />}
               {tab === "events" && (
                 <EventsManager rows={data.events} onChange={refresh} />
               )}
