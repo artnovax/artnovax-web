@@ -12,6 +12,48 @@ Run the SQL scripts in **Supabase Dashboard → SQL Editor** in this order. Each
 8. `sql/07_contact.sql`
 9. `sql/08_partners.sql`
 10. `sql/09_products.sql`
+11. `sql/10_payments.sql`
+12. `sql/11_mpesa.sql`
+13. `sql/12_email_delivery.sql`
+14. `sql/13_email_workflows.sql`
+15. `sql/14_lockdown_public_submissions.sql`
+16. `sql/15_media_library.sql`
+17. `sql/16_event_media.sql`
+18. `sql/17_team_media.sql`
+19. `sql/18_article_hero_media.sql`
+20. `sql/19_article_inline_media.sql`
+21. `sql/20_product_gallery.sql`
+22. `sql/21_newsletter_issues.sql`
+23. `sql/22_page_sections.sql`
+
+The Media Library is introduced in `15_media_library.sql`. Run
+`16_event_media.sql` afterward to let events reference library posters and to
+prevent deletion of poster images that are still attached to an event.
+Run `17_team_media.sql` to provide the same library selection and deletion
+protection for team photographs.
+Run `18_article_hero_media.sql` to connect article hero images to the library
+and protect heroes that are still attached to an article.
+Run `19_article_inline_media.sql` to protect library images inserted into an
+article body while retaining legacy URL-based image blocks.
+Run `20_product_gallery.sql` to add ordered product galleries with one primary
+image and deletion protection for every attached media asset.
+Run `21_newsletter_issues.sql` to add draft/published newsletter archive issues,
+protected library hero images, and staff-only draft preview access. This script
+does not send email to subscribers.
+Run `22_page_sections.sql` to add reusable public page-content rows. The
+homepage, About page, Our Work page, Events landing page, Research landing
+page, ArtNovaX App landing page, Get Involved overview, Contact page, and Shop
+landing page use this foundation.
+The Support and donation page also uses this foundation; Stripe checkout
+configuration remains separate and system-controlled.
+The Volunteer landing and shared application-screen copy use this foundation;
+role records, custom questions, and applications remain in their existing tables.
+The Partner inquiry page copy and select-option labels use this foundation;
+inquiry field keys and submissions remain in the existing partner workflow.
+Privacy, Terms, Accessibility, and Research Approach information pages also use
+this foundation. Their default wording should be reviewed before launch.
+Library hero and programme-card images are protected
+from deletion while attached.
 
 ## First admin
 

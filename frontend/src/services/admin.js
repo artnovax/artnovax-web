@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { createEvent, updateEvent, deleteEvent, getEvents } from './events';
-import { dbPayloads } from './content';
+import { dbPayloads, getArticles, getFounders, getNewsletterIssues, getProducts } from './content';
+import { getAboutPageContent, getAppPageContent, getContactPageContent, getEventsPageContent, getGetInvolvedPageContent, getHomePageContent, getInformationPagesContent, getOurWorkPageContent, getPartnerPageContent, getResearchPageContent, getShopPageContent, getSupportPageContent, getVolunteerPageContent, saveAboutPageContent, saveAppPageContent, saveContactPageContent, saveEventsPageContent, saveGetInvolvedPageContent, saveHomePageContent, saveInformationPageContent, saveOurWorkPageContent, savePartnerPageContent, saveResearchPageContent, saveShopPageContent, saveSupportPageContent, saveVolunteerPageContent } from './pageContent';
 
 export async function signInAdmin(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -30,22 +31,35 @@ const list = async (table, orderCol = 'created_at', ascending = false) => {
 };
 
 export async function loadAdminDashboard() {
-  const [subscribers, waitlist, messages, events, articles, products, registrations, applicationsRaw, inquiries, roles, foundersRaw] = await Promise.all([
+  const [subscribers, newsletters, waitlist, messages, events, articles, products, registrations, applicationsRaw, inquiries, roles, founders, homePage, aboutPage, ourWorkPage, eventsPage, researchPage, appPage, getInvolvedPage, contactPage, shopPage, supportPage, volunteerPage, partnerPage, informationPages] = await Promise.all([
     list('newsletter_subscribers', 'subscribed_at'),
+    getNewsletterIssues({ includeDrafts: true }),
     list('app_waitlist'),
     list('contact_messages', 'submitted_at'),
     getEvents({ includeDrafts: true }),
-    list('articles'),
-    list('products'),
+    getArticles({ includeDrafts: true }),
+    getProducts({ includeInactive: true }),
     list('event_registrations'),
     supabase.from('volunteer_applications').select('*, volunteer_roles(title, slug)').order('created_at', { ascending: false }).then(({ data, error }) => { if (error) throw error; return data || []; }),
     list('partner_inquiries'),
     list('volunteer_roles'),
-    list('founders', 'display_order', true),
+    getFounders(),
+    getHomePageContent(),
+    getAboutPageContent(),
+    getOurWorkPageContent(),
+    getEventsPageContent(),
+    getResearchPageContent(),
+    getAppPageContent(),
+    getGetInvolvedPageContent(),
+    getContactPageContent(),
+    getShopPageContent(),
+    getSupportPageContent(),
+    getVolunteerPageContent(),
+    getPartnerPageContent(),
+    getInformationPagesContent(),
   ]);
   const applications = applicationsRaw.map((a) => ({ ...a, role_title: a.volunteer_roles?.title, role_slug: a.volunteer_roles?.slug }));
-  const founders = foundersRaw.map((f) => ({ ...f, order: f.display_order }));
-  return { subscribers, waitlist, messages, events, articles, products, registrations, applications, inquiries, roles, founders };
+  return { subscribers, newsletters, waitlist, messages, events, articles, products, registrations, applications, inquiries, roles, founders, homePage, aboutPage, ourWorkPage, eventsPage, researchPage, appPage, getInvolvedPage, contactPage, shopPage, supportPage, volunteerPage, partnerPage, informationPages };
 }
 
 const insert = async (table, payload) => { const { data, error } = await supabase.from(table).insert(payload).select().single(); if (error) throw error; return data; };
@@ -56,6 +70,22 @@ export { createEvent, updateEvent, deleteEvent };
 export const createArticle = (p) => insert('articles', dbPayloads.article(p));
 export const updateArticle = (id, p) => update('articles', id, dbPayloads.article(p));
 export const deleteArticle = (id) => remove('articles', id);
+export const createNewsletterIssue = (p) => insert('newsletter_issues', dbPayloads.newsletterIssue(p));
+export const updateNewsletterIssue = (id, p) => update('newsletter_issues', id, dbPayloads.newsletterIssue(p));
+export const deleteNewsletterIssue = (id) => remove('newsletter_issues', id);
+export const saveHomepage = (payload) => saveHomePageContent(payload);
+export const saveAboutPage = (payload) => saveAboutPageContent(payload);
+export const saveOurWorkPage = (payload) => saveOurWorkPageContent(payload);
+export const saveEventsPage = (payload) => saveEventsPageContent(payload);
+export const saveResearchPage = (payload) => saveResearchPageContent(payload);
+export const saveAppPage = (payload) => saveAppPageContent(payload);
+export const saveGetInvolvedPage = (payload) => saveGetInvolvedPageContent(payload);
+export const saveContactPage = (payload) => saveContactPageContent(payload);
+export const saveShopPage = (payload) => saveShopPageContent(payload);
+export const saveSupportPage = (payload) => saveSupportPageContent(payload);
+export const saveVolunteerPage = (payload) => saveVolunteerPageContent(payload);
+export const savePartnerPage = (payload) => savePartnerPageContent(payload);
+export const saveInformationPage = (pageKey, payload) => saveInformationPageContent(pageKey, payload);
 export const createProduct = (p) => insert('products', dbPayloads.product(p));
 export const updateProduct = (id, p) => update('products', id, dbPayloads.product(p));
 export const deleteProduct = (id) => remove('products', id);

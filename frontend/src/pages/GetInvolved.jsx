@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowRight,
   Calendar,
@@ -10,7 +10,10 @@ import {
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BrushFrame from "../components/BrushFrame";
-import { GET_INVOLVED } from "../mock_pages2";
+import {
+  defaultGetInvolvedPageContent,
+  getGetInvolvedPageContent,
+} from "../services/pageContent";
 
 const wayIcon = (key) => {
   const cls = "w-8 h-8 text-burgundy";
@@ -131,6 +134,20 @@ const StrongerIllustration = () => (
 );
 
 const GetInvolved = () => {
+  const [pageContent, setPageContent] = useState(() =>
+    defaultGetInvolvedPageContent(),
+  );
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setPageContent(await getGetInvolvedPageContent());
+      } catch (error) {
+        console.warn("Using built-in Get Involved page content.", error);
+      }
+    })();
+  }, []);
+
   return (
     <div className="min-h-screen bg-ivory">
       <Header activePath="/get-involved" />
@@ -139,13 +156,13 @@ const GetInvolved = () => {
       <section className="mx-auto max-w-[1240px] px-4 md:px-8 pt-8 md:pt-14 pb-8 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
         <div className="order-2 lg:order-1">
           <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold fade-up">
-            {GET_INVOLVED.eyebrow}
+            {pageContent.eyebrow}
           </div>
           <h1 className="fade-up delay-1 mt-4 font-serif-display text-burgundy text-[42px] sm:text-[52px] md:text-[60px] leading-[1.02] font-semibold whitespace-pre-line">
-            {GET_INVOLVED.title}
+            {pageContent.title}
           </h1>
           <p className="fade-up delay-2 mt-6 text-[16px] md:text-[17px] leading-[1.7] text-ink/80 max-w-[520px]">
-            {GET_INVOLVED.body}
+            {pageContent.body}
           </p>
           <div className="fade-up delay-3 mt-8 flex items-start gap-3">
             <svg
@@ -160,14 +177,14 @@ const GetInvolved = () => {
               <path d="M32 46c-6-4-14-10-14-18 0-5 4-9 8-9 3 0 5 2 6 4 1-2 3-4 6-4 4 0 8 4 8 9 0 8-8 14-14 18z" />
             </svg>
             <div className="text-ink/85 font-serif-display italic text-[15px] leading-snug whitespace-pre-line">
-              {GET_INVOLVED.tagline}
+              {pageContent.tagline}
             </div>
           </div>
         </div>
         <div className="order-1 lg:order-2 fade-up delay-2">
           <BrushFrame
-            src={GET_INVOLVED.image}
-            alt={GET_INVOLVED.imageAlt}
+            src={pageContent.image}
+            alt={pageContent.imageAlt}
             aspect="aspect-[5/4]"
             objectPosition="center"
           />
@@ -181,12 +198,12 @@ const GetInvolved = () => {
       >
         <div className="text-center">
           <h2 className="font-serif-display text-ink text-[26px] md:text-[32px] font-medium">
-            {GET_INVOLVED.waysTitle}
+            {pageContent.waysTitle}
           </h2>
           <div className="mx-auto mt-2 w-16 h-0.5 bg-burgundy/40" />
         </div>
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-          {GET_INVOLVED.ways.map((w) => (
+          {pageContent.ways.map((w) => (
             <article
               key={w.title}
               className="wwd-card rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 text-center flex flex-col items-center"
@@ -220,16 +237,16 @@ const GetInvolved = () => {
           </div>
           <div>
             <h3 className="font-serif-display text-burgundy text-[26px] md:text-[30px] font-semibold">
-              {GET_INVOLVED.stronger.title}
+              {pageContent.stronger.title}
             </h3>
             <p className="mt-3 text-ink/80 text-[14.5px] leading-relaxed max-w-[420px]">
-              {GET_INVOLVED.stronger.body}
+              {pageContent.stronger.body}
             </p>
             <a
-              href={GET_INVOLVED.stronger.cta.href}
+              href={pageContent.stronger.cta.href}
               className="cta-btn mt-5 inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-6 py-3.5 text-[14.5px] font-semibold hover:bg-burgundy-light"
             >
-              {GET_INVOLVED.stronger.cta.label}
+              {pageContent.stronger.cta.label}
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>

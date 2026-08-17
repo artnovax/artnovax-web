@@ -15,8 +15,12 @@ import {
   getVolunteerRole,
   submitVolunteerApplication,
 } from "../services/content";
+import {
+  defaultVolunteerPageContent,
+  getVolunteerPageContent,
+} from "../services/pageContent";
 
-const renderField = (q, value, onChange) => {
+const renderField = (q, value, onChange, selectPlaceholder) => {
   const cls =
     "w-full rounded-lg ring-1 ring-ivory-300 bg-ivory-100 px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40";
   const set = (v) => onChange(q.id, v);
@@ -38,7 +42,7 @@ const renderField = (q, value, onChange) => {
         required={q.required}
         className={cls}
       >
-        <option value="">Select…</option>
+        <option value="">{selectPlaceholder}</option>
         {(q.options || []).map((o) => (
           <option key={o} value={o}>
             {o}
@@ -87,6 +91,19 @@ const VolunteerApply = () => {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState(null);
+  const [pageContent, setPageContent] = useState(() =>
+    defaultVolunteerPageContent(),
+  );
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setPageContent(await getVolunteerPageContent());
+      } catch (error) {
+        console.warn("Using built-in Volunteer application content.", error);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -123,11 +140,12 @@ const VolunteerApply = () => {
   };
 
   const setAns = (k, v) => setAnswers((a) => ({ ...a, [k]: v }));
+  const content = pageContent.application;
 
   if (loading)
     return (
       <Shell>
-        <div className="text-center py-24 text-ink/60">Loading…</div>
+        <div className="text-center py-24 text-ink/60">{content.loadingText}</div>
       </Shell>
     );
   if (!role)
@@ -135,7 +153,7 @@ const VolunteerApply = () => {
       <Shell>
         <div className="text-center py-24">
           <h1 className="font-serif-display text-burgundy text-[28px] font-semibold">
-            Role not found
+            {content.notFoundTitle}
           </h1>
         </div>
       </Shell>
@@ -148,16 +166,16 @@ const VolunteerApply = () => {
             <CheckCircle2 className="w-8 h-8 text-burgundy" />
           </div>
           <h1 className="mt-4 font-serif-display text-burgundy text-[30px] font-semibold">
-            Thank you — we’ve got your application.
+            {content.successTitle}
           </h1>
           <p className="mt-2 text-ink/75 text-[14.5px]">
-            Our team reviews applications every week and will be in touch.
+            {content.successBody}
           </p>
           <a
             href="/get-involved/volunteer"
             className="cta-btn mt-6 inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-6 py-3 text-[14px] font-semibold hover:bg-burgundy-light"
           >
-            See other roles <ArrowRight className="w-4 h-4" />
+            {content.successButtonLabel} <ArrowRight className="w-4 h-4" />
           </a>
         </div>
       </Shell>
@@ -170,7 +188,7 @@ const VolunteerApply = () => {
         className="inline-flex items-center gap-1 text-burgundy text-[13.5px] font-semibold hover:underline"
       >
         <ArrowLeft className="w-4 h-4" />
-        All roles
+        {content.backLabel}
       </a>
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] gap-8">
         <aside className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-6 h-fit">
@@ -208,7 +226,7 @@ const VolunteerApply = () => {
           {(role.responsibilities || []).length > 0 && (
             <div className="mt-4">
               <div className="text-[11.5px] tracking-widest text-burgundy font-semibold">
-                RESPONSIBILITIES
+                {content.responsibilitiesLabel}
               </div>
               <ul className="mt-1 text-ink/80 text-[13.5px] space-y-1">
                 {role.responsibilities.map((r) => (
@@ -223,7 +241,7 @@ const VolunteerApply = () => {
           {(role.requirements || []).length > 0 && (
             <div className="mt-4">
               <div className="text-[11.5px] tracking-widest text-burgundy font-semibold">
-                REQUIREMENTS
+                {content.requirementsLabel}
               </div>
               <ul className="mt-1 text-ink/80 text-[13.5px] space-y-1">
                 {role.requirements.map((r) => (
@@ -241,11 +259,11 @@ const VolunteerApply = () => {
           className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
           <h2 className="md:col-span-2 font-serif-display text-burgundy text-[22px] font-semibold">
-            Application
+            {content.formTitle}
           </h2>
           <input
             required
-            placeholder="Full name *"
+            placeholder={content.namePlaceholder}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="rounded-lg ring-1 ring-ivory-300 bg-ivory-100 px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
@@ -253,13 +271,13 @@ const VolunteerApply = () => {
           <input
             required
             type="email"
-            placeholder="Email *"
+            placeholder={content.emailPlaceholder}
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             className="rounded-lg ring-1 ring-ivory-300 bg-ivory-100 px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
           />
           <input
-            placeholder="Phone (optional)"
+            placeholder={content.phonePlaceholder}
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
             className="md:col-span-2 rounded-lg ring-1 ring-ivory-300 bg-ivory-100 px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
@@ -270,7 +288,7 @@ const VolunteerApply = () => {
                 {q.label}
                 {q.required && <span> *</span>}
               </label>
-              {renderField(q, answers[q.id], setAns)}
+              {renderField(q, answers[q.id], setAns, content.selectPlaceholder)}
             </div>
           ))}
           {err && (
@@ -286,11 +304,11 @@ const VolunteerApply = () => {
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Submitting…
+                  {content.submittingLabel}
                 </>
               ) : (
                 <>
-                  Submit application <ArrowRight className="w-4 h-4" />
+                  {content.submitLabel} <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>

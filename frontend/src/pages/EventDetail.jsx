@@ -22,7 +22,7 @@ const EventPhoto = ({ ev }) => (
       {ev.img ? (
         <img
           src={ev.img}
-          alt={ev.title}
+          alt={ev.imgAlt || ev.title}
           className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (

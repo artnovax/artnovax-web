@@ -12,8 +12,8 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BrushFrame from "../components/BrushFrame";
 import { HeartHand } from "../components/BrandGlyphs";
-import { EVENTS } from "../mock_pages";
 import { getEvents } from "@/services/events";
+import { defaultEventsPageContent, getEventsPageContent } from "../services/pageContent";
 
 const Tab = ({ active, icon: Icon, label, onClick }) => (
   <button
@@ -33,7 +33,7 @@ const EventCard = ({ ev }) => (
     >
       <img
         src={ev.img}
-        alt={ev.title}
+        alt={ev.imgAlt || ev.title}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
       />
       {ev.featured && (
@@ -84,6 +84,22 @@ const Events = () => {
   const [tIdx, setTIdx] = useState(0);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pageContent, setPageContent] = useState(() => defaultEventsPageContent());
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const remoteContent = await getEventsPageContent();
+        if (!cancelled) setPageContent(remoteContent);
+      } catch (error) {
+        console.warn("Using built-in Events page content.", error);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -123,34 +139,34 @@ const Events = () => {
       <section className="mx-auto max-w-[1240px] px-4 md:px-8 pt-8 md:pt-14 pb-8 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
         <div className="order-2 lg:order-1">
           <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold fade-up">
-            {EVENTS.eyebrow}
+            {pageContent.eyebrow}
           </div>
           <h1 className="fade-up delay-1 mt-4 font-serif-display text-burgundy text-[40px] sm:text-[50px] md:text-[58px] leading-[1.05] font-semibold whitespace-pre-line">
-            {EVENTS.title}
+            {pageContent.title}
           </h1>
           <p className="fade-up delay-2 mt-6 text-[16px] md:text-[17px] leading-[1.7] text-ink/80 max-w-[520px]">
-            {EVENTS.body}
+            {pageContent.body}
           </p>
           <div className="fade-up delay-3 mt-8 flex flex-wrap gap-3">
             <a
-              href="#upcoming"
+              href={pageContent.primaryCta.href}
               className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-6 py-3.5 text-[14.5px] font-semibold hover:bg-burgundy-light shadow-[0_14px_30px_-14px_rgba(92,21,25,0.7)]"
             >
               <Calendar className="w-4 h-4" />
-              View Upcoming Events
+              {pageContent.primaryCta.label}
             </a>
             <button
               onClick={() => setTab("past")}
               className="cta-btn inline-flex items-center gap-2 rounded-full border-2 border-burgundy text-burgundy px-6 py-3.5 text-[14.5px] font-semibold hover:bg-burgundy hover:text-ivory"
             >
-              See Past Events
+              {pageContent.secondaryCta.label}
             </button>
           </div>
         </div>
         <div className="order-1 lg:order-2 fade-up delay-2">
           <BrushFrame
-            src={EVENTS.image}
-            alt={EVENTS.imageAlt}
+            src={pageContent.image}
+            alt={pageContent.imageAlt}
             aspect="aspect-[5/4]"
             objectPosition="center"
           />
@@ -173,7 +189,7 @@ const Events = () => {
                 <div className="relative aspect-square overflow-hidden bg-ivory-200">
                   <img
                     src={f.img}
-                    alt={f.title}
+                    alt={f.imgAlt || f.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                   />
                 </div>
@@ -266,7 +282,7 @@ const Events = () => {
 
         {tab === "testimonials" && (
           <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-            {EVENTS.testimonials.map((t, i) => (
+            {pageContent.testimonials.map((t, i) => (
               <div key={i} className="rounded-2xl bg-burgundy text-ivory p-6">
                 <Quote className="w-6 h-6 text-ivory/70 mb-3" />
                 <p className="font-serif-display italic text-ivory text-[17px] leading-snug">
@@ -289,17 +305,17 @@ const Events = () => {
           </div>
           <div>
             <div className="font-serif-display text-burgundy text-[20px] font-semibold">
-              {EVENTS.ideaCta.title}
+              {pageContent.ideaCta.title}
             </div>
             <p className="text-ink/80 text-[14px] leading-relaxed mt-1">
-              {EVENTS.ideaCta.body}
+              {pageContent.ideaCta.body}
             </p>
           </div>
           <a
-            href={EVENTS.ideaCta.button.href}
+            href={pageContent.ideaCta.button.href}
             className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-6 py-3 text-[14.5px] font-semibold hover:bg-burgundy-light"
           >
-            {EVENTS.ideaCta.button.label}
+            {pageContent.ideaCta.button.label}
             <ArrowRight className="w-4 h-4" />
           </a>
         </div>

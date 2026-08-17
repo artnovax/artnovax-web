@@ -4,11 +4,17 @@ import { ArrowRight, Heart, CheckCircle2, Loader2 } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { supabase } from "../lib/supabase";
+import {
+  defaultSupportPageContent,
+  getSupportPageContent,
+} from "../services/pageContent";
 
-const PRESETS = [500, 1000, 2500, 5000, 10000];
+const SUPPORT_DEFAULTS = defaultSupportPageContent();
 
 const Support = () => {
-  const [amt, setAmt] = useState(1000);
+  const [amt, setAmt] = useState(
+    SUPPORT_DEFAULTS.presets[1] || SUPPORT_DEFAULTS.presets[0] || 100,
+  );
   const [custom, setCustom] = useState("");
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
@@ -18,6 +24,23 @@ const Support = () => {
   const donationId = params.get("donation_id");
   const stripeSession = params.get("session_id");
   const [thanks, setThanks] = useState(false);
+  const [pageContent, setPageContent] = useState(SUPPORT_DEFAULTS);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const content = await getSupportPageContent();
+        setPageContent(content);
+        setAmt((current) =>
+          content.presets.includes(current)
+            ? current
+            : content.presets[1] || content.presets[0] || 100,
+        );
+      } catch (error) {
+        console.warn("Using built-in Support page content.", error);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (donationId && stripeSession) {
@@ -76,18 +99,16 @@ const Support = () => {
             <CheckCircle2 className="w-8 h-8 text-burgundy" />
           </div>
           <h1 className="mt-4 font-serif-display text-burgundy text-[36px] font-semibold">
-            Thank you — we&apos;re moved.
+            {pageContent.thanks.title}
           </h1>
           <p className="mt-3 text-ink/80">
-            Your checkout was completed. Stripe is securely confirming the
-            payment with ArtNovaX, and your gift will help us reach more young
-            people through art.
+            {pageContent.thanks.body}
           </p>
           <a
-            href="/"
+            href={pageContent.thanks.button.href}
             className="cta-btn mt-6 inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-6 py-3 text-[14px] font-semibold hover:bg-burgundy-light"
           >
-            Back to home <ArrowRight className="w-4 h-4" />
+            {pageContent.thanks.button.label} <ArrowRight className="w-4 h-4" />
           </a>
         </section>
         <Footer />
@@ -101,43 +122,31 @@ const Support = () => {
       <section className="mx-auto max-w-[1100px] px-4 md:px-8 pt-10 md:pt-14 pb-16 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-10">
         <div>
           <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold">
-            SUPPORT OUR WORK
+            {pageContent.eyebrow}
           </div>
           <h1 className="mt-3 font-serif-display text-burgundy text-[42px] md:text-[52px] leading-[1.05] font-semibold">
-            Your gift makes creative wellbeing possible.
+            {pageContent.title}
           </h1>
           <p className="mt-5 text-ink/80 text-[16px] leading-[1.7]">
-            Every shilling helps us bring guided art sessions, research and
-            community care to young people across Kenya. You can give once
-            today, or reach out to set up a longer-term commitment.
+            {pageContent.body}
           </p>
           <ul className="mt-6 space-y-2 text-ink/85 text-[14.5px]">
-            <li className="flex items-start gap-2">
-              <Heart className="w-4 h-4 text-burgundy mt-1" />
-              <span>
-                KES 1,000 helps stock materials for one campus session.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Heart className="w-4 h-4 text-burgundy mt-1" />
-              <span>KES 5,000 sponsors a small circle of care for a term.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Heart className="w-4 h-4 text-burgundy mt-1" />
-              <span>
-                Any amount goes 100% to program delivery and research.
-              </span>
-            </li>
+            {pageContent.impactItems.map((item) => (
+              <li key={item} className="flex items-start gap-2">
+                <Heart className="w-4 h-4 text-burgundy mt-1" />
+                <span>{item}</span>
+              </li>
+            ))}
           </ul>
         </div>
 
         <div className="rounded-3xl bg-ivory-100 ring-1 ring-ivory-300 p-6 md:p-8">
           <h2 className="font-serif-display text-burgundy text-[24px] font-semibold">
-            Give today
+            {pageContent.formTitle}
           </h2>
 
           <div className="mt-4 grid grid-cols-3 gap-2">
-            {PRESETS.map((v) => (
+            {pageContent.presets.map((v) => (
               <button
                 type="button"
                 key={v}
@@ -158,34 +167,34 @@ const Support = () => {
 
           <div className="mt-3">
             <label className="block text-[11.5px] tracking-widest text-ink/60 font-semibold">
-              Or custom amount (KES)
+              {pageContent.customAmountLabel}
             </label>
             <input
               type="number"
               min="100"
               value={custom}
               onChange={(e) => setCustom(e.target.value)}
-              placeholder="e.g. 750"
+              placeholder={pageContent.customAmountPlaceholder}
               className="mt-1 w-full rounded-lg ring-1 ring-ivory-300 bg-ivory px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
           </div>
 
           <div className="mt-4 space-y-3">
             <input
-              placeholder="Your name (optional)"
+              placeholder={pageContent.namePlaceholder}
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="w-full rounded-lg ring-1 ring-ivory-300 bg-ivory px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
             <input
               type="email"
-              placeholder="Email (for receipt)"
+              placeholder={pageContent.emailPlaceholder}
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               className="w-full rounded-lg ring-1 ring-ivory-300 bg-ivory px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
             <textarea
-              placeholder="A note (optional)"
+              placeholder={pageContent.messagePlaceholder}
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
               rows={3}
@@ -203,22 +212,22 @@ const Support = () => {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Redirecting…
+                {pageContent.loadingLabel}
               </>
             ) : (
               <>
-                Donate KES {Number(custom || amt).toLocaleString()}{" "}
+                {pageContent.donateButtonLabel} KES {Number(custom || amt).toLocaleString()}{" "}
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
 
           <div className="mt-3 text-ink/60 text-[11.5px] text-center">
-            Secured by Stripe. We also welcome bank transfers and pledges:{" "}
-            <a href="/contact" className="text-burgundy font-semibold">
-              contact us
+            {pageContent.securityPrefix}
+            <a href={pageContent.contactHref} className="text-burgundy font-semibold">
+              {pageContent.contactLabel}
             </a>
-            .
+            {pageContent.securitySuffix}
           </div>
         </div>
       </section>

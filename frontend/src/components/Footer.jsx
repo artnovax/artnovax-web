@@ -114,6 +114,12 @@ const Footer = () => {
             <p className="text-ivory/75 text-[13px] max-w-[420px]">
               {FOOTER.newsletter.body}
             </p>
+            <a
+              href="/newsletters"
+              className="mt-2 inline-flex text-ivory/85 hover:text-ivory text-[13px] underline underline-offset-4"
+            >
+              Browse published issues
+            </a>
           </div>
           <form
             onSubmit={submit}

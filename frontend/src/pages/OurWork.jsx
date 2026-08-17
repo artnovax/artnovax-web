@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowRight,
   Brush,
@@ -12,7 +12,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BrushFrame from "../components/BrushFrame";
 import { BrainLineArt } from "../components/BrandGlyphs";
-import { OUR_WORK } from "../mock_pages";
+import { defaultOurWorkPageContent, getOurWorkPageContent } from "../services/pageContent";
 
 const progIcon = (key) => {
   const cls = "w-8 h-8 text-burgundy";
@@ -33,6 +33,23 @@ const statIcon = (key) => {
 };
 
 const OurWork = () => {
+  const [pageContent, setPageContent] = useState(() => defaultOurWorkPageContent());
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const remoteContent = await getOurWorkPageContent();
+        if (!cancelled) setPageContent(remoteContent);
+      } catch (error) {
+        console.warn("Using built-in Our Work page content.", error);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-ivory">
       <Header activePath="/our-work" />
@@ -41,26 +58,26 @@ const OurWork = () => {
       <section className="mx-auto max-w-[1240px] px-4 md:px-8 pt-8 md:pt-14 pb-6 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
         <div className="order-2 lg:order-1">
           <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold fade-up">
-            {OUR_WORK.eyebrow}
+            {pageContent.eyebrow}
           </div>
           <h1 className="fade-up delay-1 mt-4 font-serif-display text-burgundy text-[40px] sm:text-[50px] md:text-[58px] leading-[1.05] font-semibold whitespace-pre-line">
-            {OUR_WORK.title}
+            {pageContent.title}
           </h1>
           <p className="fade-up delay-2 mt-6 text-[16px] md:text-[17px] leading-[1.7] text-ink/80 max-w-[520px]">
-            {OUR_WORK.body}
+            {pageContent.body}
           </p>
           <a
-            href={OUR_WORK.cta.href}
+            href={pageContent.cta.href}
             className="fade-up delay-3 mt-8 inline-flex items-center gap-3 rounded-full bg-burgundy text-ivory px-6 py-4 text-[15px] font-semibold hover:bg-burgundy-light shadow-[0_14px_30px_-14px_rgba(92,21,25,0.7)] cta-btn"
           >
-            {OUR_WORK.cta.label}
+            {pageContent.cta.label}
             <ArrowRight className="w-4 h-4" />
           </a>
         </div>
         <div className="order-1 lg:order-2 fade-up delay-2">
           <BrushFrame
-            src={OUR_WORK.image}
-            alt={OUR_WORK.imageAlt}
+            src={pageContent.image}
+            alt={pageContent.imageAlt}
             aspect="aspect-[5/4]"
             objectPosition="center"
           />
@@ -74,15 +91,15 @@ const OurWork = () => {
       >
         <div className="text-center">
           <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold">
-            {OUR_WORK.programsEyebrow}
+            {pageContent.programsEyebrow}
           </div>
           <h2 className="font-serif-display text-ink mt-3 text-[28px] sm:text-[34px] md:text-[40px] font-medium">
-            {OUR_WORK.programsTitle}
+            {pageContent.programsTitle}
           </h2>
         </div>
 
         <div className="mt-10 md:mt-14 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {OUR_WORK.programs.map((p) => (
+          {pageContent.programs.map((p) => (
             <article
               key={p.title}
               className="wwd-card rounded-3xl bg-ivory-100 ring-1 ring-ivory-300 p-5 md:p-6 flex flex-col"
@@ -94,7 +111,7 @@ const OurWork = () => {
                 <div className="rounded-xl overflow-hidden aspect-[5/4] bg-ivory-300">
                   <img
                     src={p.img}
-                    alt=""
+                    alt={p.imgAlt || p.title.replace(/\n/g, " ")}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -128,13 +145,13 @@ const OurWork = () => {
             <div className="grid grid-cols-1 md:grid-cols-[1.1fr_auto_auto_auto_auto_auto_auto_auto] gap-4 md:gap-5 items-center relative z-10">
               <div className="ml-0 md:ml-24">
                 <h3 className="font-serif-display text-ivory text-[20px] md:text-[22px] leading-tight whitespace-pre-line">
-                  {OUR_WORK.stats.title}
+                  {pageContent.stats.title}
                 </h3>
                 <p className="text-ivory/85 text-[13px] mt-2 max-w-[300px] leading-relaxed">
-                  {OUR_WORK.stats.body}
+                  {pageContent.stats.body}
                 </p>
               </div>
-              {OUR_WORK.stats.items.map((it, i) => (
+              {pageContent.stats.items.map((it, i) => (
                 <React.Fragment key={it.label}>
                   {i > 0 && (
                     <div className="hidden md:block h-12 w-px bg-ivory/25" />
@@ -154,7 +171,7 @@ const OurWork = () => {
               ))}
             </div>
             <div className="text-ivory/70 text-[12px] mt-5 md:text-center">
-              {OUR_WORK.stats.footnote}
+              {pageContent.stats.footnote}
             </div>
           </div>
         </div>
@@ -164,13 +181,13 @@ const OurWork = () => {
       <section className="mx-auto max-w-[1180px] px-4 md:px-8 mt-10 md:mt-14 mb-16 md:mb-24">
         <div className="rounded-2xl bg-ivory-200/70 ring-1 ring-ivory-300 p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <p className="text-ink/85 text-[14.5px] leading-relaxed max-w-[720px]">
-            {OUR_WORK.partnerCta.body}
+            {pageContent.partnerCta.body}
           </p>
           <a
-            href={OUR_WORK.partnerCta.button.href}
+            href={pageContent.partnerCta.button.href}
             className="cta-btn inline-flex items-center gap-2 rounded-full border-2 border-burgundy text-burgundy px-6 py-3 text-[14.5px] font-semibold hover:bg-burgundy hover:text-ivory"
           >
-            {OUR_WORK.partnerCta.button.label}
+            {pageContent.partnerCta.button.label}
             <ArrowRight className="w-4 h-4" />
           </a>
         </div>
