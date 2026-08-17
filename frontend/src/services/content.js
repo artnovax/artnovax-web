@@ -88,6 +88,35 @@ const toFrontendArticle = (row) => ({
   heroMediaId: row.hero_media_id ?? row.heroMediaId ?? null,
 });
 
+const toFrontendNewsletterIssue = (row) => ({
+  ...row,
+  heroAlt: row.hero_alt_text ?? row.heroAlt ?? '',
+  heroMediaId: row.hero_media_id ?? row.heroMediaId ?? null,
+  publishedAt: row.published_at ?? row.publishedAt ?? null,
+});
+
+export async function getNewsletterIssues({ includeDrafts = false } = {}) {
+  let query = supabase
+    .from('newsletter_issues')
+    .select('*')
+    .order('published_at', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false });
+  if (!includeDrafts) query = query.eq('status', 'published');
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data || []).map(toFrontendNewsletterIssue);
+}
+
+export async function getNewsletterIssue(slug) {
+  const { data, error } = await supabase
+    .from('newsletter_issues')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+  if (error) throw error;
+  return toFrontendNewsletterIssue(data);
+}
+
 const toFrontendProductImages = (images = []) => {
   const ordered = (Array.isArray(images) ? images : []).map((image, index) => ({
     mediaAssetId: image.media_asset_id ?? image.mediaAssetId ?? null,
@@ -181,6 +210,18 @@ export const dbPayloads = {
     hero_alt_text: a.heroAlt ?? a.hero_alt_text ?? null,
     hero_media_id: a.heroMediaId ?? a.hero_media_id ?? null, lead: a.lead || null,
     blocks: a.blocks || [], takeaways: normalizeList(a.takeaways), tags: normalizeList(a.tags), status: a.status || 'published',
+  }),
+  newsletterIssue: (issue) => ({
+    slug: issue.slug || slugify(issue.title),
+    title: issue.title,
+    subject: issue.subject || null,
+    preheader: issue.preheader || null,
+    excerpt: issue.excerpt || null,
+    hero: issue.hero || null,
+    hero_alt_text: issue.heroAlt ?? issue.hero_alt_text ?? null,
+    hero_media_id: issue.heroMediaId ?? issue.hero_media_id ?? null,
+    body: issue.body || '',
+    status: issue.status || 'draft',
   }),
   product: toDatabaseProduct,
 };

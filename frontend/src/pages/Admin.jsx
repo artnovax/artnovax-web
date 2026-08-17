@@ -20,6 +20,8 @@ import {
   ArrowUp,
   ArrowDown,
   Images,
+  ExternalLink,
+  Globe2,
 } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -36,6 +38,9 @@ import {
   createArticle,
   updateArticle,
   deleteArticle,
+  createNewsletterIssue,
+  updateNewsletterIssue,
+  deleteNewsletterIssue,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -49,6 +54,7 @@ import {
 
 const emptyData = {
   subscribers: [],
+  newsletters: [],
   waitlist: [],
   messages: [],
   events: [],
@@ -262,7 +268,13 @@ const Admin = () => {
               />
               <TabPill
                 icon={Mail}
-                label={`Newsletter (${data.subscribers.length})`}
+                label={`Newsletter Issues (${data.newsletters.length})`}
+                active={tab === "newsletters"}
+                onClick={() => setTab("newsletters")}
+              />
+              <TabPill
+                icon={Mail}
+                label={`Subscribers (${data.subscribers.length})`}
                 active={tab === "subscribers"}
                 onClick={() => setTab("subscribers")}
               />
@@ -308,6 +320,9 @@ const Admin = () => {
               )}
               {tab === "products" && (
                 <ProductsManager rows={data.products} onChange={refresh} />
+              )}
+              {tab === "newsletters" && (
+                <NewsletterManager rows={data.newsletters} onChange={refresh} />
               )}
               {tab === "subscribers" && (
                 <SubscribersTable rows={data.subscribers} />
@@ -501,6 +516,298 @@ const Field = ({ label, children }) => (
 
 const inputCls =
   "w-full rounded-lg ring-1 ring-ivory-300 bg-ivory px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40";
+
+// ---- Newsletter Issues Manager ----
+const NewsletterManager = ({ rows, onChange }) => {
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({});
+
+  const startNew = () => {
+    setForm({
+      title: "",
+      slug: "",
+      subject: "",
+      preheader: "",
+      excerpt: "",
+      hero: "",
+      heroAlt: "",
+      heroMediaId: null,
+      body: "",
+      status: "draft",
+    });
+    setEditing("new");
+  };
+
+  const startEdit = (row) => {
+    setForm({ ...row });
+    setEditing(row.id);
+  };
+
+  const cancel = () => {
+    setEditing(null);
+    setForm({});
+  };
+
+  const save = async (event) => {
+    event.preventDefault();
+    try {
+      if (editing === "new") await createNewsletterIssue(form);
+      else await updateNewsletterIssue(editing, form);
+      setEditing(null);
+      onChange();
+    } catch (error) {
+      alert(error?.message || "Save failed");
+    }
+  };
+
+  const changePublication = async (row) => {
+    const nextStatus = row.status === "published" ? "draft" : "published";
+    if (nextStatus === "published" && !String(row.body || "").trim()) {
+      alert("Add newsletter body content before publishing.");
+      return;
+    }
+    const action = nextStatus === "published" ? "Publish" : "Unpublish";
+    if (!window.confirm(`${action} “${row.title}”?`)) return;
+    try {
+      await updateNewsletterIssue(row.id, { ...row, status: nextStatus });
+      if (editing === row.id) setEditing(null);
+      onChange();
+    } catch (error) {
+      alert(error?.message || `${action} failed`);
+    }
+  };
+
+  const remove = async (row) => {
+    if (!window.confirm(`Delete “${row.title}”? This cannot be undone.`)) return;
+    try {
+      await deleteNewsletterIssue(row.id);
+      if (editing === row.id) setEditing(null);
+      onChange();
+    } catch (error) {
+      alert(error?.message || "Delete failed");
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
+        <div>
+          <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+            Newsletter Issues
+          </h3>
+          <p className="text-ink/60 text-[12.5px] mt-0.5">
+            Publish issues to the website archive. Subscriber email sending is separate.
+          </p>
+        </div>
+        <button
+          onClick={startNew}
+          className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-4 py-2 text-[13px] font-semibold hover:bg-burgundy-light"
+        >
+          <Plus className="w-4 h-4" />
+          New issue
+        </button>
+      </div>
+
+      {editing && (
+        <form
+          onSubmit={save}
+          className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 mb-4 grid grid-cols-1 md:grid-cols-2 gap-3"
+        >
+          <Field label="Title">
+            <input
+              required
+              value={form.title || ""}
+              onChange={(event) => setForm({ ...form, title: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Slug (optional)">
+            <input
+              value={form.slug || ""}
+              onChange={(event) => setForm({ ...form, slug: event.target.value })}
+              placeholder="auto-generated from title"
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Email subject (reserved for sending workflow)">
+            <input
+              value={form.subject || ""}
+              onChange={(event) => setForm({ ...form, subject: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Preheader (reserved for sending workflow)">
+            <input
+              value={form.preheader || ""}
+              onChange={(event) => setForm({ ...form, preheader: event.target.value })}
+              className={inputCls}
+            />
+          </Field>
+          <div className="md:col-span-2">
+            <Field label="Archive excerpt">
+              <textarea
+                rows={2}
+                value={form.excerpt || ""}
+                onChange={(event) => setForm({ ...form, excerpt: event.target.value })}
+                className={inputCls}
+              />
+            </Field>
+          </div>
+          <div className="md:col-span-2">
+            <span className="text-[11.5px] uppercase tracking-widest text-ink/60 font-semibold">
+              Hero image
+            </span>
+            <div className="mt-1 flex items-end gap-2 flex-wrap">
+              <MediaPicker
+                value={form.hero ? {
+                  id: form.heroMediaId,
+                  public_url: form.hero,
+                  alt_text: form.heroAlt,
+                  title: form.title ? `${form.title} hero` : "Newsletter hero",
+                } : null}
+                onChange={(asset) => setForm({
+                  ...form,
+                  hero: asset.public_url,
+                  heroAlt: asset.alt_text || "",
+                  heroMediaId: asset.id,
+                })}
+                buttonLabel={form.hero ? "Replace hero" : "Choose hero"}
+              />
+              {form.hero && (
+                <button
+                  type="button"
+                  onClick={() => setForm({
+                    ...form,
+                    hero: "",
+                    heroAlt: "",
+                    heroMediaId: null,
+                  })}
+                  className="rounded-full ring-1 ring-ivory-300 px-4 py-2 text-[13px] font-semibold text-ink/70 hover:bg-ivory-200"
+                >
+                  Remove hero
+                </button>
+              )}
+            </div>
+            {form.hero && !form.heroMediaId && (
+              <p className="mt-2 text-amber-800 text-[12px]">
+                This issue uses a legacy image URL. Choose a library image to protect it from accidental deletion.
+              </p>
+            )}
+          </div>
+          <Field label="Hero alt text">
+            <input
+              required={!!form.hero}
+              value={form.heroAlt || ""}
+              onChange={(event) => setForm({ ...form, heroAlt: event.target.value })}
+              placeholder="Describe the newsletter hero image"
+              className={inputCls}
+            />
+          </Field>
+          <div className="flex items-end">
+            <div className="text-[12.5px] text-ink/60">
+              Status: <span className="font-semibold text-burgundy">{form.status || "draft"}</span>
+            </div>
+          </div>
+          <div className="md:col-span-2">
+            <Field label="Issue body">
+              <textarea
+                rows={14}
+                value={form.body || ""}
+                onChange={(event) => setForm({ ...form, body: event.target.value })}
+                className={inputCls + " font-mono text-[13px]"}
+                placeholder="## Section heading&#10;&#10;Write each paragraph with a blank line between paragraphs.&#10;&#10;> Optional highlighted quote"
+              />
+            </Field>
+            <p className="mt-1 text-ink/55 text-[11.5px]">
+              Preview opens the last saved version. Body supports ## headings, ### subheadings, and &gt; highlighted quotes.
+            </p>
+          </div>
+          <div className="md:col-span-2 flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={cancel}
+              className="rounded-full ring-1 ring-ivory-300 px-4 py-2 text-[13.5px] font-semibold hover:bg-ivory-200 inline-flex items-center gap-1"
+            >
+              <X className="w-4 h-4" />
+              Cancel
+            </button>
+            <button className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2 text-[13.5px] font-semibold hover:bg-burgundy-light inline-flex items-center gap-1">
+              <Save className="w-4 h-4" />
+              Save {form.status === "published" ? "changes" : "draft"}
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 overflow-hidden">
+        <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)_minmax(0,1fr)_auto] text-[11.5px] font-semibold text-ink/60 uppercase tracking-widest px-4 py-3 border-b border-ivory-300 bg-ivory-200/50">
+          <div>Issue</div>
+          <div>Status</div>
+          <div>Published</div>
+          <div>Actions</div>
+        </div>
+        {rows.length === 0 ? (
+          <div className="px-4 py-8 text-center text-ink/60 text-[13.5px]">
+            No newsletter issues yet.
+          </div>
+        ) : (
+          rows.map((row) => (
+            <div
+              key={row.id}
+              className="grid grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)_minmax(0,1fr)_auto] items-center px-4 py-3 border-b border-ivory-300 last:border-b-0 text-[13.5px]"
+            >
+              <div className="min-w-0">
+                <div className="font-semibold text-ink truncate">{row.title}</div>
+                <div className="text-ink/60 text-[12px] truncate">/newsletters/{row.slug}</div>
+              </div>
+              <div>
+                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${row.status === "published" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                  {row.status}
+                </span>
+              </div>
+              <div className="text-ink/70 text-[12px]">
+                {row.publishedAt ? new Date(row.publishedAt).toLocaleString() : "—"}
+              </div>
+              <div className="flex gap-1 justify-end items-center">
+                <a
+                  href={`/newsletters/${row.slug}?preview=1`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Preview ${row.title}`}
+                  className="w-8 h-8 rounded-full hover:bg-ivory-200 flex items-center justify-center text-burgundy"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+                <button
+                  onClick={() => changePublication(row)}
+                  title={row.status === "published" ? "Unpublish" : "Publish"}
+                  aria-label={`${row.status === "published" ? "Unpublish" : "Publish"} ${row.title}`}
+                  className="w-8 h-8 rounded-full hover:bg-ivory-200 flex items-center justify-center text-burgundy"
+                >
+                  <Globe2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => startEdit(row)}
+                  aria-label={`Edit ${row.title}`}
+                  className="w-8 h-8 rounded-full hover:bg-ivory-200 flex items-center justify-center text-burgundy"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => remove(row)}
+                  aria-label={`Delete ${row.title}`}
+                  className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center text-red-700"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
 
 // ---- Events Manager ----
 const EventsManager = ({ rows, onChange }) => {

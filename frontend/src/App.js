@@ -22,6 +22,8 @@ import GetInvolved from './pages/GetInvolved';
 import Contact from './pages/Contact';
 import Shop from './pages/Shop';
 import ProductDetail from './pages/ProductDetail';
+import NewsletterArchive from './pages/NewsletterArchive';
+import NewsletterDetail from './pages/NewsletterDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
@@ -47,6 +49,8 @@ function App() {
             <Route path="/support/thanks" element={<Support />} />
             <Route path="/research" element={<Research />} />
             <Route path="/research/:slug" element={<ArticleDetail />} />
+            <Route path="/newsletters" element={<NewsletterArchive />} />
+            <Route path="/newsletters/:slug" element={<NewsletterDetail />} />
             <Route path="/app" element={<AppPage />} />
             <Route path="/get-involved" element={<GetInvolved />} />
             <Route path="/get-involved/shop" element={<Shop />} />
