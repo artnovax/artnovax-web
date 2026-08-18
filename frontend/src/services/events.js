@@ -49,10 +49,22 @@ const slugify = (value = '') => value
   .replace(/^-+|-+$/g, '');
 
 export async function getEvents({ includeDrafts = false } = {}) {
-  let query = supabase.from('events').select('*').order('created_at', { ascending: false });
-  if (!includeDrafts) query = query.neq('status', 'draft');
+  let query = supabase
+    .from("events")
+    .select("*")
+    .order("starts_at", {
+      ascending: true,
+      nullsFirst: false,
+    });
+
+  if (!includeDrafts) {
+    query = query.neq("status", "draft");
+  }
+
   const { data, error } = await query;
+
   if (error) throw error;
+
   return (data ?? []).map(toFrontendEvent);
 }
 

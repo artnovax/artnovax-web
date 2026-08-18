@@ -13,7 +13,10 @@ import Footer from "../components/Footer";
 import BrushFrame from "../components/BrushFrame";
 import { HeartHand } from "../components/BrandGlyphs";
 import { getEvents } from "@/services/events";
-import { defaultEventsPageContent, getEventsPageContent } from "../services/pageContent";
+import {
+  defaultEventsPageContent,
+  getEventsPageContent,
+} from "../services/pageContent";
 
 const Tab = ({ active, icon: Icon, label, onClick }) => (
   <button
@@ -84,7 +87,9 @@ const Events = () => {
   const [tIdx, setTIdx] = useState(0);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [pageContent, setPageContent] = useState(() => defaultEventsPageContent());
+  const [pageContent, setPageContent] = useState(() =>
+    defaultEventsPageContent(),
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -115,20 +120,42 @@ const Events = () => {
   }, []);
 
   const featuredList = useMemo(
-    () => events.filter((e) => e.featured).slice(0, 4),
+    () => events.filter((event) => event.featured).slice(0, 4),
     [events],
   );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return events.filter((e) => {
-      if (tab === "upcoming" && e.status !== "upcoming") return false;
-      if (tab === "past" && e.status !== "past") return false;
-      if (tab === "featured" && !e.featured) return false;
-      if (!q) return true;
-      return `${e.title} ${e.subtitle || ""} ${e.location || ""} ${e.body || ""}`
+
+    const result = events.filter((event) => {
+      if (tab === "upcoming" && event.status !== "upcoming") {
+        return false;
+      }
+
+      if (tab === "past" && event.status !== "past") {
+        return false;
+      }
+
+      if (tab === "featured" && !event.featured) {
+        return false;
+      }
+
+      if (!q) {
+        return true;
+      }
+
+      return `${event.title} ${event.subtitle || ""} ${event.location || ""} ${event.body || ""}`
         .toLowerCase()
         .includes(q);
     });
+
+    // getEvents() gives us oldest -> newest.
+    // For past events we want newest -> oldest instead.
+    if (tab === "past") {
+      return [...result].reverse();
+    }
+
+    return result;
   }, [events, tab, query]);
 
   return (
