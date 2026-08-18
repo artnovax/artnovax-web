@@ -43,7 +43,7 @@ export const OUR_WORK = {
   title: 'Creating spaces that\nnurture minds, build\ncommunity and inspire\nchange.',
   body: 'We design and deliver creative, evidence-informed programs that support mental wellbeing for individuals and communities—across campuses, schools and public spaces.',
   cta: { label: 'Explore Our Programs', href: '#programs' },
-  image: 'https://images.unsplash.com/photo-1459908676235-d5f02a50184b',
+  image: null,
   imageAlt: 'Colorful paintbrushes and vibrant paint — an artist\u2019s working still life',
   programsEyebrow: 'OUR PROGRAM AREAS',
   programsTitle: 'How we create impact',
@@ -130,7 +130,7 @@ export const EVENTS = {
     { title: 'Creative Circle – UoN', when: 'Feb 2026', img: 'https://images.unsplash.com/photo-1544928147-79a2dbc1f389' },
     { title: 'CD Art Therapy Session', when: 'Jan 2026', img: 'https://images.unsplash.com/photo-1510832842230-87253f48d74f' },
     { title: 'Colours of Connection', when: 'Dec 2025', img: 'https://images.pexels.com/photos/2559741/pexels-photo-2559741.jpeg' },
-    { title: 'Mindful Art Sunday', when: 'Nov 2025', img: 'https://images.unsplash.com/photo-1554996823-47d9c908bae7' },
+    { title: 'Mindful Art Sunday', when: 'Nov 2025', img: null },
   ],
   testimonials: [
     { quote: 'For once, I wasn’t worried about making something perfect. I could just create.', author: 'Participant, Doodling Together' },

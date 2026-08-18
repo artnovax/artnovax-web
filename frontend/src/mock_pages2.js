@@ -77,7 +77,7 @@ export const GET_INVOLVED = {
   title: 'Be part of the\nchange.',
   body: 'Whether you create with us, collaborate with us, volunteer your time, or support our mission—there is a place for you at ArtNovaX.',
   tagline: 'Together, we can make\ncreative wellbeing accessible to all.',
-  image: '/assets/images/get-involved/get-involved-community-art.jpg',
+  image: null,
   imageAlt: 'Community art therapy session — ArtNovaX participants painting together',
   waysTitle: 'Ways to Get Involved',
   ways: [
@@ -98,7 +98,7 @@ export const CONTACT = {
   eyebrow: 'CONTACT US',
   title: 'We’d love to\nhear from you.',
   body: 'Have a question, idea, or want to collaborate? Reach out to us — we’re always happy to connect.',
-  image: 'https://images.unsplash.com/photo-1655720357740-bdf90f34483f',
+  image: null,
   imageAlt: 'Two friends chatting warmly over coffee in soft sunlight',
   quickInfo: [
     { icon: 'mail', label: 'Email', value: 'info@artnovax.org' },
@@ -138,7 +138,7 @@ export const SHOP = {
   title: 'Every purchase\ncreates impact.',
   body: 'Our merch spreads creativity—and supports art therapy programs that heal, empower, and transform lives.',
   cta: { label: 'Shop All Products', href: '#products' },
-  image: 'https://images.unsplash.com/photo-1695468790171-6bda1d4875a9',
+  image: null,
   imageAlt: 'ArtNovaX merchandise collection displayed together',
   bullets: [
     { icon: 'heart', title: 'Support a Cause', sub: '100% of profits go toward our programs.' },
@@ -148,12 +148,12 @@ export const SHOP = {
   collectionTitle: 'Shop Our Collection',
   categories: ['All Products', 'Stickers', 'Book Cards', 'Apparel', 'Accessories', 'Bundles'],
   products: [
-    { name: 'Sticker Pack', price: 'KES 300', img: 'https://images.unsplash.com/photo-1778278553405-09b847a2af3e', category: 'Stickers' },
-    { name: 'Book Cards (Set of 5)', price: 'KES 600', img: 'https://images.unsplash.com/photo-1680183718072-e9b55b649698', category: 'Book Cards' },
-    { name: 'ArtNovaX Hoodie', price: 'KES 2,500', img: 'https://images.pexels.com/photos/18700207/pexels-photo-18700207.jpeg', category: 'Apparel' },
-    { name: 'Canvas Tote Bag', price: 'KES 1,200', img: 'https://images.unsplash.com/photo-1544816155-12df9643f363', category: 'Accessories' },
-    { name: 'Enamel Pin', price: 'KES 400', img: 'https://images.unsplash.com/photo-1569513586164-80529357ad6f', category: 'Accessories' },
-    { name: 'Ceramic Mug', price: 'KES 900', img: 'https://images.unsplash.com/photo-1516390118834-21602d501886', category: 'Accessories' },
+    { name: 'Sticker Pack', price: 'KES 300', img: null, category: 'Stickers' },
+    { name: 'Book Cards (Set of 5)', price: 'KES 600', img: null, category: 'Book Cards' },
+    { name: 'ArtNovaX Hoodie', price: 'KES 2,500', img: null, category: 'Apparel' },
+    { name: 'Canvas Tote Bag', price: 'KES 1,200', img: null, category: 'Accessories' },
+    { name: 'Enamel Pin', price: 'KES 400', img: null, category: 'Accessories' },
+    { name: 'Ceramic Mug', price: 'KES 900', img: null, category: 'Accessories' },
   ],
   thanks: {
     title: 'Thank you for being part of the change.',
