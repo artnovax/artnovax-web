@@ -371,55 +371,63 @@ const AppPage = () => {
           </div>
         </div>
       </section>
-
       {/* Waitlist band */}
-      <section id="waitlist" className="mt-14 md:mt-20">
-        <div className="paint-band py-8 md:py-10">
-          <div className="mx-auto max-w-[1180px] px-6 grid grid-cols-1 md:grid-cols-[auto_1fr_auto] items-center gap-5">
-            <svg
-              viewBox="0 0 64 64"
-              className="w-14 h-14 shrink-0"
-              fill="none"
-              stroke="#F1DFC7"
-              strokeWidth="1.5"
-            >
-              <path d="M32 46c-6-4-14-10-14-18 0-5 4-9 8-9 3 0 5 2 6 4 1-2 3-4 6-4 4 0 8 4 8 9 0 8-8 14-14 18z" />
-            </svg>
-            <div>
-              <div className="font-serif-display text-ivory text-[20px] md:text-[22px]">
-                {pageContent.waitlist.title}
-              </div>
-              <div className="text-ivory/85 text-[13.5px] mt-1">
-                {pageContent.waitlist.body}
-              </div>
-            </div>
-            <form
-              onSubmit={submit}
-              className="flex items-center gap-2 w-full md:w-auto"
-            >
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={pageContent.waitlist.placeholder}
-                className="flex-1 md:w-[280px] rounded-full bg-ivory ring-1 ring-ivory-300 px-5 py-3 text-[14px] text-ink focus:outline-none"
-              />
-              <button
-                disabled={loading}
-                className="cta-btn rounded-full bg-ivory text-burgundy px-6 py-3 text-[14px] font-semibold hover:bg-white disabled:opacity-70"
+      <section id="waitlist" className="mt-14 md:mt-20 mb-16 md:mb-24">
+        <div className="mx-auto max-w-[1240px] px-4 md:px-8">
+          <div className="paint-band relative rounded-3xl overflow-hidden py-8 md:py-10 px-6 md:px-10">
+            <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] items-center gap-5">
+              <svg
+                viewBox="0 0 64 64"
+                className="w-14 h-14 shrink-0"
+                fill="none"
+                stroke="#F1DFC7"
+                strokeWidth="1.5"
               >
-                {pageContent.waitlist.button}
-              </button>
-            </form>
-          </div>
-          {msg && (
-            <div
-              className={`text-[13px] mt-2 text-center ${msg.type === "ok" ? "text-ivory" : "text-red-200"}`}
-            >
-              {msg.text}
+                <path d="M32 46c-6-4-14-10-14-18 0-5 4-9 8-9 3 0 5 2 6 4 1-2 3-4 6-4 4 0 8 4 8 9 0 8-8 14-14 18z" />
+              </svg>
+
+              <div>
+                <div className="font-serif-display text-ivory text-[20px] md:text-[22px]">
+                  {pageContent.waitlist.title}
+                </div>
+
+                <div className="text-ivory/85 text-[13.5px] mt-1">
+                  {pageContent.waitlist.body}
+                </div>
+              </div>
+
+              <form
+                onSubmit={submit}
+                className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto"
+              >
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={pageContent.waitlist.placeholder}
+                  className="flex-1 md:w-[280px] rounded-full bg-ivory ring-1 ring-ivory-300 px-5 py-3 text-[14px] text-ink focus:outline-none focus:ring-2 focus:ring-ivory/60"
+                />
+
+                <button
+                  disabled={loading}
+                  className="cta-btn whitespace-nowrap rounded-full bg-ivory text-burgundy px-6 py-3 text-[14px] font-semibold hover:bg-white disabled:opacity-70"
+                >
+                  {loading ? "Joining…" : pageContent.waitlist.button}
+                </button>
+              </form>
             </div>
-          )}
+
+            {msg && (
+              <div
+                className={`text-[13px] mt-4 text-center ${
+                  msg.type === "ok" ? "text-ivory" : "text-red-200"
+                }`}
+              >
+                {msg.text}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

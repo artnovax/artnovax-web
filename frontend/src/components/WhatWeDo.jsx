@@ -7,7 +7,7 @@ const iconMap = { brush: Brush, brain: Brain, app: Smartphone };
 const WhatWeDo = ({ data = WHAT_WE_DO }) => {
   return (
     <section className="relative bg-ivory pt-16 md:pt-24 pb-20 md:pb-28">
-      <div className="mx-auto max-w-[1180px] px-4 md:px-8">
+      <div className="mx-auto max-w-[1240px] px-4 md:px-8">
         <div className="text-center max-w-[820px] mx-auto">
           <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold">
             {data.eyebrow}

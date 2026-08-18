@@ -15,7 +15,10 @@ import BrushFrame from "../components/BrushFrame";
 import { BrainLineArt, HeartHand } from "../components/BrandGlyphs";
 import { ABOUT } from "../mock_pages";
 import { getFounders } from "../services/content";
-import { defaultAboutPageContent, getAboutPageContent } from "../services/pageContent";
+import {
+  defaultAboutPageContent,
+  getAboutPageContent,
+} from "../services/pageContent";
 
 const valuesIcon = (
   <svg
@@ -53,7 +56,9 @@ const statIcon = (key) => {
 const SCROLL_KEY = "about_scroll_y";
 
 const About = () => {
-  const [pageContent, setPageContent] = useState(() => defaultAboutPageContent());
+  const [pageContent, setPageContent] = useState(() =>
+    defaultAboutPageContent(),
+  );
   const [founders, setFounders] = useState(ABOUT.founders.people);
 
   useEffect(() => {
@@ -128,7 +133,10 @@ const About = () => {
       </section>
 
       {/* Pillars card */}
-      <section id="story" className="scroll-mt-28 mx-auto max-w-[1180px] px-4 md:px-8 mt-4 md:mt-8">
+      <section
+        id="story"
+        className="scroll-mt-28 mx-auto max-w-[1180px] px-4 md:px-8 mt-4 md:mt-8"
+      >
         <div className="rounded-3xl bg-ivory-200/60 ring-1 ring-ivory-300 p-6 md:p-10 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 shadow-[0_20px_50px_-40px_rgba(92,21,25,0.35)]">
           {pageContent.pillars.map((p) => (
             <div key={p.title} className="flex gap-4">
@@ -161,7 +169,10 @@ const About = () => {
       </section>
 
       {/* Founders */}
-      <section id="founders" className="scroll-mt-28 mx-auto max-w-[1180px] px-4 md:px-8 pt-16 md:pt-24 pb-6">
+      <section
+        id="founders"
+        className="scroll-mt-28 mx-auto max-w-[1180px] px-4 md:px-8 pt-16 md:pt-24 pb-6"
+      >
         <div className="text-center">
           <div className="text-burgundy tracking-[0.28em] text-[12px] font-semibold">
             {pageContent.founders.eyebrow}
@@ -210,30 +221,32 @@ const About = () => {
 
       {/* Stats band */}
       <section className="mt-16 md:mt-24">
-        <div className="paint-band relative py-12 md:py-14 overflow-hidden">
-          <BrainLineArt className="brain-line-left" color="#F1DFC7" />
-          <div className="mx-auto max-w-[1180px] px-6 relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center">
-            <h3 className="font-serif-display text-ivory text-[20px] md:text-[22px] leading-tight whitespace-pre-line ml-0 md:ml-24 md:flex-1">
-              {pageContent.stats.title}
-            </h3>
-            {pageContent.stats.items.map((it, i) => (
-              <React.Fragment key={it.label}>
-                {i > 0 && (
-                  <div className="hidden md:block h-12 w-px bg-ivory/25 self-center" />
-                )}
-                <div className="flex items-center gap-2.5">
-                  {statIcon(it.icon)}
-                  <div>
-                    <div className="font-serif-display text-ivory text-[24px] leading-none">
-                      {it.value}
-                    </div>
-                    <div className="text-ivory/85 text-[11.5px] leading-tight whitespace-pre-line mt-1">
-                      {it.label}
+        <div className="mx-auto max-w-[1180px] px-4 md:px-8">
+          <div className="paint-band relative rounded-3xl overflow-hidden py-12 md:py-14 px-6 md:px-10">
+            <BrainLineArt className="brain-line-left" color="#F1DFC7" />
+            <div className="mx-auto max-w-[1180px] px-6 relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center">
+              <h3 className="font-serif-display text-ivory text-[20px] md:text-[22px] leading-tight whitespace-pre-line ml-0 md:ml-24 md:flex-1">
+                {pageContent.stats.title}
+              </h3>
+              {pageContent.stats.items.map((it, i) => (
+                <React.Fragment key={it.label}>
+                  {i > 0 && (
+                    <div className="hidden md:block h-12 w-px bg-ivory/25 self-center" />
+                  )}
+                  <div className="flex items-center gap-2.5">
+                    {statIcon(it.icon)}
+                    <div>
+                      <div className="font-serif-display text-ivory text-[24px] leading-none">
+                        {it.value}
+                      </div>
+                      <div className="text-ivory/85 text-[11.5px] leading-tight whitespace-pre-line mt-1">
+                        {it.label}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </React.Fragment>
-            ))}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
         </div>
       </section>

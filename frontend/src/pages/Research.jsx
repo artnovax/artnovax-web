@@ -258,37 +258,39 @@ const Research = () => {
 
       {/* Burgundy quote band */}
       <section className="mt-14 md:mt-20">
-        <div className="paint-band relative py-10 md:py-12 overflow-hidden">
-          <BrainLineArt className="brain-line-left" color="#F1DFC7" />
-          <BrainLineArt className="brain-line-right" color="#F1DFC7" />
-          <div className="mx-auto max-w-[1180px] px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
-            <div className="flex items-start gap-4">
-              <Quote className="w-8 h-8 text-ivory/85 shrink-0 mt-1" />
-              <div>
-                <p className="font-serif-display italic text-ivory text-[20px] md:text-[22px] leading-snug">
-                  {pageContent.band.quote}
-                </p>
-                <div className="mt-2 text-ivory/80 text-[13px]">
-                  {pageContent.band.author}
+        <div className="mx-auto max-w-[1240px] px-4 md:px-8">
+          <div className="paint-band relative rounded-3xl overflow-hidden py-10 md:py-12 px-6 md:px-10">
+            <BrainLineArt className="brain-line-left" color="#F1DFC7" />
+            <BrainLineArt className="brain-line-right" color="#F1DFC7" />
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
+              <div className="flex items-start gap-4">
+                <Quote className="w-8 h-8 text-ivory/85 shrink-0 mt-1" />
+                <div>
+                  <p className="font-serif-display italic text-ivory text-[20px] md:text-[22px] leading-snug">
+                    {pageContent.band.quote}
+                  </p>
+                  <div className="mt-2 text-ivory/80 text-[13px]">
+                    {pageContent.band.author}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="md:pl-8 md:border-l md:border-ivory/20 flex items-start gap-4">
-              <FileText className="w-7 h-7 text-ivory/85 shrink-0 mt-1" />
-              <div>
-                <h3 className="font-serif-display text-ivory text-[20px] md:text-[22px]">
-                  {pageContent.band.integrity.title}
-                </h3>
-                <p className="mt-2 text-ivory/85 text-[13.5px] leading-relaxed">
-                  {pageContent.band.integrity.body}
-                </p>
-                <a
-                  href={pageContent.band.integrity.link.href}
-                  className="mt-2 inline-flex items-center gap-1 text-ivory font-semibold text-[13.5px]"
-                >
-                  {pageContent.band.integrity.link.label}{" "}
-                  <ArrowRight className="w-4 h-4" />
-                </a>
+              <div className="md:pl-8 md:border-l md:border-ivory/20 flex items-start gap-4">
+                <FileText className="w-7 h-7 text-ivory/85 shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-serif-display text-ivory text-[20px] md:text-[22px]">
+                    {pageContent.band.integrity.title}
+                  </h3>
+                  <p className="mt-2 text-ivory/85 text-[13.5px] leading-relaxed">
+                    {pageContent.band.integrity.body}
+                  </p>
+                  <a
+                    href={pageContent.band.integrity.link.href}
+                    className="mt-2 inline-flex items-center gap-1 text-ivory font-semibold text-[13.5px]"
+                  >
+                    {pageContent.band.integrity.link.label}{" "}
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -296,7 +298,7 @@ const Research = () => {
       </section>
 
       {/* Stay informed */}
-      <section className="mx-auto max-w-[1180px] px-4 md:px-8 mt-12 md:mt-16 mb-16 md:mb-24">
+      <section className="mx-auto max-w-[1240px] px-4 md:px-8 mt-12 md:mt-16 mb-16 md:mb-24">
         <div className="rounded-3xl bg-ivory-200/70 ring-1 ring-ivory-300 p-6 md:p-8 grid grid-cols-1 md:grid-cols-[auto_1fr_auto] items-center gap-5">
           <div className="w-14 h-14 rounded-2xl bg-burgundy/10 flex items-center justify-center">
             <svg

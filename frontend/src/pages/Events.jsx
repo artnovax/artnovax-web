@@ -342,7 +342,7 @@ const Events = () => {
       </section>
 
       {/* Idea CTA */}
-      <section className="mx-auto max-w-[1180px] px-4 md:px-8 mt-16 md:mt-20 mb-16 md:mb-24">
+      <section className="mx-auto max-w-[1240px] px-4 md:px-8 mt-16 md:mt-20 mb-16 md:mb-24">
         <div className="rounded-2xl bg-ivory-200/70 ring-1 ring-ivory-300 p-5 md:p-6 grid grid-cols-1 md:grid-cols-[auto_1fr_auto] items-center gap-5">
           <div className="w-14 h-14 rounded-2xl bg-burgundy/10 flex items-center justify-center">
             <HeartHand className="w-8 h-8" color="#5C1519" />
