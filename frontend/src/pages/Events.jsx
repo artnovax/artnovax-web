@@ -115,7 +115,7 @@ const Events = () => {
   }, []);
 
   const featuredList = useMemo(
-    () => events.filter((e) => e.featured).slice(0, 2),
+    () => events.filter((e) => e.featured).slice(0, 4),
     [events],
   );
   const filtered = useMemo(() => {
