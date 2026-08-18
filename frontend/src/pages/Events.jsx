@@ -230,11 +230,11 @@ const Events = () => {
                 href={`/events/${f.slug || f.id}`}
                 className="wwd-card group rounded-2xl overflow-hidden ring-1 ring-ivory-300 bg-ivory-100 grid grid-cols-[minmax(0,120px)_minmax(0,1fr)]"
               >
-                <div className="relative aspect-square overflow-hidden bg-ivory-200">
+                <div className="relative h-full min-h-[145px] overflow-hidden bg-ivory-200">
                   <img
                     src={f.img}
                     alt={f.imgAlt || f.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                   />
                 </div>
                 <div className="p-4 flex flex-col">
