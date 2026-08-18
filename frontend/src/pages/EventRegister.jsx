@@ -211,7 +211,7 @@ const EventRegister = () => {
           <p className="mt-2 text-ink/75 text-[14.5px]">
             {waitlisted
               ? "The room is full for now. Your place on the waitlist has been saved."
-              : "Your registration has been saved. We look forward to seeing you there."}
+              : "Your registration has been saved. Check your email for the confirmation and calendar file."}
           </p>
           <div className="mt-6 flex flex-wrap gap-3 justify-center">
             {!waitlisted && ev.starts_at && (

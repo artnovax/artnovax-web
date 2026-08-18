@@ -42,6 +42,7 @@ import {
   createNewsletterIssue,
   updateNewsletterIssue,
   deleteNewsletterIssue,
+  sendNewsletterIssue,
   saveHomepage,
   saveAboutPage,
   saveOurWorkPage,
@@ -466,7 +467,11 @@ const Admin = () => {
                 <ProductsManager rows={data.products} onChange={refresh} />
               )}
               {tab === "newsletters" && (
-                <NewsletterManager rows={data.newsletters} onChange={refresh} />
+                <NewsletterManager
+                  rows={data.newsletters}
+                  subscriberCount={data.subscribers.length}
+                  onChange={refresh}
+                />
               )}
               {tab === "subscribers" && (
                 <SubscribersTable rows={data.subscribers} />
@@ -4670,9 +4675,10 @@ const InformationPagesManager = ({ content, onChange }) => {
 };
 
 // ---- Newsletter Issues Manager ----
-const NewsletterManager = ({ rows, onChange }) => {
+const NewsletterManager = ({ rows, subscriberCount, onChange }) => {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
+  const [sendingId, setSendingId] = useState(null);
 
   const startNew = () => {
     setForm({
@@ -4730,6 +4736,10 @@ const NewsletterManager = ({ rows, onChange }) => {
   };
 
   const remove = async (row) => {
+    if (row.resend_broadcast_id) {
+      alert("A newsletter that has already been queued or sent cannot be deleted from the CMS.");
+      return;
+    }
     if (!window.confirm(`Delete “${row.title}”? This cannot be undone.`)) return;
     try {
       await deleteNewsletterIssue(row.id);
@@ -4737,6 +4747,33 @@ const NewsletterManager = ({ rows, onChange }) => {
       onChange();
     } catch (error) {
       alert(error?.message || "Delete failed");
+    }
+  };
+
+  const sendIssue = async (row) => {
+    if (row.status !== "published") {
+      alert("Publish the newsletter issue before sending it.");
+      return;
+    }
+
+    const retrying = row.email_send_status === "failed";
+    const action = retrying ? "Retry sending" : "Send";
+    const warning = retrying
+      ? `${action} “${row.title}”? The existing Resend broadcast will be reused when available.`
+      : `${action} “${row.title}” to ${subscriberCount} subscribed member${subscriberCount === 1 ? "" : "s"}? This cannot be recalled.`;
+
+    if (!window.confirm(warning)) return;
+
+    setSendingId(row.id);
+    try {
+      const result = await sendNewsletterIssue(row.id);
+      alert(result?.message || "Newsletter queued for delivery.");
+      onChange();
+    } catch (error) {
+      alert(error?.message || "Newsletter delivery failed.");
+      onChange();
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -4748,7 +4785,7 @@ const NewsletterManager = ({ rows, onChange }) => {
             Newsletter Issues
           </h3>
           <p className="text-ink/60 text-[12.5px] mt-0.5">
-            Publish issues to the website archive. Subscriber email sending is separate.
+            Publish an issue, preview it, then send it once through the Resend newsletter audience.
           </p>
         </div>
         <button
@@ -4781,14 +4818,14 @@ const NewsletterManager = ({ rows, onChange }) => {
               className={inputCls}
             />
           </Field>
-          <Field label="Email subject (reserved for sending workflow)">
+          <Field label="Email subject">
             <input
               value={form.subject || ""}
               onChange={(event) => setForm({ ...form, subject: event.target.value })}
               className={inputCls}
             />
           </Field>
-          <Field label="Preheader (reserved for sending workflow)">
+          <Field label="Email preheader">
             <input
               value={form.preheader || ""}
               onChange={(event) => setForm({ ...form, preheader: event.target.value })}
@@ -4892,10 +4929,11 @@ const NewsletterManager = ({ rows, onChange }) => {
       )}
 
       <div className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 overflow-hidden">
-        <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)_minmax(0,1fr)_auto] text-[11.5px] font-semibold text-ink/60 uppercase tracking-widest px-4 py-3 border-b border-ivory-300 bg-ivory-200/50">
+        <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1fr)_auto] text-[11.5px] font-semibold text-ink/60 uppercase tracking-widest px-4 py-3 border-b border-ivory-300 bg-ivory-200/50">
           <div>Issue</div>
           <div>Status</div>
           <div>Published</div>
+          <div>Email</div>
           <div>Actions</div>
         </div>
         {rows.length === 0 ? (
@@ -4906,7 +4944,7 @@ const NewsletterManager = ({ rows, onChange }) => {
           rows.map((row) => (
             <div
               key={row.id}
-              className="grid grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)_minmax(0,1fr)_auto] items-center px-4 py-3 border-b border-ivory-300 last:border-b-0 text-[13.5px]"
+              className="grid grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1fr)_auto] items-center px-4 py-3 border-b border-ivory-300 last:border-b-0 text-[13.5px]"
             >
               <div className="min-w-0">
                 <div className="font-semibold text-ink truncate">{row.title}</div>
@@ -4919,6 +4957,21 @@ const NewsletterManager = ({ rows, onChange }) => {
               </div>
               <div className="text-ink/70 text-[12px]">
                 {row.publishedAt ? new Date(row.publishedAt).toLocaleString() : "—"}
+              </div>
+              <div className="text-ink/70 text-[12px]">
+                {row.email_send_status === "queued" ? (
+                  <span className="text-emerald-700 font-semibold">
+                    Queued{row.email_recipient_count != null ? ` (${row.email_recipient_count})` : ""}
+                  </span>
+                ) : row.email_send_status === "failed" ? (
+                  <span className="text-red-700 font-semibold" title={row.email_last_error || "Send failed"}>
+                    Failed
+                  </span>
+                ) : row.email_send_status === "syncing" ? (
+                  <span className="text-amber-700 font-semibold">Sending…</span>
+                ) : (
+                  "Not sent"
+                )}
               </div>
               <div className="flex gap-1 justify-end items-center">
                 <a
@@ -4938,6 +4991,21 @@ const NewsletterManager = ({ rows, onChange }) => {
                 >
                   <Globe2 className="w-4 h-4" />
                 </button>
+                {row.status === "published" && row.email_send_status !== "queued" && (
+                  <button
+                    onClick={() => sendIssue(row)}
+                    disabled={sendingId === row.id || row.email_send_status === "syncing" || subscriberCount === 0}
+                    title={subscriberCount === 0 ? "There are no subscribers" : row.email_send_status === "failed" ? "Retry newsletter email" : "Send to subscribers"}
+                    aria-label={`${row.email_send_status === "failed" ? "Retry" : "Send"} ${row.title} to subscribers`}
+                    className="w-8 h-8 rounded-full hover:bg-ivory-200 flex items-center justify-center text-burgundy disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {sendingId === row.id ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Mail className="w-4 h-4" />
+                    )}
+                  </button>
+                )}
                 <button
                   onClick={() => startEdit(row)}
                   aria-label={`Edit ${row.title}`}

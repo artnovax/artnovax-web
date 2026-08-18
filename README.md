@@ -51,7 +51,9 @@ artnovax-web/
 │   │   ├── mpesa-callback/
 │   │   ├── mpesa-status/
 │   │   ├── mpesa-stk/
+│   │   ├── newsletter-subscribe/
 │   │   ├── public-submission/
+│   │   ├── send-newsletter/
 │   │   ├── send-event-reminders/
 │   │   ├── stripe-webhook/
 │   │   └── verify-order-checkout/
@@ -199,6 +201,8 @@ RESEND_API_KEY
 FROM_EMAIL
 REPLY_TO_EMAIL
 TEAM_EMAIL
+RESEND_NEWSLETTER_SEGMENT_ID
+PUBLIC_SITE_URL
 ```
 
 Recommended email configuration:
@@ -207,7 +211,10 @@ Recommended email configuration:
 FROM_EMAIL=ArtNovaX <notifications@mail.artnovax.org>
 REPLY_TO_EMAIL=notifications@artnovax.org
 TEAM_EMAIL=admin@artnovax.org
+PUBLIC_SITE_URL=https://artnovax.org
 ```
+
+`RESEND_NEWSLETTER_SEGMENT_ID` is the ID of a dedicated Resend Segment containing newsletter subscribers. The Resend API key must have full access because newsletter signup synchronizes contacts and the admin workflow creates Broadcasts.
 
 `mail.artnovax.org` is used as the transactional sending subdomain.
 
@@ -307,11 +314,38 @@ Transactional email workflows include:
 - volunteer application acknowledgements
 - volunteer team notifications
 - event registration confirmations
+- Google Calendar links and Apple/Outlook `.ics` attachments for confirmed registrations
 - event waitlist confirmations
 - event registration team notifications
 - scheduled event reminders
 
 Email delivery timestamps and errors are persisted in PostgreSQL to make delivery observable and reduce duplicate sends.
+
+## Newsletter Delivery
+
+Newsletter signup is handled by the public `newsletter-subscribe` Edge Function. It stores the subscriber in Supabase and synchronizes the contact into the configured Resend Segment.
+
+Published newsletter issues can be sent once from the `/admin` Newsletter Issues tab. The authenticated `send-newsletter` Edge Function:
+
+1. Atomically claims the published issue to prevent duplicate sends.
+2. Synchronizes existing Supabase subscribers into the Resend Segment.
+3. Creates a Resend Broadcast with the issue subject, preheader, hero and body.
+4. Includes Resend's managed unsubscribe link.
+5. Queues the Broadcast and saves its ID and recipient count on the issue.
+
+Create a dedicated newsletter Segment in Resend, copy its ID, then set:
+
+```powershell
+npx supabase secrets set RESEND_NEWSLETTER_SEGMENT_ID="YOUR_SEGMENT_ID"
+npx supabase secrets set PUBLIC_SITE_URL="https://artnovax.org"
+```
+
+Deploy both functions after applying `supabase/sql/23_newsletter_delivery.sql`:
+
+```powershell
+npx supabase functions deploy newsletter-subscribe --use-api
+npx supabase functions deploy send-newsletter --use-api
+```
 
 ## Public Form Workflows
 
@@ -362,7 +396,7 @@ public-submission
 register_for_event RPC
         |
         +--> confirmed / waitlist registration
-        +--> participant email
+        +--> participant email and calendar controls
         └--> team notification
 ```
 

@@ -22,6 +22,11 @@ verify_jwt = false
 [functions.public-submission]
 verify_jwt = false
 
-[functions.send-event-reminders]
+[functions.newsletter-subscribe]
 verify_jwt = false
 
+[functions.send-newsletter]
+verify_jwt = false
+
+[functions.send-event-reminders]
+verify_jwt = false

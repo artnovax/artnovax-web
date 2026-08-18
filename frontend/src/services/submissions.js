@@ -8,6 +8,15 @@ const friendlyError = (error, fallback) => {
   return error.message || fallback;
 };
 
+const functionErrorMessage = async (error, fallback) => {
+  try {
+    const body = await error?.context?.json?.();
+    return body?.error || friendlyError(error, fallback);
+  } catch {
+    return friendlyError(error, fallback);
+  }
+};
+
 async function invokeSubmission(type, payload) {
   const { data, error } =
     await supabase.functions.invoke(
@@ -41,21 +50,27 @@ export async function subscribeNewsletter(
   source,
 ) {
   const { data, error } =
-    await supabase.rpc(
-      'subscribe_newsletter',
+    await supabase.functions.invoke(
+      'newsletter-subscribe',
       {
-        p_email: email,
-        p_source: source || null,
+        body: {
+          email,
+          source: source || null,
+        },
       },
     );
 
   if (error) {
     throw new Error(
-      friendlyError(
+      await functionErrorMessage(
         error,
         'Subscription failed.',
       ),
     );
+  }
+
+  if (data?.error) {
+    throw new Error(data.error);
   }
 
   return data;

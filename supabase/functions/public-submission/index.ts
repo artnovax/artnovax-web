@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { corsHeaders } from "../_shared/cors.ts";
 import {
+  type EmailAttachment,
   escapeEmailHtml,
   renderTransactionalEmail,
   sendTransactionalEmail,
@@ -71,6 +72,100 @@ function eventWhen(event: {
   }
 }
 
+function eventCalendarDetails(event: {
+  title?: string | null;
+  starts_at?: string | null;
+  location?: string | null;
+  body?: string | null;
+}) {
+  if (!event.starts_at) return null;
+
+  const start = new Date(event.starts_at);
+  if (Number.isNaN(start.getTime())) return null;
+
+  const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
+  const stamp = (date: Date) =>
+    date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: event.title || "ArtNovaX Event",
+    dates: `${stamp(start)}/${stamp(end)}`,
+    location: event.location || "",
+    details: `${event.body || ""}\n\nRegistered via ArtNovaX`,
+  });
+
+  return {
+    start,
+    end,
+    googleUrl: `https://calendar.google.com/calendar/render?${params.toString()}`,
+  };
+}
+
+const escapeIcs = (value: unknown): string =>
+  String(value ?? "")
+    .replaceAll("\\", "\\\\")
+    .replaceAll("\r\n", "\\n")
+    .replaceAll("\n", "\\n")
+    .replaceAll(",", "\\,")
+    .replaceAll(";", "\\;");
+
+function base64Utf8(value: string): string {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary);
+}
+
+function eventCalendarAttachment(
+  event: {
+    id: string;
+    slug?: string | null;
+    title?: string | null;
+    starts_at?: string | null;
+    location?: string | null;
+    body?: string | null;
+  },
+  registration: { id: string },
+): EmailAttachment | null {
+  const calendar = eventCalendarDetails(event);
+  if (!calendar) return null;
+
+  const stamp = (date: Date) =>
+    date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//ArtNovaX//Events//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${escapeIcs(registration.id)}@artnovax.org`,
+    `DTSTAMP:${stamp(new Date())}`,
+    `DTSTART:${stamp(calendar.start)}`,
+    `DTEND:${stamp(calendar.end)}`,
+    `SUMMARY:${escapeIcs(event.title || "ArtNovaX Event")}`,
+    `DESCRIPTION:${escapeIcs(event.body || "Registered via ArtNovaX")}`,
+    `LOCATION:${escapeIcs(event.location || "")}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+    "",
+  ].join("\r\n");
+  const fileSlug = String(event.slug || event.id || "event")
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "event";
+
+  return {
+    filename: `artnovax-${fileSlug}.ics`,
+    content: base64Utf8(ics),
+  };
+}
+
 async function deliverTrackedEmails({
   table,
   id,
@@ -81,6 +176,7 @@ async function deliverTrackedEmails({
   teamSubject,
   teamHtml,
   teamColumn,
+  customerAttachments = [],
 }: {
   table: string;
   id: string;
@@ -91,6 +187,7 @@ async function deliverTrackedEmails({
   teamSubject: string;
   teamHtml: string;
   teamColumn: string;
+  customerAttachments?: EmailAttachment[];
 }) {
   const errors: string[] = [];
 
@@ -105,6 +202,7 @@ async function deliverTrackedEmails({
         html: customerHtml,
         idempotencyKey:
           `${table}-customer/${id}`,
+        attachments: customerAttachments,
       });
 
       customerSent = true;
@@ -602,7 +700,7 @@ async function registerEvent(payload: any) {
     await supabaseAdmin
       .from("events")
       .select(
-        "id,slug,title,date_text,starts_at,location",
+        "id,slug,title,date_text,starts_at,location,body",
       )
       .eq("id", eventId)
       .single();
@@ -611,6 +709,12 @@ async function registerEvent(payload: any) {
 
   const waitlisted =
     registration.status === "waitlist";
+  const calendar = !waitlisted
+    ? eventCalendarDetails(event)
+    : null;
+  const calendarAttachment = !waitlisted
+    ? eventCalendarAttachment(event, registration)
+    : null;
 
   const customerHtml =
     renderTransactionalEmail(
@@ -649,6 +753,24 @@ async function registerEvent(payload: any) {
               "Location to be confirmed",
           )}
         </p>
+
+        ${
+          calendar
+            ? `
+              <p style="margin:22px 0 12px;">
+                <a
+                  href="${escapeEmailHtml(calendar.googleUrl)}"
+                  style="display:inline-block;padding:11px 18px;border-radius:999px;background:#5C1519;color:#FBF3E8;text-decoration:none;font-size:14px;font-weight:700;"
+                >
+                  Add to Google Calendar
+                </a>
+              </p>
+              <p style="font-size:13px;line-height:1.6;color:#6B5A55;">
+                Prefer Apple Calendar or Outlook? Open the attached .ics calendar file.
+              </p>
+            `
+            : ""
+        }
       `,
     );
 
@@ -692,6 +814,10 @@ async function registerEvent(payload: any) {
     teamHtml,
     teamColumn:
       "team_email_sent_at",
+    customerAttachments:
+      calendarAttachment
+        ? [calendarAttachment]
+        : [],
   });
 
   return json({

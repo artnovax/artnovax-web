@@ -47,6 +47,11 @@ export type DeliveryResult = {
   errors: string[];
 };
 
+export type EmailAttachment = {
+  filename: string;
+  content: string;
+};
+
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
 function escapeHtml(value: unknown): string {
@@ -257,11 +262,13 @@ async function sendEmail({
   subject,
   html,
   idempotencyKey,
+  attachments = [],
 }: {
   to: string;
   subject: string;
   html: string;
   idempotencyKey: string;
+  attachments?: EmailAttachment[];
 }): Promise<string | null> {
   const apiKey =
     Deno.env.get("RESEND_API_KEY");
@@ -304,6 +311,10 @@ async function sendEmail({
         to: [to],
         subject,
         html,
+
+        ...(attachments.length > 0
+          ? { attachments }
+          : {}),
 
         ...(replyTo
           ? {
@@ -800,16 +811,19 @@ export async function sendTransactionalEmail({
   subject,
   html,
   idempotencyKey,
+  attachments = [],
 }: {
   to: string;
   subject: string;
   html: string;
   idempotencyKey: string;
+  attachments?: EmailAttachment[];
 }): Promise<string | null> {
   return await sendEmail({
     to,
     subject,
     html,
     idempotencyKey,
+    attachments,
   });
 }

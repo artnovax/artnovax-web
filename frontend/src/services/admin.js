@@ -73,6 +73,21 @@ export const deleteArticle = (id) => remove('articles', id);
 export const createNewsletterIssue = (p) => insert('newsletter_issues', dbPayloads.newsletterIssue(p));
 export const updateNewsletterIssue = (id, p) => update('newsletter_issues', id, dbPayloads.newsletterIssue(p));
 export const deleteNewsletterIssue = (id) => remove('newsletter_issues', id);
+export async function sendNewsletterIssue(id) {
+  const { data, error } = await supabase.functions.invoke('send-newsletter', {
+    body: { issue_id: id },
+  });
+  if (error) {
+    let message = error.message || 'Newsletter delivery failed.';
+    try {
+      const body = await error?.context?.json?.();
+      message = body?.error || message;
+    } catch {}
+    throw new Error(message);
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
 export const saveHomepage = (payload) => saveHomePageContent(payload);
 export const saveAboutPage = (payload) => saveAboutPageContent(payload);
 export const saveOurWorkPage = (payload) => saveOurWorkPageContent(payload);
