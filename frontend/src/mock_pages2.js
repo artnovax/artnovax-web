@@ -5,7 +5,7 @@ export const RESEARCH = {
   title: 'Evidence.\nExplained.\nEmpowerment.',
   body: 'We explore the science behind creativity and mental wellbeing and translate it into clear, accessible insights for everyone.',
   cta: { label: 'Explore All Insights', href: '#topics' },
-  image: 'https://images.unsplash.com/photo-1535837487710-a191373a20ae',
+  image: null,
   imageAlt: 'Watercolor journal and creative supplies on a wooden table',
   topicsTitle: 'Key Topics We Explore',
   topics: [
