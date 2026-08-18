@@ -19,13 +19,14 @@ const CRON_SECRET =
 
 function formatWhen(
   startsAt: string,
+  timezone = "Africa/Nairobi",
 ): string {
   return new Intl.DateTimeFormat(
     "en-KE",
     {
       dateStyle: "full",
       timeStyle: "short",
-      timeZone: "Africa/Nairobi",
+      timeZone: timezone,
     },
   ).format(new Date(startsAt));
 }
@@ -57,7 +58,7 @@ Deno.serve(async (req) => {
       await supabaseAdmin
         .from("events")
         .select(
-          "id,title,starts_at,location,reminder_hours",
+          "id,title,starts_at,timezone,location,reminder_hours",
         )
         .eq("status", "upcoming")
         .not("starts_at", "is", null)
@@ -170,6 +171,7 @@ Deno.serve(async (req) => {
                 ${escapeEmailHtml(
                   formatWhen(
                     event.starts_at,
+                      event.timezone || "Africa/Nairobi"
                   ),
                 )}
                 <br />

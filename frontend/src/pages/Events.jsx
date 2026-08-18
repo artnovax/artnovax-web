@@ -28,6 +28,23 @@ const Tab = ({ active, icon: Icon, label, onClick }) => (
   </button>
 );
 
+const formatEventDateShort = (ev) => {
+  if (!ev.starts_at) {
+    return ev.date || "";
+  }
+
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      timeZone: ev.timezone || "Africa/Nairobi",
+    }).format(new Date(ev.starts_at));
+  } catch {
+    return ev.date || "";
+  }
+};
+
 const EventCard = ({ ev }) => (
   <article className="wwd-card group rounded-2xl overflow-hidden ring-1 ring-ivory-300 bg-ivory-100 flex flex-col">
     <a
@@ -47,10 +64,10 @@ const EventCard = ({ ev }) => (
     </a>
     <div className="p-5 flex-1 flex flex-col">
       <div className="flex items-center gap-3 text-ink/60 text-[12px]">
-        {ev.date && (
+        {formatEventDateShort(ev) && (
           <span className="inline-flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5 text-burgundy" />
-            {ev.date}
+            {formatEventDateShort(ev)}
           </span>
         )}
         {ev.location && (
@@ -228,10 +245,10 @@ const Events = () => {
                     {f.title}
                   </h3>
                   <div className="mt-1 text-ink/70 text-[12.5px] flex items-center gap-3 flex-wrap">
-                    {f.date && (
+                    {formatEventDateShort(f) && (
                       <span className="inline-flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-burgundy" />
-                        {f.date}
+                        {formatEventDateShort(f)}
                       </span>
                     )}
                     {f.location && (

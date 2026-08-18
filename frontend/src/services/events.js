@@ -2,39 +2,130 @@ import { supabase } from '@/lib/supabase';
 
 function toFrontendEvent(row) {
   if (!row) return null;
+
   return {
     ...row,
-    date: row.date_text ?? row.date ?? '',
-    img: row.image_path ?? row.img ?? null,
-    imgAlt: row.image_alt_text ?? row.imgAlt ?? '',
-    posterMediaId: row.poster_media_id ?? row.posterMediaId ?? null,
+
+    date:
+      row.date_text ??
+      row.date ??
+      "",
+
+    img:
+      row.image_path ??
+      row.img ??
+      null,
+
+    imgAlt:
+      row.image_alt_text ??
+      row.imgAlt ??
+      "",
+
+    posterMediaId:
+      row.poster_media_id ??
+      row.posterMediaId ??
+      null,
+
+    timezone:
+      row.timezone ||
+      "Africa/Nairobi",
+
+    durationMinutes:
+      row.duration_minutes ??
+      180,
+
+    endsAt:
+      row.ends_at ??
+      null,
   };
 }
 
 function toDatabaseEvent(event) {
   return {
-    slug: event.slug || slugify(event.title),
+    slug:
+      event.slug ||
+      slugify(event.title),
+
     title: event.title,
-    subtitle: event.subtitle || null,
-    theme: event.theme || null,
-    date_text: event.date ?? event.date_text ?? null,
-    starts_at: event.starts_at || null,
-    location: event.location || null,
-    audience: event.audience || null,
-    tags: normalizeList(event.tags),
-    body: event.body || null,
-    image_path: event.img ?? event.image_path ?? null,
-    image_alt_text: event.imgAlt ?? event.image_alt_text ?? null,
-    poster_media_id: event.posterMediaId ?? event.poster_media_id ?? null,
-    status: event.status || 'upcoming',
-    featured: !!event.featured,
-    partners: normalizeList(event.partners),
-    poster: event.poster || null,
-    capacity: event.capacity === '' || event.capacity == null ? null : Number(event.capacity),
-    reminder_hours: event.reminder_hours || [48],
-    questions: event.questions || [],
+
+    subtitle:
+      event.subtitle || null,
+
+    theme:
+      event.theme || null,
+
+    date_text:
+      event.date ??
+      event.date_text ??
+      null,
+
+    starts_at:
+      event.starts_at || null,
+
+    timezone:
+      event.timezone ||
+      "Africa/Nairobi",
+
+    duration_minutes:
+      event.durationMinutes ??
+      event.duration_minutes ??
+      180,
+
+    location:
+      event.location || null,
+
+    audience:
+      event.audience || null,
+
+    tags:
+      normalizeList(event.tags),
+
+    body:
+      event.body || null,
+
+    image_path:
+      event.img ??
+      event.image_path ??
+      null,
+
+    image_alt_text:
+      event.imgAlt ??
+      event.image_alt_text ??
+      null,
+
+    poster_media_id:
+      event.posterMediaId ??
+      event.poster_media_id ??
+      null,
+
+    status:
+      event.status ||
+      "upcoming",
+
+    featured:
+      !!event.featured,
+
+    partners:
+      normalizeList(event.partners),
+
+    poster:
+      event.poster || null,
+
+    capacity:
+      event.capacity === "" ||
+        event.capacity == null
+        ? null
+        : Number(event.capacity),
+
+    reminder_hours:
+      event.reminder_hours ||
+      [48],
+
+    questions:
+      event.questions || [],
   };
 }
+
 
 const normalizeList = (value) => {
   if (Array.isArray(value)) return value.filter(Boolean);

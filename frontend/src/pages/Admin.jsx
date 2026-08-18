@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { DateTime } from "luxon";
 import {
   Lock,
   Mail,
@@ -5029,59 +5030,155 @@ const NewsletterManager = ({ rows, subscriberCount, onChange }) => {
   );
 };
 
+const EVENT_TIMEZONES = [
+  {
+    value: "Africa/Nairobi",
+    label: "Nairobi (EAT)",
+  },
+  {
+    value: "Africa/Kampala",
+    label: "Kampala (EAT)",
+  },
+  {
+    value: "Africa/Dar_es_Salaam",
+    label: "Dar es Salaam (EAT)",
+  },
+  {
+    value: "Africa/Lagos",
+    label: "Lagos (WAT)",
+  },
+  {
+    value: "Africa/Accra",
+    label: "Accra (GMT)",
+  },
+  {
+    value: "Africa/Johannesburg",
+    label: "Johannesburg (SAST)",
+  },
+  {
+    value: "Europe/London",
+    label: "London",
+  },
+  {
+    value: "America/New_York",
+    label: "New York",
+  },
+];
+
 // ---- Events Manager ----
 const EventsManager = ({ rows, onChange }) => {
   const [editing, setEditing] = useState(null); // null | 'new' | id
   const [form, setForm] = useState({});
 
-  const startNew = () => {
-    setForm({
-      title: "",
-      subtitle: "",
-      date: "",
-      location: "",
-      body: "",
-      img: "",
-      imgAlt: "",
-      posterMediaId: null,
-      status: "upcoming",
-      featured: false,
-      partners: "",
-      tags: "",
-    });
-    setEditing("new");
-  };
-  const startEdit = (row) => {
-    setForm({
-      ...row,
-      partners: (row.partners || []).join(", "),
-      tags: (row.tags || []).join(", "),
-    });
-    setEditing(row.id);
-  };
+const startNew = () => {
+  setForm({
+    title: "",
+    subtitle: "",
+
+    startsAtLocal: "",
+    timezone: "Africa/Nairobi",
+    durationMinutes: 180,
+
+    date: "",
+    location: "",
+    body: "",
+    img: "",
+    imgAlt: "",
+    posterMediaId: null,
+    status: "upcoming",
+    featured: false,
+    partners: "",
+    tags: "",
+  });
+
+  setEditing("new");
+};
+  
+const startEdit = (row) => {
+  const timezone = row.timezone || "Africa/Nairobi";
+
+  const startsAtLocal = row.starts_at
+    ? DateTime.fromISO(row.starts_at)
+        .setZone(timezone)
+        .toFormat("yyyy-LL-dd'T'HH:mm")
+    : "";
+
+  setForm({
+    ...row,
+
+    startsAtLocal,
+
+    timezone,
+
+    durationMinutes: row.durationMinutes ?? row.duration_minutes ?? 180,
+
+    partners: (row.partners || []).join(", "),
+    tags: (row.tags || []).join(", "),
+  });
+
+  setEditing(row.id);
+};
+
+
   const cancel = () => {
     setEditing(null);
     setForm({});
   };
 
-  const save = async (e) => {
-    e.preventDefault();
-    const payload = {
-      ...form,
-      partners: (form.partners || "")
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    };
-    try {
-      if (editing === "new") await createEvent(payload);
-      else await updateEvent(editing, payload);
-      setEditing(null);
-      onChange();
-    } catch (err) {
-      alert(err?.message || "Save failed");
-    }
+const save = async (e) => {
+  e.preventDefault();
+
+  const timezone = form.timezone || "Africa/Nairobi";
+
+  const start = DateTime.fromISO(form.startsAtLocal, {
+    zone: timezone,
+  });
+
+  if (!start.isValid) {
+    alert("Please choose a valid event start date and time.");
+    return;
+  }
+
+  const durationMinutes = Number(form.durationMinutes);
+
+  if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+    alert("Please enter a valid event duration.");
+    return;
+  }
+  const dateText = `${start
+    .setLocale("en")
+    .toFormat(
+      "cccc, d LLLL yyyy · h:mm a",
+    )} ${start.offsetNameShort || ""}`.trim();
+
+  const payload = {
+    ...form,
+
+    starts_at: start.toUTC().toISO(),
+    timezone,
+    durationMinutes,
+    date: dateText,
+    partners: (form.partners || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
   };
+
+  delete payload.startsAtLocal;
+
+  try {
+    if (editing === "new") {
+      await createEvent(payload);
+    } else {
+      await updateEvent(editing, payload);
+    }
+
+    setEditing(null);
+    onChange();
+  } catch (err) {
+    alert(err?.message || "Save failed");
+  }
+};
 
   const remove = async (id) => {
     if (!window.confirm("Delete this event?")) return;
@@ -5128,13 +5225,58 @@ const EventsManager = ({ rows, onChange }) => {
               className={inputCls}
             />
           </Field>
-          <Field label="Date">
+          <Field label="Starts at">
             <input
-              value={form.date || ""}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-              placeholder="e.g. Wednesday, 4th March 2026"
+              type="datetime-local"
+              required
+              value={form.startsAtLocal || ""}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  startsAtLocal: e.target.value,
+                })
+              }
               className={inputCls}
             />
+          </Field>
+
+          <Field label="Duration (minutes)">
+            <input
+              type="number"
+              required
+              min="15"
+              max="1440"
+              step="15"
+              value={form.durationMinutes ?? 180}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  durationMinutes: Number(e.target.value),
+                })
+              }
+              placeholder="e.g. 120"
+              className={inputCls}
+            />
+          </Field>
+
+          <Field label="Timezone">
+            <select
+              required
+              value={form.timezone || "Africa/Nairobi"}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  timezone: e.target.value,
+                })
+              }
+              className={inputCls}
+            >
+              {EVENT_TIMEZONES.map((zone) => (
+                <option key={zone.value} value={zone.value}>
+                  {zone.label}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label="Location">
             <input
@@ -5166,29 +5308,39 @@ const EventsManager = ({ rows, onChange }) => {
             </span>
             <div className="mt-1 flex items-end gap-2 flex-wrap">
               <MediaPicker
-                value={form.img ? {
-                  id: form.posterMediaId,
-                  public_url: form.img,
-                  alt_text: form.imgAlt,
-                  title: form.title ? `${form.title} poster` : "Event poster",
-                } : null}
-                onChange={(asset) => setForm({
-                  ...form,
-                  img: asset.public_url,
-                  imgAlt: asset.alt_text || "",
-                  posterMediaId: asset.id,
-                })}
+                value={
+                  form.img
+                    ? {
+                        id: form.posterMediaId,
+                        public_url: form.img,
+                        alt_text: form.imgAlt,
+                        title: form.title
+                          ? `${form.title} poster`
+                          : "Event poster",
+                      }
+                    : null
+                }
+                onChange={(asset) =>
+                  setForm({
+                    ...form,
+                    img: asset.public_url,
+                    imgAlt: asset.alt_text || "",
+                    posterMediaId: asset.id,
+                  })
+                }
                 buttonLabel={form.img ? "Replace poster" : "Choose poster"}
               />
               {form.img && (
                 <button
                   type="button"
-                  onClick={() => setForm({
-                    ...form,
-                    img: "",
-                    imgAlt: "",
-                    posterMediaId: null,
-                  })}
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      img: "",
+                      imgAlt: "",
+                      posterMediaId: null,
+                    })
+                  }
                   className="rounded-full ring-1 ring-ivory-300 px-4 py-2 text-[13px] font-semibold text-ink/70 hover:bg-ivory-200"
                 >
                   Remove poster
@@ -5197,7 +5349,8 @@ const EventsManager = ({ rows, onChange }) => {
             </div>
             {form.img && !form.posterMediaId && (
               <p className="mt-2 text-amber-800 text-[12px]">
-                This event still uses a legacy image URL. Choose a library image to protect it from accidental deletion.
+                This event still uses a legacy image URL. Choose a library image
+                to protect it from accidental deletion.
               </p>
             )}
           </div>

@@ -52,53 +52,93 @@ function json(
 function eventWhen(event: {
   date_text?: string | null;
   starts_at?: string | null;
+  timezone?: string | null;
 }): string {
-  if (event.date_text) {
-    return event.date_text;
-  }
-
   if (!event.starts_at) {
-    return "Date to be confirmed";
+    return (
+      event.date_text ||
+      "Date to be confirmed"
+    );
   }
 
   try {
-    return new Intl.DateTimeFormat("en-KE", {
-      dateStyle: "full",
-      timeStyle: "short",
-      timeZone: "Africa/Nairobi",
-    }).format(new Date(event.starts_at));
+    return new Intl.DateTimeFormat(
+      "en-KE",
+      {
+        dateStyle: "full",
+        timeStyle: "short",
+
+        timeZone:
+          event.timezone ||
+          "Africa/Nairobi",
+      },
+    ).format(
+      new Date(event.starts_at),
+    );
   } catch {
-    return event.starts_at;
+    return (
+      event.date_text ||
+      event.starts_at
+    );
   }
 }
 
 function eventCalendarDetails(event: {
   title?: string | null;
   starts_at?: string | null;
+  ends_at?: string | null;
+  duration_minutes?: number | null;
+  timezone?: string | null;
   location?: string | null;
   body?: string | null;
 }) {
   if (!event.starts_at) return null;
 
-  const start = new Date(event.starts_at);
-  if (Number.isNaN(start.getTime())) return null;
+  const start =
+    new Date(event.starts_at);
 
-  const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
+  if (Number.isNaN(start.getTime())) {
+    return null;
+  }
+
+  const end = event.ends_at
+    ? new Date(event.ends_at)
+    : new Date(
+        start.getTime() +
+          (event.duration_minutes || 180) *
+            60 *
+            1000,
+      );
+
   const stamp = (date: Date) =>
-    date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+    date
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}Z$/, "Z");
 
-  const params = new URLSearchParams({
-    action: "TEMPLATE",
-    text: event.title || "ArtNovaX Event",
-    dates: `${stamp(start)}/${stamp(end)}`,
-    location: event.location || "",
-    details: `${event.body || ""}\n\nRegistered via ArtNovaX`,
-  });
+  const params =
+    new URLSearchParams({
+      action: "TEMPLATE",
+
+      text:
+        event.title ||
+        "ArtNovaX Event",
+
+      dates:
+        `${stamp(start)}/${stamp(end)}`,
+
+      location:
+        event.location || "",
+
+      details:
+        `${event.body || ""}\n\nRegistered via ArtNovaX`,
+    });
 
   return {
     start,
     end,
-    googleUrl: `https://calendar.google.com/calendar/render?${params.toString()}`,
+    googleUrl:
+      `https://calendar.google.com/calendar/render?${params.toString()}`,
   };
 }
 
@@ -700,7 +740,7 @@ async function registerEvent(payload: any) {
     await supabaseAdmin
       .from("events")
       .select(
-        "id,slug,title,date_text,starts_at,location,body",
+        "id,slug,title,date_text,starts_at,ends_at,duration_minutes,timezone,location,body",
       )
       .eq("id", eventId)
       .single();

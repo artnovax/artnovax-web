@@ -16,6 +16,49 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getEventBySlug } from "../services/events";
 
+const formatEventDateFull = (ev) => {
+  if (!ev.starts_at) {
+    return ev.date || "";
+  }
+
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZoneName: "short",
+      timeZone: ev.timezone || "Africa/Nairobi",
+    }).formatToParts(new Date(ev.starts_at));
+
+    const get = (type) => parts.find((part) => part.type === type)?.value || "";
+
+    return `${get("weekday")}, ${get("month")} ${get("day")}, ${get("year")} · ${get("hour")}:${get("minute")} ${get("dayPeriod")} ${get("timeZoneName")}`;
+  } catch {
+    return ev.date || "";
+  }
+};
+
+const formatEventDateShort = (ev) => {
+  if (!ev.starts_at) {
+    return ev.date || "";
+  }
+
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      timeZone: ev.timezone || "Africa/Nairobi",
+    }).format(new Date(ev.starts_at));
+  } catch {
+    return ev.date || "";
+  }
+};
+
 const EventPhoto = ({ ev }) => (
   <div className="rounded-3xl overflow-hidden ring-1 ring-ivory-300 bg-ivory-100">
     <div className="relative aspect-[4/5] w-full">
@@ -37,10 +80,10 @@ const EventPhoto = ({ ev }) => (
         <div className="font-serif-display text-[24px] leading-tight mt-1">
           {ev.title}
         </div>
-        {ev.date && (
+        {formatEventDateShort(ev) && (
           <div className="mt-1 text-[12px] opacity-85 flex items-center gap-1.5">
             <Calendar className="w-3 h-3" />
-            {ev.date}
+            {formatEventDateShort(ev)}
           </div>
         )}
       </div>
@@ -368,10 +411,10 @@ const EventDetail = () => {
             )}
 
             <ul className="mt-6 space-y-2.5 text-[14.5px] text-ink/85">
-              {ev.date && (
+              {formatEventDateFull(ev) && (
                 <li className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-burgundy" />
-                  {ev.date}
+                  {formatEventDateFull(ev)}
                 </li>
               )}
               {ev.location && (
