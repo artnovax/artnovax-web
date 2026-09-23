@@ -28,6 +28,7 @@ import NewsletterDetail from './pages/NewsletterDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
+import AdminPayments from './pages/AdminPayments';
 import InfoPage from './pages/InfoPage';
 
 function App() {
@@ -71,6 +72,7 @@ function App() {
             </Route>
 
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/payments" element={<AdminPayments />} />
           </Routes>
           <CartDrawer />
         </BrowserRouter>

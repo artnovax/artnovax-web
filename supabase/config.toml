@@ -10,6 +10,8 @@ verify_jwt = false
 [functions.verify-order-checkout]
 verify_jwt = false
 
+# Daraja/STK functions are kept for a future automated M-Pesa integration,
+# but the public checkout no longer invokes them.
 [functions.mpesa-stk]
 verify_jwt = false
 
@@ -18,6 +20,14 @@ verify_jwt = false
 
 [functions.mpesa-status]
 verify_jwt = false
+
+[functions.submit-manual-payment-reference]
+verify_jwt = false
+
+# Staff payment confirmation requires a valid Supabase Auth JWT and then
+# performs an additional admin-role check inside the function.
+[functions.confirm-manual-payment]
+verify_jwt = true
 
 [functions.public-submission]
 verify_jwt = false

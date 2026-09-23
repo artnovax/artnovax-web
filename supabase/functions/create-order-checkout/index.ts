@@ -4,6 +4,9 @@ import { corsHeaders } from "../_shared/cors.ts";
 import {
   sendOrderReceivedEmails,
 } from "../_shared/email.ts";
+import {
+  sendMpesaOrderReceivedEmails,
+} from "../_shared/manualPaymentEmail.ts";
 
 const stripeSecret =
   Deno.env.get("STRIPE_SECRET_KEY");
@@ -230,14 +233,13 @@ Deno.serve(async (req) => {
     }
 
     /*
-     * Bank-transfer orders receive an immediate
-     * "order received" email.
+     * Manual payment methods create a pending order immediately.
      *
-     * Card and M-Pesa orders do NOT receive their
-     * confirmation yet. Those are sent only after
-     * the authoritative payment callback.
+     * Bank transfer uses the existing order-received email workflow.
+     * M-Pesa now uses static KCB Paybill instructions instead of STK Push.
+     * Neither method is marked paid until the incoming payment is verified.
      */
-    if (method === "bank") {
+    if (method === "bank" || method === "mpesa") {
       await supabaseAdmin
         .from("orders")
         .update({
@@ -249,13 +251,15 @@ Deno.serve(async (req) => {
         .eq("id", order.id);
 
       const delivery =
-        await sendOrderReceivedEmails(order, {
-          sendCustomer:
-            !order.order_received_email_sent_at,
+        method === "mpesa"
+          ? await sendMpesaOrderReceivedEmails(order)
+          : await sendOrderReceivedEmails(order, {
+              sendCustomer:
+                !order.order_received_email_sent_at,
 
-          sendTeam:
-            !order.order_received_team_email_sent_at,
-        });
+              sendTeam:
+                !order.order_received_team_email_sent_at,
+            });
 
       const update:
         Record<string, unknown> = {};
@@ -285,7 +289,7 @@ Deno.serve(async (req) => {
 
       if (delivery.errors.length > 0) {
         console.error(
-          "Bank order email delivery errors:",
+          `${method} order email delivery errors:`,
           delivery.errors,
         );
       }
@@ -297,21 +301,7 @@ Deno.serve(async (req) => {
           shipping,
           total,
           payment_method: method,
-        },
-        {
-          headers: corsHeaders,
-        },
-      );
-    }
-
-    if (method === "mpesa") {
-      return Response.json(
-        {
-          order_id: order.id,
-          subtotal,
-          shipping,
-          total,
-          payment_method: method,
+          payment_status: "pending",
         },
         {
           headers: corsHeaders,
