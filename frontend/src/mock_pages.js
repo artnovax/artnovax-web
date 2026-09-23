@@ -43,7 +43,7 @@ export const OUR_WORK = {
   title: 'Creating spaces that\nnurture minds, build\ncommunity and inspire\nchange.',
   body: 'We design and deliver creative, evidence-informed programs that support mental wellbeing for individuals and communities—across campuses, schools and public spaces.',
   cta: { label: 'Explore Our Programs', href: '#programs' },
-  image: null,
+  image: 'https://images.unsplash.com/photo-1459908676235-d5f02a50184b',
   imageAlt: 'Colorful paintbrushes and vibrant paint — an artist\u2019s working still life',
   programsEyebrow: 'OUR PROGRAM AREAS',
   programsTitle: 'How we create impact',

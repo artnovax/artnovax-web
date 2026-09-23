@@ -5,7 +5,7 @@ export const RESEARCH = {
   title: 'Evidence.\nExplained.\nEmpowerment.',
   body: 'We explore the science behind creativity and mental wellbeing and translate it into clear, accessible insights for everyone.',
   cta: { label: 'Explore All Insights', href: '#topics' },
-  image: null,
+  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/08/837a00fd-e656-4ced-bfa3-f12126171da2-research-mental-health.jpg',
   imageAlt: 'Watercolor journal and creative supplies on a wooden table',
   topicsTitle: 'Key Topics We Explore',
   topics: [
@@ -77,7 +77,7 @@ export const GET_INVOLVED = {
   title: 'Be part of the\nchange.',
   body: 'Whether you create with us, collaborate with us, volunteer your time, or support our mission—there is a place for you at ArtNovaX.',
   tagline: 'Together, we can make\ncreative wellbeing accessible to all.',
-  image: null,
+  image: '/assets/images/get-involved/get-involved-community-art.jpg',
   imageAlt: 'Community art therapy session — ArtNovaX participants painting together',
   waysTitle: 'Ways to Get Involved',
   ways: [
@@ -98,7 +98,7 @@ export const CONTACT = {
   eyebrow: 'CONTACT US',
   title: 'We’d love to\nhear from you.',
   body: 'Have a question, idea, or want to collaborate? Reach out to us — we’re always happy to connect.',
-  image: null,
+  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/08/5e6789c2-052d-42f3-98df-6ad64ef6766c-contact-us.png',
   imageAlt: 'Two friends chatting warmly over coffee in soft sunlight',
   quickInfo: [
     { icon: 'mail', label: 'Email', value: 'info@artnovax.org' },
@@ -138,7 +138,7 @@ export const SHOP = {
   title: 'Every purchase\ncreates impact.',
   body: 'Our merch spreads creativity—and supports art therapy programs that heal, empower, and transform lives.',
   cta: { label: 'Shop All Products', href: '#products' },
-  image: null,
+  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/08/d0ea9232-5534-480a-9d87-452a1a71ac4a-artnovax-shop-hero.png',
   imageAlt: 'ArtNovaX merchandise collection displayed together',
   bullets: [
     { icon: 'heart', title: 'Support a Cause', sub: '100% of profits go toward our programs.' },

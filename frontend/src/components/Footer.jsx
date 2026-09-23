@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Instagram, Linkedin, Mail, MapPin, ArrowRight } from "lucide-react";
 import { LogoWithTagline } from "./Logo";
 import { FOOTER } from "../mock";
 import { subscribeNewsletter } from "../services/submissions";
+import { useSiteChromeSuppressed } from "../context/SiteChromeContext";
 
 const iconMap = {
   instagram: Instagram,
@@ -11,7 +13,46 @@ const iconMap = {
   "map-pin": MapPin,
 };
 
-const Footer = () => {
+const FooterLink = ({
+  href,
+  resolveNavHref = (value) => value,
+  children,
+  ...props
+}) => {
+  if (href.startsWith("/")) {
+    return (
+      <Link to={resolveNavHref(href)} {...props}>
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <a
+      href={href}
+      target={href.startsWith("http") ? "_blank" : undefined}
+      rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+      {...props}
+    >
+      {children}
+    </a>
+  );
+};
+
+const Footer = ({
+  persistent = false,
+  resolveNavHref = (href) => href,
+}) => {
+  const suppressed = useSiteChromeSuppressed();
+
+  if (suppressed && !persistent) {
+    return null;
+  }
+
+  return <FooterInner resolveNavHref={resolveNavHref} />;
+};
+
+const FooterInner = ({ resolveNavHref }) => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -21,6 +62,7 @@ const Footer = () => {
     if (!email || loading) return;
     setLoading(true);
     setMsg(null);
+
     try {
       const res = await subscribeNewsletter(email, "footer");
       setMsg({
@@ -59,18 +101,13 @@ const Footer = () => {
               <ul className="space-y-2.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <a
+                    <FooterLink
                       href={l.href}
-                      target={l.href.startsWith("http") ? "_blank" : undefined}
-                      rel={
-                        l.href.startsWith("http")
-                          ? "noopener noreferrer"
-                          : undefined
-                      }
+                      resolveNavHref={resolveNavHref}
                       className="text-ivory/80 hover:text-ivory text-[14px]"
                     >
                       {l.label}
-                    </a>
+                    </FooterLink>
                   </li>
                 ))}
               </ul>
@@ -84,21 +121,17 @@ const Footer = () => {
             <ul className="space-y-2.5">
               {FOOTER.columns[3].links.map((l) => {
                 const Icon = iconMap[l.icon];
+
                 return (
                   <li key={l.label} className="flex items-center gap-2">
                     {Icon && <Icon className="w-4 h-4 text-ivory/80" />}
-                    <a
+                    <FooterLink
                       href={l.href}
-                      target={l.href.startsWith("http") ? "_blank" : undefined}
-                      rel={
-                        l.href.startsWith("http")
-                          ? "noopener noreferrer"
-                          : undefined
-                      }
+                      resolveNavHref={resolveNavHref}
                       className="text-ivory/80 hover:text-ivory text-[14px]"
                     >
                       {l.label}
-                    </a>
+                    </FooterLink>
                   </li>
                 );
               })}
@@ -114,13 +147,14 @@ const Footer = () => {
             <p className="text-ivory/75 text-[13px] max-w-[420px]">
               {FOOTER.newsletter.body}
             </p>
-            <a
-              href="/newsletters"
+            <Link
+              to={resolveNavHref("/newsletters")}
               className="mt-2 inline-flex text-ivory/85 hover:text-ivory text-[13px] underline underline-offset-4"
             >
               Browse published issues
-            </a>
+            </Link>
           </div>
+
           <form
             onSubmit={submit}
             className="flex items-center bg-ivory rounded-full pl-5 pr-1 py-1 w-full md:w-[380px]"
@@ -142,6 +176,7 @@ const Footer = () => {
             </button>
           </form>
         </div>
+
         {msg && (
           <div
             className={`text-[13px] mt-2 md:text-right ${msg.type === "ok" ? "text-ivory/90" : "text-red-200"}`}
@@ -154,9 +189,14 @@ const Footer = () => {
           <div>{FOOTER.copyright}</div>
           <div className="flex flex-wrap gap-x-8 gap-y-2">
             {FOOTER.legal.map((l) => (
-              <a key={l.label} href={l.href} className="hover:text-ivory">
+              <FooterLink
+                key={l.label}
+                href={l.href}
+                resolveNavHref={resolveNavHref}
+                className="hover:text-ivory"
+              >
                 {l.label}
-              </a>
+              </FooterLink>
             ))}
           </div>
         </div>

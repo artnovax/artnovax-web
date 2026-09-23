@@ -1,39 +1,41 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Heart, Menu, X, ChevronDown, ShoppingBag } from "lucide-react";
 
 import { LogoWithTagline } from "./Logo";
 import { NAV_LINKS } from "../mock";
 import { useCart } from "../context/CartContext";
+import { useSiteChromeSuppressed } from "../context/SiteChromeContext";
 
-const Header = ({ activePath = "/" }) => {
+const Header = ({ persistent = false, ...props }) => {
+  const suppressed = useSiteChromeSuppressed();
+
+  if (suppressed && !persistent) {
+    return null;
+  }
+
+  return <HeaderInner {...props} />;
+};
+
+const HeaderInner = ({
+  activePath = "/",
+  resolveNavHref = (href) => href,
+}) => {
   const [open, setOpen] = useState(false);
   const [dropdown, setDropdown] = useState(null);
-
   const desktopNavRef = useRef(null);
-
   const { count, setOpen: setCartOpen } = useCart();
 
-  /*
-   * Lock the page behind the mobile navigation.
-   */
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
 
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = open ? "hidden" : "";
 
     return () => {
       document.body.style.overflow = previousOverflow;
     };
   }, [open]);
 
-  /*
-   * Close the desktop dropdown when clicking/tapping elsewhere
-   * and allow Escape to close either navigation state.
-   */
   useEffect(() => {
     const handlePointerDown = (event) => {
       if (
@@ -60,10 +62,6 @@ const Header = ({ activePath = "/" }) => {
     };
   }, []);
 
-  /*
-   * If a tablet rotates or the viewport grows into desktop size,
-   * close the mobile drawer and restore normal page scrolling.
-   */
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -77,6 +75,11 @@ const Header = ({ activePath = "/" }) => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  const closeMenus = () => {
+    setDropdown(null);
+    setOpen(false);
+  };
 
   const toggleMobileMenu = () => {
     setDropdown(null);
@@ -102,16 +105,15 @@ const Header = ({ activePath = "/" }) => {
             gap-6
           "
         >
-          {/* Logo */}
-          <a
-            href="/"
+          <Link
+            to="/"
             aria-label="ArtNovaX home"
             className="flex items-center shrink-0 mr-4 lg:mr-10"
+            onClick={closeMenus}
           >
             <LogoWithTagline />
-          </a>
+          </Link>
 
-          {/* Desktop navigation */}
           <nav
             ref={desktopNavRef}
             className="
@@ -124,17 +126,17 @@ const Header = ({ activePath = "/" }) => {
           >
             {NAV_LINKS.map((link) => {
               const isDropdownOpen = dropdown === link.label;
-
               const isActive =
                 activePath === link.href ||
                 (link.hasDropdown && activePath.startsWith(`${link.href}/`));
 
               if (!link.hasDropdown) {
                 return (
-                  <a
+                  <Link
                     key={link.label}
-                    href={link.href}
+                    to={resolveNavHref(link.href)}
                     data-active={isActive}
+                    onClick={closeMenus}
                     className="
                       nav-link
                       text-[15px]
@@ -144,7 +146,7 @@ const Header = ({ activePath = "/" }) => {
                     "
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 );
               }
 
@@ -173,7 +175,6 @@ const Header = ({ activePath = "/" }) => {
                     "
                   >
                     {link.label}
-
                     <ChevronDown
                       className={`
                         w-4 h-4
@@ -208,9 +209,10 @@ const Header = ({ activePath = "/" }) => {
                           overflow-hidden
                         "
                       >
-                        <a
-                          href={link.href}
+                        <Link
+                          to={resolveNavHref(link.href)}
                           role="menuitem"
+                          onClick={closeMenus}
                           className="
                             block
                             px-4 py-3
@@ -223,15 +225,16 @@ const Header = ({ activePath = "/" }) => {
                           "
                         >
                           Get Involved Overview
-                        </a>
+                        </Link>
 
                         <div className="h-px bg-ivory-300 mx-3" />
 
                         {link.children.map((child) => (
-                          <a
+                          <Link
                             key={child.label}
-                            href={child.href}
+                            to={resolveNavHref(child.href)}
                             role="menuitem"
+                            onClick={closeMenus}
                             className="
                               block
                               px-4 py-3
@@ -243,7 +246,7 @@ const Header = ({ activePath = "/" }) => {
                             "
                           >
                             {child.label}
-                          </a>
+                          </Link>
                         ))}
                       </div>
                     </div>
@@ -253,7 +256,6 @@ const Header = ({ activePath = "/" }) => {
             })}
           </nav>
 
-          {/* Header actions */}
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
             <button
               type="button"
@@ -297,8 +299,9 @@ const Header = ({ activePath = "/" }) => {
               )}
             </button>
 
-            <a
-              href="/get-involved/support"
+            <Link
+              to="/get-involved/support"
+              onClick={closeMenus}
               className="
                 cta-btn
                 hidden md:inline-flex
@@ -316,7 +319,7 @@ const Header = ({ activePath = "/" }) => {
             >
               <Heart className="w-4 h-4" fill="#FBF3E8" />
               Support Our Work
-            </a>
+            </Link>
 
             <button
               type="button"
@@ -342,14 +345,6 @@ const Header = ({ activePath = "/" }) => {
         </div>
       </header>
 
-      {/*
-       * Mobile/tablet navigation
-       *
-       * Important:
-       * This is intentionally OUTSIDE the header and only exists
-       * while open. We no longer keep a full-screen drawer translated
-       * off the right side of the viewport.
-       */}
       {open && (
         <div
           id="mobile-navigation"
@@ -374,14 +369,15 @@ const Header = ({ activePath = "/" }) => {
                 <MobileNavItem
                   key={link.label}
                   link={link}
-                  onNavigate={() => setOpen(false)}
+                  onNavigate={closeMenus}
+                  resolveNavHref={resolveNavHref}
                 />
               ))}
             </nav>
 
-            <a
-              href="/get-involved/support"
-              onClick={() => setOpen(false)}
+            <Link
+              to="/get-involved/support"
+              onClick={closeMenus}
               className="
                 cta-btn
                 mt-8
@@ -401,7 +397,7 @@ const Header = ({ activePath = "/" }) => {
             >
               <Heart className="w-4 h-4" fill="#FBF3E8" />
               Support Our Work
-            </a>
+            </Link>
           </div>
         </div>
       )}
@@ -409,13 +405,17 @@ const Header = ({ activePath = "/" }) => {
   );
 };
 
-const MobileNavItem = ({ link, onNavigate }) => {
+const MobileNavItem = ({
+  link,
+  onNavigate,
+  resolveNavHref,
+}) => {
   const [expanded, setExpanded] = useState(false);
 
   if (!link.hasDropdown) {
     return (
-      <a
-        href={link.href}
+      <Link
+        to={resolveNavHref(link.href)}
         onClick={onNavigate}
         className="
           py-4
@@ -426,7 +426,7 @@ const MobileNavItem = ({ link, onNavigate }) => {
         "
       >
         {link.label}
-      </a>
+      </Link>
     );
   }
 
@@ -448,7 +448,6 @@ const MobileNavItem = ({ link, onNavigate }) => {
         "
       >
         {link.label}
-
         <ChevronDown
           className={`
             w-5 h-5
@@ -461,8 +460,8 @@ const MobileNavItem = ({ link, onNavigate }) => {
 
       {expanded && (
         <div className="pl-3 pb-3 flex flex-col">
-          <a
-            href={link.href}
+          <Link
+            to={resolveNavHref(link.href)}
             onClick={onNavigate}
             className="
               py-3
@@ -473,12 +472,12 @@ const MobileNavItem = ({ link, onNavigate }) => {
             "
           >
             Get Involved Overview
-          </a>
+          </Link>
 
           {link.children.map((child) => (
-            <a
+            <Link
               key={child.label}
-              href={child.href}
+              to={resolveNavHref(child.href)}
               onClick={onNavigate}
               className="
                 py-3
@@ -488,7 +487,7 @@ const MobileNavItem = ({ link, onNavigate }) => {
               "
             >
               {child.label}
-            </a>
+            </Link>
           ))}
         </div>
       )}
