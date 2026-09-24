@@ -217,7 +217,7 @@ const MediaLibrary = ({ onSelect, selectedId = null }) => {
             Media Library
           </h3>
           <p className="mt-1 text-ink/60 text-[13px]">
-            Upload authentic ArtNovaX images once, then reuse them across the website.
+            Upload authentic images once, then reuse them across the website.
           </p>
         </div>
         <button

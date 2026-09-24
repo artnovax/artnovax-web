@@ -99,9 +99,6 @@ export function renderNewsletterEmail(
         </div>
         ${hero}
         <div style="padding:30px 28px;">
-          <div style="margin-bottom:8px;color:#5C1519;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">
-            ArtNovaX Newsletter
-          </div>
           <h1 style="margin:0 0 14px;color:#5C1519;font-family:Georgia,serif;font-size:32px;line-height:1.2;">
             ${escapeNewsletterHtml(issue.title)}
           </h1>
@@ -250,7 +247,7 @@ export async function createNewsletterBroadcast({
       segment_id: segmentId,
       from,
       subject: issue.subject || issue.title,
-      name: `ArtNovaX — ${issue.title}`,
+      name: `NewsIssue — ${issue.title}`,
       html: renderNewsletterEmail(issue, siteUrl),
     }),
   });

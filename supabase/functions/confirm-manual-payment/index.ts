@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
       return Response.json(
         {
           error:
-            "Only ArtNovaX admins can confirm manual payments.",
+            "Only admins can confirm manual payments.",
         },
         {
           status: 403,

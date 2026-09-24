@@ -179,7 +179,7 @@ export async function sendMpesaOrderReceivedEmails(
     `
       <p style="font-size:15px;line-height:1.7;">Hi ${escapeHtml(name)},</p>
       <p style="font-size:15px;line-height:1.7;">
-        Your ArtNovaX order <strong>#${orderNumber}</strong> has been created and is awaiting payment verification.
+        Your order <strong>#${orderNumber}</strong> has been created and is awaiting payment verification.
       </p>
       ${orderItems(order)}
       <div style="margin-top:22px;padding:18px;background:#FBF3E8;border-radius:12px;font-size:14px;line-height:1.7;">
@@ -304,7 +304,7 @@ export async function sendManualPaymentReferenceEmails(
     try {
       await sendEmail({
         to: customerEmail,
-        subject: `M-Pesa reference received — ArtNovaX order #${orderNumber}`,
+        subject: `M-Pesa reference received for order #${orderNumber}`,
         html: customerHtml,
         idempotencyKey: `manual-reference-customer/${order.id}/${reference}`,
       });

@@ -44,13 +44,13 @@ const NewsletterArchive = () => {
             <Mail className="w-6 h-6 text-burgundy" />
           </div>
           <div className="mt-5 text-burgundy tracking-[0.25em] text-[11.5px] font-semibold">
-            ARTNOVAX NEWSLETTER
+            Newsletter Issues
           </div>
           <h1 className="mt-3 font-serif-display text-burgundy text-[40px] md:text-[56px] leading-tight font-semibold">
             Stories, ideas &amp; updates
           </h1>
           <p className="mt-5 mx-auto max-w-[650px] text-ink/75 text-[16px] md:text-[17px] leading-relaxed">
-            Explore published notes from ArtNovaX on art, wellbeing, community, and technology.
+            Explore published notes on art, wellbeing, community, and technology.
           </p>
         </section>
 

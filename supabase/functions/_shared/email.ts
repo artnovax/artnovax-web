@@ -443,7 +443,7 @@ export async function sendOrderReceivedEmails(
         await sendEmail({
           to: customerEmail,
           subject:
-            `ArtNovaX order received — #${orderNumber}`,
+            `Order #${orderNumber} received`,
           html: customerHtml,
           idempotencyKey:
             `order-received-customer/${order.id}`,

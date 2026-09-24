@@ -365,7 +365,7 @@ async function submitContact(payload: any) {
         </p>
 
         <p style="font-size:15px;line-height:1.7;">
-          Thank you for reaching out to ArtNovaX.
+          Thank you for reaching out to us.
           We received your message about
           <strong>${escapeEmailHtml(subject)}</strong>
           and a member of our team will follow up.
@@ -411,7 +411,7 @@ async function submitContact(payload: any) {
     id: entry.id,
     recipientEmail: email,
     customerSubject:
-      "We received your ArtNovaX message",
+      "We received your message",
     customerHtml,
     customerColumn:
       "acknowledgement_email_sent_at",
@@ -489,7 +489,7 @@ async function submitPartner(payload: any) {
           We received your partnership inquiry
           on behalf of
           <strong>${escapeEmailHtml(orgName)}</strong>.
-          The ArtNovaX team will review it and get
+          Our team will review it and get
           back to you.
         </p>
       `,
@@ -539,7 +539,7 @@ async function submitPartner(payload: any) {
     id: entry.id,
     recipientEmail: email,
     customerSubject:
-      "ArtNovaX partnership inquiry received",
+      "Partnership inquiry received",
     customerHtml,
     customerColumn:
       "acknowledgement_email_sent_at",

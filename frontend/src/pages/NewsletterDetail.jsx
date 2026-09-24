@@ -88,7 +88,7 @@ const NewsletterDetail = () => {
           <h1 className="font-serif-display text-burgundy text-[32px] font-semibold">Newsletter issue not found</h1>
           <p className="mt-3 text-ink/70">It may still be a private draft or may no longer exist.</p>
           <a href="/newsletters" className="cta-btn mt-6 inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-6 py-3 text-[14px] font-semibold">
-            <ArrowLeft className="w-4 h-4" /> Back to newsletter archive
+            <ArrowLeft className="w-4 h-4" /> Back to archive
           </a>
         </section>
         <Footer />
@@ -107,11 +107,9 @@ const NewsletterDetail = () => {
         )}
         <section className="mx-auto max-w-[860px] px-4 md:px-6 pt-8 md:pt-12">
           <a href="/newsletters" className="inline-flex items-center gap-1 text-burgundy text-[13.5px] font-semibold hover:underline">
-            <ArrowLeft className="w-4 h-4" /> Back to newsletter archive
+            <ArrowLeft className="w-4 h-4" /> Back to archive
           </a>
-          <div className="mt-7 inline-flex items-center gap-2 text-burgundy tracking-[0.18em] text-[10.5px] font-semibold">
-            <Mail className="w-4 h-4" /> ARTNOVAX NEWSLETTER
-          </div>
+
           <h1 className="mt-3 font-serif-display text-burgundy text-[38px] md:text-[54px] leading-[1.06] font-semibold">
             {issue.title}
           </h1>
