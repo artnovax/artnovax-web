@@ -1,6 +1,8 @@
 [functions.create-donation-checkout]
 verify_jwt = false
 
+# Legacy Stripe webhook kept temporarily for historical Stripe transactions.
+# New checkout flows do not create Stripe sessions.
 [functions.stripe-webhook]
 verify_jwt = false
 
@@ -8,6 +10,14 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.verify-order-checkout]
+verify_jwt = false
+
+[functions.verify-donation-checkout]
+verify_jwt = false
+
+# Public because Paystack cannot send a Supabase JWT. The function verifies
+# Paystack's x-paystack-signature with PAYSTACK_SECRET_KEY before processing.
+[functions.paystack-webhook]
 verify_jwt = false
 
 # Daraja/STK functions are kept for a future automated M-Pesa integration,

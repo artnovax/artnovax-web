@@ -22,7 +22,7 @@ const Support = () => {
 
   const [params, setParams] = useSearchParams();
   const donationId = params.get("donation_id");
-  const stripeSession = params.get("session_id");
+  const paystackReference = params.get("reference") || params.get("trxref");
   const [thanks, setThanks] = useState(false);
   const [pageContent, setPageContent] = useState(SUPPORT_DEFAULTS);
 
@@ -43,12 +43,51 @@ const Support = () => {
   }, []);
 
   useEffect(() => {
-    if (donationId && stripeSession) {
-      setThanks(true);
-      setParams({}, { replace: true });
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }, [donationId, stripeSession, setParams]);
+    const verifyDonation = async () => {
+      if (!donationId || !paystackReference) {
+        return;
+      }
+
+      setLoading(true);
+      setErr(null);
+
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "verify-donation-checkout",
+          {
+            body: {
+              donation_id: donationId,
+              reference: paystackReference,
+            },
+          },
+        );
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data?.paid) {
+          throw new Error(
+            "The donation payment was not completed. Please try again.",
+          );
+        }
+
+        setThanks(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (error) {
+        console.error("Donation verification failed:", error);
+        setErr(
+          error?.message ||
+            "We could not verify your donation payment. Please contact us.",
+        );
+      } finally {
+        setParams({}, { replace: true });
+        setLoading(false);
+      }
+    };
+
+    verifyDonation();
+  }, [donationId, paystackReference, setParams]);
 
   const donate = async () => {
     const value = Number(custom || amt);
@@ -77,7 +116,7 @@ const Support = () => {
       );
 
       if (error) throw error;
-      if (!data?.url) throw new Error("Stripe checkout URL was not returned.");
+      if (!data?.url) throw new Error("Paystack checkout URL was not returned.");
 
       window.location.href = data.url;
     } catch (error) {
@@ -187,6 +226,7 @@ const Support = () => {
               className="w-full rounded-lg ring-1 ring-ivory-300 bg-ivory px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
             />
             <input
+              required
               type="email"
               placeholder={pageContent.emailPlaceholder}
               value={form.email}

@@ -1,24 +1,15 @@
-import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
-
 import { corsHeaders } from "../_shared/cors.ts";
-
-const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY");
-
-if (!stripeSecret) {
-  throw new Error("STRIPE_SECRET_KEY is missing");
-}
-
-const stripe = new Stripe(stripeSecret);
-
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+import {
+  initializePaystackTransaction,
+} from "../_shared/paystack.ts";
 
 const secretKeys = JSON.parse(
   Deno.env.get("SUPABASE_SECRET_KEYS")!,
 );
 
 const supabaseAdmin = createClient(
-  supabaseUrl,
+  Deno.env.get("SUPABASE_URL")!,
   secretKeys.default,
 );
 
@@ -36,15 +27,41 @@ Deno.serve(async (req) => {
       email,
       message,
       success_url,
-      cancel_url,
     } = await req.json();
 
     const amount = Number(amount_kes);
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
 
     if (!Number.isInteger(amount) || amount < 100) {
       return Response.json(
         {
           error: "Minimum donation is KES 100.",
+        },
+        {
+          status: 400,
+          headers: corsHeaders,
+        },
+      );
+    }
+
+    if (!normalizedEmail.includes("@")) {
+      return Response.json(
+        {
+          error: "Please provide a valid email for your payment receipt.",
+        },
+        {
+          status: 400,
+          headers: corsHeaders,
+        },
+      );
+    }
+
+    if (!success_url) {
+      return Response.json(
+        {
+          error: "Missing Paystack callback URL.",
         },
         {
           status: 400,
@@ -59,7 +76,7 @@ Deno.serve(async (req) => {
         .insert({
           amount_kes: amount,
           name: name?.trim() || null,
-          email: email?.trim().toLowerCase() || null,
+          email: normalizedEmail,
           message: message?.trim() || null,
           status: "pending",
         })
@@ -70,48 +87,30 @@ Deno.serve(async (req) => {
       throw donationError;
     }
 
-    const session =
-      await stripe.checkout.sessions.create({
-        mode: "payment",
+    const reference =
+      `AX-DONATION-${String(donation.id).replaceAll("-", "")}`;
 
-        line_items: [
-          {
-            price_data: {
-              currency: "kes",
+    const callbackUrl = new URL(success_url);
+    callbackUrl.searchParams.set("donation_id", donation.id);
 
-              product_data: {
-                name: "ArtNovaX Donation",
-              },
+    const transaction = await initializePaystackTransaction({
+      email: normalizedEmail,
+      amountKes: amount,
+      reference,
+      callbackUrl: callbackUrl.toString(),
+      channels: ["card"],
+      metadata: {
+        type: "donation",
+        donation_id: donation.id,
+      },
+    });
 
-              unit_amount: amount * 100,
-            },
-
-            quantity: 1,
-          },
-        ],
-
-        success_url:
-          `${success_url}?donation_id=${donation.id}` +
-          `&session_id={CHECKOUT_SESSION_ID}`,
-
-        cancel_url,
-
-        customer_email:
-          email?.trim() || undefined,
-
-        metadata: {
-          type: "donation",
-          donation_id: donation.id,
-        },
-      });
-
-    const { error: updateError } =
-      await supabaseAdmin
-        .from("donations")
-        .update({
-          stripe_session_id: session.id,
-        })
-        .eq("id", donation.id);
+    const { error: updateError } = await supabaseAdmin
+      .from("donations")
+      .update({
+        paystack_reference: transaction.reference,
+      })
+      .eq("id", donation.id);
 
     if (updateError) {
       throw updateError;
@@ -119,19 +118,23 @@ Deno.serve(async (req) => {
 
     return Response.json(
       {
-        url: session.url,
+        url: transaction.authorization_url,
         donation_id: donation.id,
+        reference: transaction.reference,
       },
       {
         headers: corsHeaders,
       },
     );
   } catch (error) {
-    console.error(error);
+    console.error("Donation checkout error:", error);
 
     return Response.json(
       {
-        error: "Unable to start donation checkout.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to start donation checkout.",
       },
       {
         status: 500,

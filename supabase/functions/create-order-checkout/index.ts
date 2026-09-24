@@ -1,4 +1,3 @@
-import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { corsHeaders } from "../_shared/cors.ts";
 import {
@@ -7,15 +6,9 @@ import {
 import {
   sendMpesaOrderReceivedEmails,
 } from "../_shared/manualPaymentEmail.ts";
-
-const stripeSecret =
-  Deno.env.get("STRIPE_SECRET_KEY");
-
-if (!stripeSecret) {
-  throw new Error("STRIPE_SECRET_KEY is missing");
-}
-
-const stripe = new Stripe(stripeSecret);
+import {
+  initializePaystackTransaction,
+} from "../_shared/paystack.ts";
 
 const secretKeys = JSON.parse(
   Deno.env.get("SUPABASE_SECRET_KEYS")!,
@@ -39,7 +32,6 @@ Deno.serve(async (req) => {
       items,
       payment_method,
       success_url,
-      cancel_url,
     } = await req.json();
 
     if (
@@ -165,8 +157,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      const unitPrice =
-        Number(product.price);
+      const unitPrice = Number(product.price);
 
       canonicalItems.push({
         product_id: product.id,
@@ -177,18 +168,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const subtotal =
-      canonicalItems.reduce(
-        (sum, item) =>
-          sum + item.line_total,
-        0,
-      );
+    const subtotal = canonicalItems.reduce(
+      (sum, item) => sum + item.line_total,
+      0,
+    );
 
-    const shipping =
-      subtotal >= 3000 ? 0 : 200;
-
-    const total =
-      subtotal + shipping;
+    const shipping = subtotal >= 3000 ? 0 : 200;
+    const total = subtotal + shipping;
 
     const {
       data: order,
@@ -198,24 +184,12 @@ Deno.serve(async (req) => {
       .insert({
         customer: {
           name: customer.name.trim(),
-          email:
-            customer.email
-              .trim()
-              .toLowerCase(),
-
-          phone:
-            customer.phone || null,
-
-          address:
-            customer.address || null,
-
-          city:
-            customer.city || null,
-
-          country:
-            customer.country || null,
+          email: customer.email.trim().toLowerCase(),
+          phone: customer.phone || null,
+          address: customer.address || null,
+          city: customer.city || null,
+          country: customer.country || null,
         },
-
         items: canonicalItems,
         subtotal,
         shipping,
@@ -232,20 +206,12 @@ Deno.serve(async (req) => {
       throw orderError;
     }
 
-    /*
-     * Manual payment methods create a pending order immediately.
-     *
-     * Bank transfer uses the existing order-received email workflow.
-     * M-Pesa now uses static KCB Paybill instructions instead of STK Push.
-     * Neither method is marked paid until the incoming payment is verified.
-     */
+    // Manual payment methods remain pending until ArtNovaX verifies them.
     if (method === "bank" || method === "mpesa") {
       await supabaseAdmin
         .from("orders")
         .update({
-          email_last_attempt_at:
-            new Date().toISOString(),
-
+          email_last_attempt_at: new Date().toISOString(),
           email_last_error: null,
         })
         .eq("id", order.id);
@@ -254,27 +220,19 @@ Deno.serve(async (req) => {
         method === "mpesa"
           ? await sendMpesaOrderReceivedEmails(order)
           : await sendOrderReceivedEmails(order, {
-              sendCustomer:
-                !order.order_received_email_sent_at,
-
-              sendTeam:
-                !order.order_received_team_email_sent_at,
+              sendCustomer: !order.order_received_email_sent_at,
+              sendTeam: !order.order_received_team_email_sent_at,
             });
 
-      const update:
-        Record<string, unknown> = {};
-
-      const now =
-        new Date().toISOString();
+      const update: Record<string, unknown> = {};
+      const now = new Date().toISOString();
 
       if (delivery.customerSent) {
-        update.order_received_email_sent_at =
-          now;
+        update.order_received_email_sent_at = now;
       }
 
       if (delivery.teamSent) {
-        update.order_received_team_email_sent_at =
-          now;
+        update.order_received_team_email_sent_at = now;
       }
 
       update.email_last_error =
@@ -309,90 +267,44 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!success_url || !cancel_url) {
-      throw new Error(
-        "Missing Stripe redirect URLs.",
-      );
+    if (!success_url) {
+      throw new Error("Missing Paystack callback URL.");
     }
 
-    const lineItems =
-      canonicalItems.map((item) => ({
-        price_data: {
-          currency: "kes",
+    const reference =
+      `AX-ORDER-${String(order.id).replaceAll("-", "")}`;
 
-          product_data: {
-            name: item.name,
-          },
+    const callbackUrl = new URL(success_url);
+    callbackUrl.searchParams.set("order_id", order.id);
 
-          unit_amount:
-            Math.round(
-              item.unit_price * 100,
-            ),
-        },
+    const transaction = await initializePaystackTransaction({
+      email: customer.email.trim().toLowerCase(),
+      amountKes: total,
+      reference,
+      callbackUrl: callbackUrl.toString(),
+      channels: ["card"],
+      metadata: {
+        type: "order",
+        order_id: order.id,
+      },
+    });
 
-        quantity: item.qty,
-      }));
-
-    if (shipping > 0) {
-      lineItems.push({
-        price_data: {
-          currency: "kes",
-
-          product_data: {
-            name: "Shipping",
-          },
-
-          unit_amount:
-            Math.round(
-              shipping * 100,
-            ),
-        },
-
-        quantity: 1,
-      });
-    }
-
-    const session =
-      await stripe.checkout.sessions.create({
-        mode: "payment",
-        line_items: lineItems,
-
-        customer_email:
-          customer.email.trim(),
-
-        client_reference_id:
-          order.id,
-
-        metadata: {
-          type: "order",
-          order_id: order.id,
-        },
-
-        success_url:
-          `${success_url}?order_id=${order.id}` +
-          `&session_id={CHECKOUT_SESSION_ID}`,
-
-        cancel_url,
-      });
-
-    const {
-      error: sessionUpdateError,
-    } = await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from("orders")
       .update({
-        stripe_session_id:
-          session.id,
+        paystack_reference: transaction.reference,
       })
       .eq("id", order.id);
 
-    if (sessionUpdateError) {
-      throw sessionUpdateError;
+    if (updateError) {
+      throw updateError;
     }
 
     return Response.json(
       {
-        url: session.url,
+        url: transaction.authorization_url,
         order_id: order.id,
+        reference: transaction.reference,
         subtotal,
         shipping,
         total,
@@ -402,15 +314,14 @@ Deno.serve(async (req) => {
       },
     );
   } catch (error) {
-    console.error(
-      "Order checkout error:",
-      error,
-    );
+    console.error("Order checkout error:", error);
 
     return Response.json(
       {
         error:
-          "Unable to start checkout.",
+          error instanceof Error
+            ? error.message
+            : "Unable to start checkout.",
       },
       {
         status: 500,

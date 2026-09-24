@@ -33,7 +33,7 @@ const basePaymentOptions = [
     key: "Card",
     label: "Card",
     icon: CreditCard,
-    sub: "Visa / Mastercard (Stripe)",
+    sub: "Visa / Mastercard (Paystack)",
   },
 ];
 
@@ -49,7 +49,7 @@ const Checkout = () => {
   const [params, setParams] = useSearchParams();
 
   const returnedOrderId = params.get("order_id");
-  const stripeSession = params.get("session_id");
+  const paystackReference = params.get("reference") || params.get("trxref");
 
   const paymentOptions = useMemo(
     () =>
@@ -89,10 +89,10 @@ const Checkout = () => {
   const shipping = subtotal > 0 ? (subtotal >= 3000 ? 0 : 200) : 0;
   const total = subtotal + shipping;
 
-  // Stripe return verification.
+  // Paystack return verification.
   useEffect(() => {
     const verify = async () => {
-      if (!returnedOrderId || !stripeSession) {
+      if (!returnedOrderId || !paystackReference) {
         return;
       }
 
@@ -102,7 +102,7 @@ const Checkout = () => {
           {
             body: {
               order_id: returnedOrderId,
-              session_id: stripeSession,
+              reference: paystackReference,
             },
           },
         );
@@ -136,7 +136,7 @@ const Checkout = () => {
     };
 
     verify();
-  }, [returnedOrderId, stripeSession, clear, setParams]);
+  }, [returnedOrderId, paystackReference, clear, setParams]);
 
   const createOrder = async (paymentMethod) => {
     const { data, error: orderError } = await supabase.functions.invoke(
@@ -194,7 +194,7 @@ const Checkout = () => {
         const data = await createOrder("card");
 
         if (!data?.url) {
-          throw new Error("Stripe checkout URL was not returned.");
+          throw new Error("Paystack checkout URL was not returned.");
         }
 
         window.location.href = data.url;
@@ -368,8 +368,8 @@ const Checkout = () => {
                 {confirmation.paid
                   ? "Thank you — payment received."
                   : isMpesaPending
-                    ? "Order placed — complete your M-Pesa payment."
-                    : "Order placed — awaiting payment."}
+                    ? "Order placed, complete your MPesa payment."
+                    : "Order placed, awaiting payment."}
               </h1>
 
               <p className="mt-3 text-ink/80 text-[14.5px] max-w-[580px] mx-auto">
@@ -678,7 +678,7 @@ const Checkout = () => {
                 <div className="mt-3 text-ink/60 text-[12px] flex items-start gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                   <span>
-                    Card payments are processed by Stripe. M-Pesa uses the
+                    Card payments are processed securely by Paystack. M-Pesa uses the
                     official ArtNovaX Paybill and is verified manually before an
                     order is marked paid.
                   </span>

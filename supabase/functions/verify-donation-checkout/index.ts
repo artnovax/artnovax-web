@@ -5,7 +5,7 @@ import {
   verifyPaystackTransaction,
 } from "../_shared/paystack.ts";
 import {
-  settlePaystackOrder,
+  settlePaystackDonation,
 } from "../_shared/paystackSettlement.ts";
 
 const secretKeys = JSON.parse(
@@ -26,14 +26,14 @@ Deno.serve(async (req) => {
 
   try {
     const {
-      order_id,
+      donation_id,
       reference,
     } = await req.json();
 
-    if (!order_id || !reference) {
+    if (!donation_id || !reference) {
       return Response.json(
         {
-          error: "Missing order or Paystack reference.",
+          error: "Missing donation or Paystack reference.",
         },
         {
           status: 400,
@@ -42,33 +42,26 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { data: order, error: orderError } =
+    const { data: donation, error: donationError } =
       await supabaseAdmin
-        .from("orders")
+        .from("donations")
         .select("*")
-        .eq("id", order_id)
+        .eq("id", donation_id)
         .single();
 
-    if (orderError || !order) {
+    if (donationError || !donation) {
       return Response.json(
-        { error: "Order not found." },
+        { error: "Donation not found." },
         { status: 404, headers: corsHeaders },
       );
     }
 
-    if (order.payment_method !== "card") {
-      return Response.json(
-        { error: "This order is not a card payment." },
-        { status: 400, headers: corsHeaders },
-      );
-    }
-
     if (
-      !order.paystack_reference ||
-      order.paystack_reference !== reference
+      !donation.paystack_reference ||
+      donation.paystack_reference !== reference
     ) {
       return Response.json(
-        { error: "Paystack reference does not match this order." },
+        { error: "Paystack reference does not match this donation." },
         { status: 400, headers: corsHeaders },
       );
     }
@@ -77,30 +70,31 @@ Deno.serve(async (req) => {
     const metadata = parsePaystackMetadata(transaction.metadata);
 
     if (
-      metadata.type !== "order" ||
-      metadata.order_id !== order.id
+      metadata.type !== "donation" ||
+      metadata.donation_id !== donation.id
     ) {
       return Response.json(
-        { error: "Paystack transaction does not match this order." },
+        { error: "Paystack transaction does not match this donation." },
         { status: 400, headers: corsHeaders },
       );
     }
 
-    const expectedAmount = Math.round(Number(order.total) * 100);
+    const expectedAmount =
+      Math.round(Number(donation.amount_kes) * 100);
 
     if (
       transaction.currency !== "KES" ||
       Number(transaction.amount) !== expectedAmount
     ) {
-      console.error("Paystack order amount/currency mismatch", {
-        order_id: order.id,
+      console.error("Paystack donation amount/currency mismatch", {
+        donation_id: donation.id,
         expectedAmount,
         actualAmount: transaction.amount,
         currency: transaction.currency,
       });
 
       return Response.json(
-        { error: "Paystack payment amount does not match this order." },
+        { error: "Paystack payment amount does not match this donation." },
         { status: 400, headers: corsHeaders },
       );
     }
@@ -115,9 +109,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    await settlePaystackOrder(
+    await settlePaystackDonation(
       supabaseAdmin,
-      order,
+      donation,
       transaction,
     );
 
@@ -129,14 +123,14 @@ Deno.serve(async (req) => {
       { headers: corsHeaders },
     );
   } catch (error) {
-    console.error("Order verification error:", error);
+    console.error("Donation verification error:", error);
 
     return Response.json(
       {
         error:
           error instanceof Error
             ? error.message
-            : "Unable to verify payment.",
+            : "Unable to verify donation payment.",
       },
       {
         status: 500,
