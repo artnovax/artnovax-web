@@ -1,107 +1,113 @@
 # ArtNovaX Website
 
-Official website for the ArtNovaX Mental Health Foundation.
+This repository contains the public website and admin tools for **ArtNovaX Mental Health Foundation**.
 
-ArtNovaX combines art, mental wellbeing, community programming, and technology to create accessible spaces for expression, connection, and support.
+ArtNovaX works at the intersection of art, mental wellbeing, community programmes, research and technology. The website supports that work through event registration, volunteer and partnership applications, donations, merchandise, newsletters, research content and internal admin workflows.
 
-## Architecture
+## What this repo contains
 
-The website uses a serverless architecture.
+The application is a React frontend backed by Supabase.
 
 ```text
+Browser
+  |
+  v
 React + Tailwind CSS
-        |
-        v
-Supabase
-├── PostgreSQL
-├── Auth
-├── Row Level Security
-├── Database RPCs
-├── Cron
-└── Edge Functions
-    ├── Stripe payments
-    ├── M-Pesa / Daraja
-    ├── Resend transactional email
-    └── public form workflows
+  |
+  +--> Supabase PostgreSQL
+  +--> Supabase Auth
+  +--> Supabase Storage
+  +--> Supabase Edge Functions
+  +--> Supabase Cron
+  |
+  +--> Paystack
+  +--> Resend
 
 Netlify
-└── frontend hosting
+  └── frontend hosting
 
 AWS Route 53
-└── artnovax.org DNS
+  └── artnovax.org DNS
 ```
 
-There is no standalone application server or MongoDB dependency.
+There is no standalone application server. Backend workflows that need trusted credentials or privileged database access run through Supabase Edge Functions.
 
-## Repository Layout
+## Tech stack
+
+### Frontend
+
+- React 19
+- React Router
+- Tailwind CSS
+- Lucide React
+- Supabase JavaScript client
+
+### Backend
+
+- Supabase PostgreSQL
+- Supabase Auth
+- Row Level Security
+- Database RPCs
+- Edge Functions
+- Supabase Cron
+- Supabase Storage
+
+### External services
+
+- Paystack for card payments
+- Resend for transactional email and newsletters
+- Netlify for frontend deployment
+- AWS Route 53 for DNS
+
+The repository still contains older Stripe and Safaricom Daraja functions from previous payment work. They are not part of the current public checkout flow.
+
+## Repository structure
 
 ```text
 artnovax-web/
 ├── frontend/
 │   ├── public/
 │   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── config/
+│   │   └── mock*.js
 │   ├── package.json
 │   └── .env.example
 │
 ├── supabase/
 │   ├── functions/
 │   │   ├── _shared/
-│   │   ├── create-donation-checkout/
 │   │   ├── create-order-checkout/
-│   │   ├── mpesa-callback/
-│   │   ├── mpesa-status/
-│   │   ├── mpesa-stk/
-│   │   ├── newsletter-subscribe/
+│   │   ├── create-donation-checkout/
+│   │   ├── verify-order-checkout/
+│   │   ├── verify-donation-checkout/
+│   │   ├── paystack-webhook/
+│   │   ├── submit-manual-payment-reference/
+│   │   ├── confirm-manual-payment/
 │   │   ├── public-submission/
+│   │   ├── newsletter-subscribe/
 │   │   ├── send-newsletter/
-│   │   ├── send-event-reminders/
-│   │   ├── stripe-webhook/
-│   │   └── verify-order-checkout/
-│   │
+│   │   └── send-event-reminders/
 │   ├── sql/
 │   └── config.toml
 │
 ├── package.json
-├── package-lock.json
 └── README.md
 ```
 
-## Tech Stack
-
-### Frontend
-
-- React
-- React Router
-- Tailwind CSS
-- Lucide React
-- Supabase JavaScript client
-
-### Backend Services
-
-- Supabase PostgreSQL
-- Supabase Auth
-- Supabase Row Level Security
-- Supabase Database RPCs
-- Supabase Edge Functions
-- Supabase Cron
-
-### External Integrations
-
-- Stripe
-- Safaricom Daraja / M-Pesa
-- Resend
-- Netlify
-- AWS Route 53
-
-## Local Development
+## Local development
 
 ### Requirements
 
 - Node.js 20+
-- Yarn 1.x
 - npm
+- Yarn 1.x
 
-Install the Supabase CLI dependency from the repository root:
+The root package contains the Supabase CLI dependency. The frontend uses Yarn.
+
+Install the root dependency:
 
 ```powershell
 npm install
@@ -114,13 +120,13 @@ cd frontend
 yarn install
 ```
 
-Create the frontend environment file:
+Create a local frontend environment file:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Configure:
+Add the public Supabase values:
 
 ```env
 REACT_APP_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
@@ -133,66 +139,70 @@ Start the frontend:
 yarn start
 ```
 
-The local development site runs at:
+The local site runs at:
 
 ```text
 http://localhost:3000
 ```
 
-## Production Build
+## Production build
+
+From `frontend/`:
 
 ```powershell
-cd frontend
 yarn build
 ```
 
+A successful production build should complete before frontend changes are merged or deployed.
+
 ## Supabase
 
-Link the repository to the ArtNovaX Supabase project:
+Link your local repository to the Supabase project:
 
 ```powershell
 npx supabase login
 npx supabase link --project-ref YOUR_PROJECT_REF
 ```
 
-Database schema definitions are stored in:
+Database migrations and SQL helpers live in:
 
 ```text
 supabase/sql/
 ```
 
-Edge Functions are stored in:
+Edge Functions live in:
 
 ```text
 supabase/functions/
 ```
 
-Deploy an Edge Function with:
+Deploy one function with:
 
 ```powershell
-npx supabase functions deploy FUNCTION_NAME --use-api
+npx supabase functions deploy FUNCTION_NAME
 ```
 
-## Required Edge Function Secrets
+If a shared file under `supabase/functions/_shared/` changes, redeploy every Edge Function that imports it.
 
-Sensitive production configuration is stored using Supabase-managed secrets.
+## Environment and secrets
 
-### Stripe
+Frontend environment variables must only contain values that are safe to expose in the browser.
+
+Sensitive values belong in Supabase-managed secrets.
+
+### Paystack
 
 ```text
-STRIPE_SECRET_KEY
-STRIPE_WEBHOOK_SECRET
+PAYSTACK_SECRET_KEY
 ```
 
-### M-Pesa / Daraja
+Set it with:
 
-```text
-MPESA_ENV
-MPESA_CONSUMER_KEY
-MPESA_CONSUMER_SECRET
-MPESA_SHORTCODE
-MPESA_PASSKEY
+```powershell
+npx supabase secrets set PAYSTACK_SECRET_KEY="YOUR_SECRET_KEY"
 ```
+
+Do not put the Paystack secret key in `REACT_APP_*` variables.
 
 ### Resend
 
@@ -205,7 +215,7 @@ RESEND_NEWSLETTER_SEGMENT_ID
 PUBLIC_SITE_URL
 ```
 
-Recommended email configuration:
+Example production configuration:
 
 ```text
 FROM_EMAIL=ArtNovaX <notifications@mail.artnovax.org>
@@ -214,241 +224,268 @@ TEAM_EMAIL=admin@artnovax.org
 PUBLIC_SITE_URL=https://artnovax.org
 ```
 
-`RESEND_NEWSLETTER_SEGMENT_ID` is the ID of a dedicated Resend Segment containing newsletter subscribers. The Resend API key must have full access because newsletter signup synchronizes contacts and the admin workflow creates Broadcasts.
-
-`mail.artnovax.org` is used as the transactional sending subdomain.
-
-`notifications@artnovax.org` is a real mailbox that can receive replies to transactional messages.
-
-`admin@artnovax.org` receives internal website notifications.
-
-### Scheduled Jobs
+### Scheduled jobs
 
 ```text
 CRON_SECRET
 ```
 
-Set a secret with:
+Set any Supabase secret with:
 
 ```powershell
 npx supabase secrets set KEY="VALUE"
 ```
 
-Never store secret API keys in frontend environment variables or commit them to Git.
+Never commit real secrets to Git.
 
 ## Payments
 
-### Stripe
+The website currently supports two public payment paths.
 
-Stripe Checkout sessions are created server-side through Supabase Edge Functions.
+### Card payments
 
-The Stripe webhook is the source of truth for successful card payments.
+Card payments for shop orders and donations are handled through **Paystack**.
 
-Webhook endpoint:
+The flow is:
 
 ```text
-https://YOUR_PROJECT_REF.supabase.co/functions/v1/stripe-webhook
+React
+  |
+  v
+Supabase Edge Function
+  |
+  v
+Paystack hosted checkout
+  |
+  +--> callback verification
+  |
+  └--> signed webhook
+          |
+          v
+      Supabase
 ```
 
-Production and test Stripe credentials are separate.
+For shop orders:
 
-Production deployments must use the live Stripe secret key and the signing secret associated with the live webhook endpoint.
+- `create-order-checkout` creates the pending order.
+- Product prices are re-read from the database instead of trusting browser-submitted prices.
+- Paystack is initialized with the exact amount in KES.
+- `verify-order-checkout` verifies the transaction after the customer returns.
+- `paystack-webhook` independently handles successful `charge.success` events.
+- The amount, currency, reference and metadata are checked before an order is marked paid.
+
+For donations:
+
+- `create-donation-checkout` creates the pending donation.
+- `verify-donation-checkout` verifies the returned Paystack transaction.
+- `paystack-webhook` can also settle the donation.
+
+The Paystack webhook endpoint is:
+
+```text
+https://YOUR_PROJECT_REF.supabase.co/functions/v1/paystack-webhook
+```
 
 ### M-Pesa
 
-M-Pesa STK Push is initiated server-side through the Safaricom Daraja API.
+M-Pesa currently uses a **manual Paybill verification flow** rather than STK Push.
 
-The user's M-Pesa PIN is entered only in the Safaricom prompt on their phone.
-
-ArtNovaX never requests, receives, or stores a user's M-Pesa PIN.
-
-Successful Daraja callbacks update the corresponding order in Supabase.
-
-The environment is controlled through:
+The public receiving details are intentionally shown at checkout:
 
 ```text
-MPESA_ENV=sandbox
+Paybill: 522533
+Account number: 8109391
+Business: ARTNOVAX FOUNDATION
 ```
 
-or:
+The flow is:
 
 ```text
-MPESA_ENV=production
-```
-
-Production credentials must be obtained through Safaricom's Daraja go-live process.
-
-## Transactional Email
-
-Transactional email is delivered through Resend from Supabase Edge Functions.
-
-The production email architecture is:
-
-```text
-ArtNovaX Edge Function
+Customer places order
         |
         v
-Resend
+Pending M-Pesa order
         |
-        +--> From:
-        |    notifications@mail.artnovax.org
+        v
+Customer pays through M-Pesa Paybill
         |
-        +--> Reply-To:
-        |    notifications@artnovax.org
+        v
+Customer submits transaction code
         |
-        +--> Customer / applicant / donor
+        v
+submit-manual-payment-reference
         |
-        └--> Internal notification
-             admin@artnovax.org
+        v
+Still pending
+        |
+        v
+Staff verifies payment independently
+        |
+        v
+/admin/payments
+        |
+        v
+confirm-manual-payment
+        |
+        v
+Order marked paid
 ```
 
-Transactional email workflows include:
+A customer-submitted transaction code is **not** treated as proof of payment.
 
-- order received confirmations
+Only an authenticated admin can confirm the payment after checking the receiving account.
+
+ArtNovaX never asks customers to enter an M-Pesa PIN on the website.
+
+### Bank transfer
+
+Bank transfer support exists in the checkout code but is currently disabled until verified organisational receiving details are ready.
+
+## Transactional email
+
+Transactional email is sent through Resend from Supabase Edge Functions.
+
+Typical flows include:
+
+- order received emails
 - payment confirmations
 - donation acknowledgements
 - contact form acknowledgements
-- contact form team notifications
+- internal contact notifications
 - partnership inquiry acknowledgements
-- partnership team notifications
 - volunteer application acknowledgements
-- volunteer team notifications
 - event registration confirmations
-- Google Calendar links and Apple/Outlook `.ics` attachments for confirmed registrations
 - event waitlist confirmations
-- event registration team notifications
-- scheduled event reminders
+- event reminder emails
 
-Email delivery timestamps and errors are persisted in PostgreSQL to make delivery observable and reduce duplicate sends.
+Confirmed event registrations can include:
 
-## Newsletter Delivery
+- a Google Calendar link
+- an `.ics` attachment for Apple Calendar or Outlook
 
-Newsletter signup is handled by the public `newsletter-subscribe` Edge Function. It stores the subscriber in Supabase and synchronizes the contact into the configured Resend Segment.
-
-Published newsletter issues can be sent once from the `/admin` Newsletter Issues tab. The authenticated `send-newsletter` Edge Function:
-
-1. Atomically claims the published issue to prevent duplicate sends.
-2. Synchronizes existing Supabase subscribers into the Resend Segment.
-3. Creates a Resend Broadcast with the issue subject, preheader, hero and body.
-4. Includes Resend's managed unsubscribe link.
-5. Queues the Broadcast and saves its ID and recipient count on the issue.
-
-Create a dedicated newsletter Segment in Resend, copy its ID, then set:
-
-```powershell
-npx supabase secrets set RESEND_NEWSLETTER_SEGMENT_ID="YOUR_SEGMENT_ID"
-npx supabase secrets set PUBLIC_SITE_URL="https://artnovax.org"
-```
-
-Deploy both functions after applying `supabase/sql/23_newsletter_delivery.sql`:
-
-```powershell
-npx supabase functions deploy newsletter-subscribe --use-api
-npx supabase functions deploy send-newsletter --use-api
-```
-
-## Public Form Workflows
-
-Public forms are submitted through the `public-submission` Edge Function.
-
-Supported workflows include:
+Shared email rendering and delivery helpers live under:
 
 ```text
-Contact Form
-        |
-        v
-public-submission
-        |
-        +--> contact_messages
-        +--> sender acknowledgement
-        └--> team notification
+supabase/functions/_shared/
 ```
+
+When shared email code changes, redeploy every function that imports the changed file.
+
+## Newsletter
+
+Newsletter signup is handled by:
 
 ```text
-Partnership Inquiry
-        |
-        v
-public-submission
-        |
-        +--> partner_inquiries
-        +--> applicant acknowledgement
-        └--> team notification
+newsletter-subscribe
 ```
+
+Subscribers are stored in Supabase and synchronized with a Resend Segment.
+
+Published issues can be sent from the admin dashboard through:
 
 ```text
-Volunteer Application
-        |
-        v
-public-submission
-        |
-        +--> volunteer_applications
-        +--> applicant acknowledgement
-        └--> team notification
+send-newsletter
 ```
+
+The newsletter workflow:
+
+1. claims the issue so it cannot be sent twice
+2. synchronizes subscribers
+3. creates a Resend Broadcast
+4. includes Resend's managed unsubscribe link
+5. queues the broadcast
+6. stores delivery metadata on the newsletter issue
+
+The required Resend segment ID is stored in:
 
 ```text
-Event Registration
-        |
-        v
-public-submission
-        |
-        v
-register_for_event RPC
-        |
-        +--> confirmed / waitlist registration
-        +--> participant email and calendar controls
-        └--> team notification
+RESEND_NEWSLETTER_SEGMENT_ID
 ```
 
-The browser should not contain Resend credentials, Supabase secret keys, Stripe secret keys, or Daraja credentials.
+## Public forms
 
-## Event Reminders
+Public submissions go through the `public-submission` Edge Function instead of writing directly to privileged database tables from the browser.
 
-Upcoming event reminders are processed through the `send-event-reminders` Edge Function.
+It currently handles:
 
-Supabase Cron invokes the function periodically.
-
-The reminder function:
-
-1. Finds upcoming events.
-2. Finds confirmed registrations.
-3. Determines whether a configured reminder window has been reached.
-4. Sends the reminder through Resend.
-5. Records which reminder windows have already been sent.
-
-The function is protected by:
-
-```text
-CRON_SECRET
-```
-
-## Admin Dashboard
-
-The `/admin` interface uses Supabase Auth and Row Level Security.
-
-Authorized ArtNovaX staff can manage website content and review operational data including:
-
-- events
+- contact messages
+- partnership inquiries
+- volunteer applications
 - event registrations
+
+The function stores the submission, sends the appropriate acknowledgement, and sends an internal notification when required.
+
+Event registration also uses the `register_for_event` database RPC to handle confirmed and waitlisted registrations.
+
+## Event reminders
+
+Upcoming event reminders are handled by:
+
+```text
+send-event-reminders
+```
+
+Supabase Cron calls the function periodically.
+
+The function checks upcoming events and confirmed registrations, determines whether a configured reminder window has been reached, sends the email, and records the reminder so it is not sent twice.
+
+The scheduled endpoint is protected by `CRON_SECRET`.
+
+## Content and research
+
+Most public pages have bundled default content in the frontend, including:
+
+```text
+frontend/src/mock.js
+frontend/src/mock_pages.js
+frontend/src/mock_pages2.js
+```
+
+The five main Research & Insights articles are bundled in:
+
+```text
+frontend/src/mock_articles.js
+```
+
+Those reviewed bundled articles take precedence over older Supabase rows with the same slugs. New article slugs can still be loaded from Supabase.
+
+Research articles should:
+
+- use plain language
+- distinguish creative wellbeing from clinical treatment
+- avoid overstating evidence
+- link to the primary or publisher source where possible
+- make uncertainty and study limitations clear
+
+## Admin dashboard
+
+The `/admin` area uses Supabase Auth and database authorization.
+
+Authorized staff can manage or review:
+
+- website content
+- events
+- registrations
 - volunteer roles
 - volunteer applications
-- articles
-- founders
+- founders and team content
 - products
-- orders
+- shop orders
+- payment verification
 - donations
 - contact messages
 - partnership inquiries
+- newsletter issues
 - newsletter subscribers
 - app waitlist entries
 
-Admin authorization must be enforced by Supabase Auth and database policies rather than client-side checks alone.
+Authorization for privileged actions must be enforced on the backend, not only by hiding controls in React.
 
 ## Deployment
 
-The React frontend is deployed through Netlify.
+The frontend is deployed through Netlify.
 
-Recommended Netlify build configuration:
+Recommended configuration:
 
 ```text
 Base directory: frontend
@@ -456,40 +493,32 @@ Build command: yarn build
 Publish directory: build
 ```
 
-The production frontend only requires:
+The production frontend only needs public browser-safe values such as:
 
 ```text
 REACT_APP_SUPABASE_URL
 REACT_APP_SUPABASE_PUBLISHABLE_KEY
 ```
 
-Sensitive Stripe, M-Pesa, Resend, Cron, and Supabase privileged credentials belong in Supabase, not Netlify.
+Payment keys, email credentials, Supabase privileged credentials and cron secrets belong in Supabase, not Netlify frontend variables.
 
-The frontend includes a Netlify SPA redirect rule so React Router URLs resolve to the application entry point.
+The app includes a Netlify SPA redirect so client-side React Router routes resolve correctly.
 
-## Domain and DNS
+## Domain and email
 
-The production domain is:
+The production website is:
 
 ```text
-artnovax.org
+https://artnovax.org
 ```
 
-DNS is managed through AWS Route 53.
+DNS is managed in AWS Route 53.
 
-### Website
-
-Route 53 directs the public website domain to Netlify.
-
-### Email
-
-Transactional email is sent through the dedicated Resend subdomain:
+Transactional email is sent from the dedicated Resend subdomain:
 
 ```text
 mail.artnovax.org
 ```
-
-Resend DNS records for SPF and DKIM are configured within the existing `artnovax.org` Route 53 hosted zone.
 
 Human-facing mailboxes remain on the root domain, including:
 
@@ -500,39 +529,30 @@ admin@artnovax.org
 
 ## Security
 
-- Never commit `.env` files.
-- Never expose Supabase secret keys in the frontend.
-- Never expose Stripe secret keys in the frontend.
-- Never expose Daraja credentials in the frontend.
-- Never expose Resend API keys in the frontend.
-- Never expose `CRON_SECRET` in the frontend.
-- Validate prices and payment amounts server-side.
-- Retrieve canonical product prices from the database before creating payment sessions.
-- Verify Stripe webhook signatures before changing payment state.
-- Treat successful M-Pesa callbacks as the authoritative source for M-Pesa payment completion.
-- Never request a user's M-Pesa PIN.
-- Escape user-provided data before inserting it into HTML email templates.
-- Use Row Level Security for database access.
-- Route privileged public workflows through Edge Functions.
-- Keep production secrets in managed secret stores.
-- Rotate any credential that has ever been committed publicly.
-- Keep production and sandbox payment credentials separate.
+A few rules are non-negotiable:
 
-## Repository Visibility
+- never commit `.env` files or secret API keys
+- never expose Supabase privileged keys in the frontend
+- never expose the Paystack secret key in the frontend
+- never expose Resend credentials in the frontend
+- never expose `CRON_SECRET` in the frontend
+- validate payment amounts server-side
+- retrieve canonical product prices from the database
+- verify Paystack webhook signatures
+- verify Paystack amount, currency, reference and metadata before settlement
+- never mark a manual M-Pesa order paid from a customer-submitted reference alone
+- never request or store a customer's M-Pesa PIN
+- escape user-provided values before inserting them into HTML emails
+- use Row Level Security for direct database access
+- route privileged public workflows through Edge Functions
+- keep test and production credentials separate
+- rotate any credential that has ever been exposed publicly
 
-The production application source repository should normally remain private unless ArtNovaX intentionally chooses to open-source the website.
+## Development workflow
 
-Making the repository private does not replace proper application security.
+Keep changes focused and review the resulting diff before committing.
 
-The deployed website remains publicly accessible even when its GitHub repository is private.
-
-Netlify must retain GitHub App access to the private repository for automatic deployments.
-
-## Development Workflow
-
-Use short-lived feature branches and merge changes through pull requests.
-
-Example:
+A typical branch workflow is:
 
 ```powershell
 git switch main
@@ -540,20 +560,20 @@ git pull origin main
 git switch -c feature-name
 ```
 
-Before merging frontend changes:
+Before committing frontend changes:
 
 ```powershell
 cd frontend
 yarn build
 ```
 
-For Edge Function changes:
+When an Edge Function changes, deploy that function after the code change:
 
 ```powershell
-npx supabase functions deploy FUNCTION_NAME --use-api
+npx supabase functions deploy FUNCTION_NAME
 ```
 
-Test the complete affected workflow before merging.
+When a shared Edge Function dependency changes, redeploy all functions that use it.
 
 After merging:
 
@@ -568,23 +588,24 @@ Delete the local feature branch when it is no longer needed:
 git branch -d feature-name
 ```
 
-## Production Readiness
+## Before a production payment release
 
-Before enabling production payments:
+Check the full path rather than only the UI:
 
-- confirm the frontend production build succeeds
-- confirm Supabase RLS policies are enabled and tested
-- confirm public forms work through Edge Functions
-- confirm transactional emails reach both users and the ArtNovaX team
-- confirm the Resend sending domain is verified
-- confirm event reminders execute successfully
-- confirm Stripe test payments work end-to-end
-- confirm M-Pesa sandbox payments work end-to-end
-- configure a live Stripe webhook
-- configure Stripe live credentials
-- complete Safaricom Daraja go-live onboarding
-- configure production Daraja credentials
-- run production smoke tests with controlled low-value transactions
+- frontend production build succeeds
+- Supabase migrations are applied
+- RLS policies are enabled and tested
+- Paystack test checkout works for shop orders
+- Paystack test checkout works for donations
+- callback verification succeeds
+- webhook verification succeeds
+- manual M-Pesa orders remain pending until staff confirmation
+- paid-order and donation emails are delivered
+- public form emails are delivered
+- the Resend sending domain is verified
+- event registrations and calendar links work
+- scheduled event reminders execute successfully
+- a controlled low-value production payment is tested before wider release
 
 ## License
 
