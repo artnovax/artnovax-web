@@ -88,12 +88,12 @@ export const defaultShopPageContent = () => ({
 
 export const defaultSupportPageContent = () => ({
   eyebrow: 'SUPPORT OUR WORK',
-  title: 'Your gift makes creative wellbeing possible.',
-  body: 'Every shilling helps us bring guided art sessions, research and community care to young people across Kenya. You can give once today, or reach out to set up a longer-term commitment.',
+  title: 'Help us run more sessions.',
+  body: 'Donations help us pay for art materials, events, research and the day-to-day cost of running our programmes. Give once here, or contact us if you would like to support a specific project or make a longer-term contribution.',
   impactItems: [
-    'KES 15,000 helps stock materials for one campus session.',
-    'KES 25,000 sponsors a small circle of care for a term.',
-    'Any amount goes 100% to program delivery and research.',
+    'Help us buy art materials for workshops and community sessions.',
+    'Support venue, transport and event costs when we take programmes to new spaces.',
+    'Contribute to research, digital tools and the everyday costs behind the work.',
   ],
   formTitle: 'Give today',
   presets: [500, 1000, 2500, 5000, 15000, 25000],
@@ -109,8 +109,8 @@ export const defaultSupportPageContent = () => ({
   contactHref: '/contact',
   securitySuffix: '.',
   thanks: {
-    title: "Thank you — we're moved.",
-    body: 'Your card payment has been confirmed securely through Paystack, and your gift will help us reach more young people through art.',
+    title: 'Thank you for supporting ArtNovaX.',
+    body: 'Your card payment has been confirmed. We’ll send confirmation to the email you provided, and your donation will go toward our programmes and operating costs.',
     button: { label: 'Back to home', href: '/' },
   },
 });
@@ -118,8 +118,8 @@ export const defaultSupportPageContent = () => ({
 export const defaultVolunteerPageContent = () => ({
   landing: {
     eyebrow: 'VOLUNTEER WITH US',
-    title: 'Bring your care.\nBring your craft.',
-    body: 'Explore open volunteer roles at ArtNovaX. Every role is designed so you can contribute meaningfully in just a few hours a week.',
+    title: 'Volunteer with ArtNovaX.',
+    body: 'See where we currently need help, what each role involves and how much time it usually takes.',
     loadingText: 'Loading roles…',
     emptyPrefix: 'No open roles right now. Check back soon or send us a note via ',
     emptyContactLabel: 'Contact',
@@ -142,16 +142,16 @@ export const defaultVolunteerPageContent = () => ({
     selectPlaceholder: 'Select…',
     submitLabel: 'Submit application',
     submittingLabel: 'Submitting…',
-    successTitle: 'Thank you — we’ve got your application.',
-    successBody: 'Our team reviews applications every week and will be in touch.',
+    successTitle: 'Thanks — we received your application.',
+    successBody: 'We review applications regularly. If there is a next step, someone from the team will contact you.',
     successButtonLabel: 'See other roles',
   },
 });
 
 export const defaultPartnerPageContent = () => ({
   eyebrow: 'PARTNER WITH US',
-  title: 'Let’s build something meaningful together.',
-  body: 'We collaborate with universities, community groups, mental-health organisations and mission-aligned brands. Tell us a little about your organisation and how you’d like to partner — our Partnerships & Mobilisation Lead will reach out.',
+  title: 'Interested in working with ArtNovaX?',
+  body: 'We work with universities, community groups, mental-health organisations, companies and other teams that have a clear idea for something we can do together. Tell us what you have in mind and our partnerships team will follow up.',
   organisationHeading: 'ORGANISATION',
   orgNamePlaceholder: 'Organisation name *',
   websitePlaceholder: 'Website',
@@ -184,12 +184,12 @@ export const defaultPartnerPageContent = () => ({
   timelinePlaceholder: 'Timeline (e.g. Q2 2026)',
   budgetPlaceholder: 'Indicative budget (optional)',
   messagePlaceholder: 'Anything else you’d like us to know',
-  responseNote: 'We reply to every serious inquiry within 5 business days.',
+  responseNote: 'We usually reply within 5 business days.',
   submitLabel: 'Submit inquiry',
   submittingLabel: 'Sending…',
   success: {
-    title: 'Thank you — we’ll be in touch.',
-    body: 'Purity, our Partnerships Lead, personally reviews every inquiry.',
+    title: 'Thanks — we received your inquiry.',
+    body: 'Our partnerships team will review it and follow up if we need more information or there is a clear next step.',
     button: { label: 'Back to home', href: '/' },
   },
 });
@@ -285,16 +285,16 @@ const INFORMATION_PAGE_DEFAULTS = {
   research_approach: {
     eyebrow: 'RESEARCH & INSIGHTS',
     title: 'Our Research Approach',
-    intro: 'We translate evidence about creativity and wellbeing into clear, responsible information without overstating what research can prove.',
+    intro: 'We explain research on creativity and wellbeing in plain language and try not to make claims that the evidence cannot support.',
     updatedLabel: 'Last reviewed: August 2026',
     sections: [
       {
         title: 'Evidence before certainty',
-        body: 'We look for credible, relevant research and pay attention to study quality, sample size, limitations, and whether findings have been repeated. We distinguish early findings from stronger bodies of evidence.',
+        body: 'We look at study quality, sample size, limitations and whether a finding has been repeated. A small early study is useful evidence, but we do not present it as settled fact.',
       },
       {
         title: 'Clear and accessible communication',
-        body: 'We explain technical ideas in plain language while preserving important nuance. When evidence is mixed, limited, or changing, we say so.',
+        body: 'We explain technical ideas in plain language without stripping away the uncertainty. When evidence is mixed, limited or changing, we say that directly.',
       },
       {
         title: 'Culture and lived experience',

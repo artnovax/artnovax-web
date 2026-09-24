@@ -7,8 +7,8 @@ export const ABOUT = {
   image: 'https://images.pexels.com/photos/7859206/pexels-photo-7859206.jpeg',
   imageAlt: 'Close-up of hands painting with colorful watercolors',
   pillars: [
-    { icon: 'target', title: 'Our Mission', body: 'To promote mental wellbeing through creative expression, community programs, research and innovative technology that makes support more accessible.' },
-    { icon: 'eye', title: 'Our Vision', body: 'A world where creativity is recognized as essential to mental health, and where everyone—especially young people—can access spaces that nurture their minds.' },
+    { icon: 'target', title: 'Our Mission', body: 'We use creative expression, community programmes, research and technology to make mental-health support easier to engage with.' },
+    { icon: 'eye', title: 'Our Vision', body: 'We want creative expression to be a normal part of how people care for their mental health, especially young people.' },
     { icon: 'values', title: 'Our Values', list: ['Compassion', 'Creativity', 'Community', 'Integrity', 'Inclusivity'] },
   ],
   founders: {
@@ -33,7 +33,7 @@ export const ABOUT = {
         name: 'Ray Simbiri',
         role: 'Chief Technology Officer',
         short: 'Computer science student building the technology behind ArtNovaX.',
-        bio: 'Ray joined ArtNovaX in August 2025 and leads the technology side of the organisation. He works on the platform, the guided art-therapy experience and the systems that support it. With a background in software and machine learning, he is especially interested in building technology that stays out of the way when it needs to and helps people focus on the experience itself. His interest in mental health comes from the idea of staying connected to yourself, especially when life gets noisy.',
+        bio: 'Ray joined ArtNovaX in August 2025 and leads the technology side of the organisation. He works on the platform, the guided art therapy experience and the systems that support it. With a background in software and machine learning, he is especially interested in building technology that stays out of the way when it needs to and helps people focus on the experience itself. His interest in mental health comes from the idea of staying connected to yourself, especially when life gets noisy.',
         img: '/assets/images/team/team-ray-simbiri.png',
         linkedin: 'https://www.linkedin.com/in/simbiriisaacray/',
         funfact: 'Has a twin brother who is also a tech founder.',
@@ -46,7 +46,7 @@ export const ABOUT = {
         name: 'Purity Mutua',
         role: 'Partnerships Lead',
         short: 'Veterinary surgeon and artist helping grow the partnerships behind our work.',
-        bio: 'Purity joined ArtNovaX after seeing the effect our art-therapy sessions were having on young people. She now leads partnerships and helps build the relationships that make our programmes possible. She brings experience in fundraising, a strong creative instinct and a real interest in opening up more honest conversations around mental health, especially among young people.',
+        bio: 'Purity joined ArtNovaX after seeing the effect our art therapy sessions were having on young people. She now leads partnerships and helps build the relationships that make our programmes possible. She brings experience in fundraising, a strong creative instinct and a real interest in opening up more honest conversations around mental health, especially among young people.',
         img: '/assets/images/team/team-purity-mutua.jpeg',
         linkedin: 'https://www.linkedin.com/in/purity-mutua/',
         funfact: 'Loves coffee, Pingu and Mørda’s BLE55ING5.',
@@ -59,7 +59,7 @@ export const ABOUT = {
         name: 'Sherlyn Cheredi',
         role: 'Research Lead',
         short: 'Analyst helping us understand what is working, what is not and where we can do better.',
-        bio: 'Sherlyn joined ArtNovaX in May 2025 and leads our research work. She is interested in what it takes to make mental-health support feel more normal and more accessible across African communities. Her analytical background helps us look past good intentions and ask harder questions about impact, reach and what our programmes are actually changing.',
+        bio: 'Sherlyn joined ArtNovaX in May 2025 and leads our research work. She is interested in what it takes to make mental health support feel more normal and more accessible across African communities. Her analytical background helps us look past good intentions and ask harder questions about impact, reach and what our programmes are actually changing.',
         img: '/assets/images/team/team-sherlyn-cheredi.jpg',
         linkedin: 'https://www.linkedin.com/in/sherlyn-cheredi-8354aa227/',
         funfact: 'Can spend 30 minutes choosing what to watch, then rewatch her comfort show for the 100th time.',
@@ -80,12 +80,12 @@ export const ABOUT = {
         why_art: 'A young person may not say “I’m anxious”, but they might draw or paint something that gives you a way into that conversation.'
       },
       {
-        slug: 'manuella-mirembe',
-        name: 'Manuella Mirembe',
+        slug: 'manuela-mirembe',
+        name: 'Manuela Mirembe',
         role: 'Communications & Creative Advocacy Team Lead',
         short: 'Veterinary student and photographer helping tell ArtNovaX’s story through visual work and creative advocacy.',
-        bio: 'Manuella joined ArtNovaX in 2026 because she wanted to help capture and share the work happening across the organisation. As a veterinary student and photographer, she is especially interested in the parts of mental health that often go unnoticed or unspoken. She leads our communications and creative advocacy work, using photography, film and storytelling to make our work easier to understand and more visible to the people it is meant to reach.',
-        img: '/assets/images/team/team-manuella-mirembe.webp',
+        bio: 'Manuela joined ArtNovaX in 2026 because she wanted to help capture and share the work happening across the organisation. As a veterinary student and photographer, she is especially interested in the parts of mental health that often go unnoticed or unspoken. She leads our communications and creative advocacy work, using photography, film and storytelling to make our work easier to understand and more visible to the people it is meant to reach.',
+        img: '/assets/images/team/team-manuela-mirembe.jpg',
         linkedin: null,
         funfact: 'An ice cream lover, especially soft serve.',
         medium: 'Film and photography',
@@ -94,7 +94,7 @@ export const ABOUT = {
     ]
   },
   stats: {
-    title: 'We are growing a movement\nof minds, hearts and hands.',
+    title: 'A growing community,\none session at a time.',
     items: [
       { icon: 'users', value: '80+', label: 'Participants\nengaged' },
       { icon: 'calendar', value: '15+', label: 'Creative sessions\nhosted' },
@@ -103,47 +103,47 @@ export const ABOUT = {
     ]
   },
   cta: {
-    title: 'Be part of our story.',
-    body: 'Whether you create with us, collaborate with us, or support the mission, there is a place for you at ArtNovaX.',
+    title: 'Want to get involved?',
+    body: 'Come to an event, work with us, volunteer your time or support one of our programmes.',
     button: { label: 'Get Involved', href: '/get-involved' }
   }
 };
 
 export const OUR_WORK = {
   eyebrow: 'OUR WORK',
-  title: 'Creating spaces that\nnurture minds, build\ncommunity and inspire\nchange.',
-  body: 'We design and deliver creative, evidence-informed programs that support mental wellbeing for individuals and communities—across campuses, schools and public spaces.',
+  title: 'Creating spaces where\npeople can slow down,\nmake something and\nconnect.',
+  body: 'We run creative programmes in campuses, schools and community spaces, combining art, reflection and conversation in ways that feel welcoming and practical.',
   cta: { label: 'Explore Our Programs', href: '#programs' },
   image: 'https://images.unsplash.com/photo-1459908676235-d5f02a50184b',
   imageAlt: 'Colorful paintbrushes and vibrant paint — an artist\u2019s working still life',
   programsEyebrow: 'OUR PROGRAM AREAS',
-  programsTitle: 'How we create impact',
+  programsTitle: 'What we do',
   programs: [
     {
       icon: 'brush',
       title: 'Creative Wellbeing\nExperiences',
-      body: 'Guided art making, doodling, poetry and reflective activities that help participants express emotions, reduce stress and build self-awareness.',
+      body: 'Guided art making, doodling, poetry and reflection sessions that give people room to slow down, express themselves and notice how they are feeling.',
       link: { label: 'See upcoming events', href: '/events' },
       img: 'https://images.unsplash.com/photo-1461344577544-4e5dc9487184'
     },
     {
       icon: 'users',
       title: 'Community &\nPartnerships',
-      body: 'We collaborate with universities, schools, youth groups and organizations to co-create sessions that are inclusive, accessible and meaningful.',
+      body: 'We work with universities, schools, youth groups and organisations to shape sessions around the people and communities taking part.',
       link: { label: 'Partner with us', href: '/get-involved/partner' },
       img: '/assets/images/community/community-kabete-session.jpg'
     },
     {
       icon: 'book-open',
       title: 'Research &\nKnowledge Sharing',
-      body: 'We explore the connection between art, creativity and mental health and share practical, easy-to-understand resources from the evidence.',
+      body: 'We look at research on creativity and mental health, then turn what we learn into useful, easy-to-understand resources.',
       link: { label: 'Learn more', href: '/research' },
       img: 'https://images.unsplash.com/photo-1579017308347-e53e0d2fc5e9'
     },
   ],
   stats: {
-    title: 'Working toward\nmeasurable wellbeing',
-    body: 'Our work is driven by compassion and informed by data. We listen, learn and continuously improve.',
+    title: 'What we have\ndone so far',
+    body: 'We keep track of where we have been, who we are reaching and what participants tell us so we can improve the next session.',
     footnote: '*Numbers updated as of May 2026',
     items: [
       { icon: 'users', value: '80+', label: 'Participants\nengaged' },
@@ -153,15 +153,15 @@ export const OUR_WORK = {
     ]
   },
   partnerCta: {
-    body: 'Every workshop, every conversation, every artwork contributes to a culture that values mental health, creativity and connection.',
+    body: 'If you have a group, campus or community that could use a creative wellbeing session, we would like to hear what you have in mind.',
     button: { label: 'Partner With Us', href: '/get-involved/partner' }
   }
 };
 
 export const EVENTS = {
   eyebrow: 'EVENTS',
-  title: 'Creating together.\nHealing together.',
-  body: 'Our events bring people together to express, reflect, learn and connect through creative experiences that support mental wellbeing.',
+  title: 'Make something.\nMeet people.\nTake a break.',
+  body: 'Our events are relaxed spaces to make art, try something new, talk with other people and take some time away from the usual routine.',
   primaryCta: { label: 'View Upcoming Events', href: '#upcoming' },
   secondaryCta: { label: 'See Past Events', href: '#past' },
   image: '/assets/images/events/events-art-contest.webp',
@@ -210,7 +210,7 @@ export const EVENTS = {
   ],
   ideaCta: {
     title: 'Have an idea for an event?',
-    body: "Whether you're an individual, student group, organization or community, we'd love to hear ideas for meaningful creative experiences.",
+    body: "If there is a creative activity, conversation or community event you would like to run with us, tell us about it.",
     button: {
       label: 'Share Your Idea',
       href: '/contact?topic=event-idea'

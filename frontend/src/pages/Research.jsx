@@ -61,7 +61,16 @@ const Research = () => {
         const remote = await getArticles();
         if (remote.length) {
           const bySlug = new Map(ARTICLES_LIST.map((a) => [a.slug, a]));
-          remote.forEach((a) => bySlug.set(a.slug, a));
+
+          // Keep the reviewed bundled versions of our five core editorial
+          // articles. Supabase can still add new article slugs without an
+          // older seeded row silently replacing the bundled copy.
+          remote.forEach((a) => {
+            if (!bySlug.has(a.slug)) {
+              bySlug.set(a.slug, a);
+            }
+          });
+
           setArticles(Array.from(bySlug.values()));
         }
       } catch (error) {
