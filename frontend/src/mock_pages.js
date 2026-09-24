@@ -74,7 +74,7 @@ export const ABOUT = {
         short: 'Counselling psychologist making sure our work stays safe, thoughtful and clinically grounded.',
         bio: 'Ivy joined ArtNovaX in 2026 as Lead Psychologist. Her work focuses on making mental-health support feel less intimidating and easier to access, particularly for young Kenyans who may never reach out because of stigma. She brings counselling psychology, trauma-informed practice and experience designing art, play and dance-based approaches. She also uses basic KSL, which helps us think more carefully about accessibility in the spaces we create.',
         img: '/assets/images/team/team-ivy-ndanu-maithya.webp',
-        linkedin: null,
+        linkedin: 'https://www.linkedin.com/in/ivy-maithya-9749793a1/',
         funfact: 'Has a playlist for every mood and will sing anywhere like it is a full concert.',
         medium: 'Plasticine: soft, colourful and easy to reshape.',
         why_art: 'A young person may not say “I’m anxious”, but they might draw or paint something that gives you a way into that conversation.'
