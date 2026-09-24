@@ -46,12 +46,12 @@ export const ARTICLES = {
           {
             title: 'Kaimal, Ray & Muniz — Reduction of Cortisol Levels and Participants’ Responses Following Art Making (2016)',
             detail: 'Small quasi-experimental study of 39 healthy adults.',
-            url: 'https://pubmed.ncbi.nlm.nih.gov/27695158/'
+            url: 'https://www.tandfonline.com/doi/full/10.1080/07421656.2016.1166832'
           },
           {
             title: 'Han et al. — The effects of visual art therapy on adults with depressive symptoms: a systematic review and meta-analysis (2024)',
             detail: 'Meta-analysis reporting promising results while rating the evidence as low quality.',
-            url: 'https://pubmed.ncbi.nlm.nih.gov/38606659/'
+            url: 'https://onlinelibrary.wiley.com/doi/full/10.1111/inm.13331'
           }
         ]
       }
@@ -99,7 +99,7 @@ export const ARTICLES = {
           {
             title: 'Alameda, Sanabria & Ciria — The brain in flow: A systematic review on the neural basis of the flow state (2022)',
             detail: 'Systematic review of the developing neuroscience literature on flow.',
-            url: 'https://pubmed.ncbi.nlm.nih.gov/35926367/'
+            url: 'https://www.sciencedirect.com/science/article/abs/pii/S0010945222001836'
           },
           {
             title: 'World Health Organization — What is the evidence on the role of the arts in improving health and well-being? (2019)',
@@ -164,7 +164,7 @@ export const ARTICLES = {
           {
             title: 'Han et al. — The effects of visual art therapy on adults with depressive symptoms: a systematic review and meta-analysis (2024)',
             detail: 'Reports promising findings alongside low-quality evidence and a need for stronger studies.',
-            url: 'https://pubmed.ncbi.nlm.nih.gov/38606659/'
+            url: 'https://onlinelibrary.wiley.com/doi/full/10.1111/inm.13331'
           },
           {
             title: 'World Health Organization — What is the evidence on the role of the arts in improving health and well-being? (2019)',
@@ -228,12 +228,12 @@ export const ARTICLES = {
           {
             title: 'Social media use, mental health and sleep: A systematic review with meta-analyses (2024)',
             detail: 'Large review of associations between social-media use, mental health and sleep in young people.',
-            url: 'https://pubmed.ncbi.nlm.nih.gov/39242043/'
+            url: 'https://www.sciencedirect.com/science/article/pii/S0165032724014265'
           },
           {
             title: 'Preston & Rew — Connectedness, Self-Esteem, and Prosocial Behaviors Protect Adolescent Mental Health Following Social Isolation (2022)',
             detail: 'Systematic review of protective factors in adolescents following social isolation.',
-            url: 'https://pubmed.ncbi.nlm.nih.gov/34346800/'
+            url: 'https://www.tandfonline.com/doi/abs/10.1080/01612840.2021.1948642'
           }
         ]
       }
@@ -282,17 +282,17 @@ export const ARTICLES = {
           {
             title: 'Anakwenze — The cultural sensitivity continuum of mental health interventions in Sub-Saharan Africa: A systematic review (2022)',
             detail: 'Review of published interventions and the extent to which they reflected local cultural context.',
-            url: 'https://pubmed.ncbi.nlm.nih.gov/35751989/'
+            url: 'https://www.sciencedirect.com/science/article/pii/S0277953622004300'
           },
           {
             title: 'Mabunda et al. — Cultural adaptation of psychological interventions delivered by lay health workers in Africa (2022)',
             detail: 'Scoping review and expert consultation on culturally adapted psychological interventions in African settings.',
-            url: 'https://pubmed.ncbi.nlm.nih.gov/35168650/'
+            url: 'https://link.springer.com/article/10.1186/s13033-022-00526-x'
           },
           {
             title: 'Cultural adaptation of internet- and mobile-based interventions for mental disorders: a systematic review (2021)',
             detail: 'Review of how digital mental-health interventions have been culturally adapted across different populations.',
-            url: 'https://pubmed.ncbi.nlm.nih.gov/34433875/'
+            url: 'https://www.nature.com/articles/s41746-021-00498-1'
           }
         ]
       }
