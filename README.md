@@ -441,13 +441,9 @@ frontend/src/mock_pages.js
 frontend/src/mock_pages2.js
 ```
 
-The five main Research & Insights articles are bundled in:
+Research & Insights articles live in the Supabase `articles` table and are managed from the Articles tab in `/admin`. The public research library and article detail pages read published article rows directly from Supabase.
 
-```text
-frontend/src/mock_articles.js
-```
-
-Those reviewed bundled articles take precedence over older Supabase rows with the same slugs. New article slugs can still be loaded from Supabase.
+Article bodies are stored as structured JSON blocks, including headings, paragraphs, images, quotes and source lists. This keeps article content editable without requiring a frontend deployment.
 
 Research articles should:
 

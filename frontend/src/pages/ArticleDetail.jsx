@@ -12,8 +12,7 @@ import {
 } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { ARTICLES, ARTICLE_SLUGS } from "../mock_articles";
-import { getArticle } from "../services/content";
+import { getArticle, getArticles } from "../services/content";
 
 const renderBlock = (b, i) => {
   switch (b.type) {
@@ -119,42 +118,60 @@ const renderBlock = (b, i) => {
 const ArticleDetail = () => {
   const { slug } = useParams();
 
-  // The five bundled editorial articles are deliberate static content.
-  // Use Supabase for additional article slugs, but do not let an older seeded
-  // database copy silently replace the reviewed bundled version.
-  const bundledArticle = ARTICLES[slug] || null;
-  const [article, setArticle] = useState(bundledArticle);
+  const [article, setArticle] = useState(null);
+  const [next, setNext] = useState(null);
+  const [loadingArticle, setLoadingArticle] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
-    if (bundledArticle) {
-      setArticle(bundledArticle);
-      setNotFound(false);
-      return () => {
-        cancelled = true;
-      };
-    }
+    setArticle(null);
+    setNext(null);
+    setNotFound(false);
+    setLoadingArticle(true);
 
     (async () => {
       try {
-        const remote = await getArticle(slug);
-        if (!cancelled) {
-          setArticle(remote);
-          setNotFound(false);
+        const [remoteArticle, allArticles] = await Promise.all([
+          getArticle(slug),
+          getArticles(),
+        ]);
+
+        if (cancelled) return;
+
+        setArticle(remoteArticle);
+
+        const index = allArticles.findIndex((item) => item.slug === slug);
+        if (index >= 0 && allArticles.length > 1) {
+          setNext(allArticles[(index + 1) % allArticles.length]);
         }
-      } catch {
+      } catch (error) {
+        console.error("Failed to load article from Supabase.", error);
         if (!cancelled) setNotFound(true);
+      } finally {
+        if (!cancelled) setLoadingArticle(false);
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [slug, bundledArticle]);
+  }, [slug]);
 
-  if (notFound || (!article && !bundledArticle)) {
+  if (loadingArticle) {
+    return (
+      <div className="min-h-screen bg-ivory">
+        <Header activePath="/research" />
+        <section className="mx-auto max-w-[720px] px-6 py-24 text-center">
+          <p className="text-ink/65 text-[14px]">Loading article…</p>
+        </section>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (notFound || !article) {
     return (
       <div className="min-h-screen bg-ivory">
         <Header activePath="/research" />
@@ -176,18 +193,6 @@ const ArticleDetail = () => {
       </div>
     );
   }
-
-  const idx = ARTICLE_SLUGS.indexOf(slug);
-  const nextSlug =
-    idx >= 0
-      ? ARTICLE_SLUGS[(idx + 1) % ARTICLE_SLUGS.length]
-      : ARTICLE_SLUGS[0];
-
-  const next =
-    ARTICLES[nextSlug] || {
-      slug: nextSlug,
-      title: "Next insight",
-    };
 
   return (
     <div className="min-h-screen bg-ivory">
@@ -270,23 +275,25 @@ const ArticleDetail = () => {
           </ul>
         </div>
 
-        <div className="mt-12 rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 md:p-6 flex items-center justify-between gap-4">
-          <div>
-            <div className="text-ink/60 tracking-widest text-[10.5px] font-semibold">
-              READ NEXT
+        {next && (
+          <div className="mt-12 rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 md:p-6 flex items-center justify-between gap-4">
+            <div>
+              <div className="text-ink/60 tracking-widest text-[10.5px] font-semibold">
+                READ NEXT
+              </div>
+              <div className="font-serif-display text-burgundy text-[18px] md:text-[20px] font-semibold mt-1">
+                {next.title}
+              </div>
             </div>
-            <div className="font-serif-display text-burgundy text-[18px] md:text-[20px] font-semibold mt-1">
-              {next.title}
-            </div>
-          </div>
 
-          <a
-            href={`/research/${next.slug}`}
-            className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light shrink-0"
-          >
-            Read <ArrowRight className="w-4 h-4" />
-          </a>
-        </div>
+            <a
+              href={`/research/${next.slug}`}
+              className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[13.5px] font-semibold hover:bg-burgundy-light shrink-0"
+            >
+              Read <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+        )}
       </article>
 
       <Footer />

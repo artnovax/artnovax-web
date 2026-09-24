@@ -16,7 +16,6 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BrushFrame from "../components/BrushFrame";
 import { BrainLineArt } from "../components/BrandGlyphs";
-import { ARTICLES_LIST } from "../mock_articles";
 import { getArticles } from "../services/content";
 import {
   defaultResearchPageContent,
@@ -40,7 +39,7 @@ const Research = () => {
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [articles, setArticles] = useState(ARTICLES_LIST);
+  const [articles, setArticles] = useState([]);
   const [pageContent, setPageContent] = useState(() =>
     defaultResearchPageContent(),
   );
@@ -58,26 +57,10 @@ const Research = () => {
   useEffect(() => {
     (async () => {
       try {
-        const remote = await getArticles();
-        if (remote.length) {
-          const bySlug = new Map(ARTICLES_LIST.map((a) => [a.slug, a]));
-
-          // Keep the reviewed bundled versions of our five core editorial
-          // articles. Supabase can still add new article slugs without an
-          // older seeded row silently replacing the bundled copy.
-          remote.forEach((a) => {
-            if (!bySlug.has(a.slug)) {
-              bySlug.set(a.slug, a);
-            }
-          });
-
-          setArticles(Array.from(bySlug.values()));
-        }
+        setArticles(await getArticles());
       } catch (error) {
-        console.warn(
-          "Failed to load Supabase articles; using bundled articles.",
-          error,
-        );
+        console.error("Failed to load Supabase articles.", error);
+        setArticles([]);
       }
     })();
   }, []);
@@ -114,6 +97,17 @@ const Research = () => {
     () => Array.from(new Set(articles.flatMap((a) => a.tags || []))).sort(),
     [articles],
   );
+
+  const topicHref = (title) => {
+    const normalize = (value) =>
+      String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
+
+    const article = articles.find(
+      (item) => normalize(item.topic) === normalize(title),
+    );
+
+    return article ? `/research/${article.slug}` : "#library";
+  };
 
   return (
     <div className="min-h-screen bg-ivory">
@@ -158,7 +152,7 @@ const Research = () => {
           {pageContent.topicsTitle}
         </h2>
         <div className="mt-8 md:mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-          {pageContent.topics.map((t, idx) => (
+          {pageContent.topics.map((t) => (
             <article
               key={t.title}
               className="wwd-card rounded-3xl bg-ivory-100 ring-1 ring-ivory-300 p-5 flex flex-col"
@@ -173,7 +167,7 @@ const Research = () => {
                 {t.body}
               </p>
               <a
-                href={`/research/${articles[idx]?.slug || ARTICLES_LIST[idx]?.slug || ""}`}
+                href={topicHref(t.title)}
                 className="mt-4 inline-flex items-center gap-1 text-burgundy font-semibold text-[13.5px]"
               >
                 Read more <ArrowRight className="w-4 h-4" />

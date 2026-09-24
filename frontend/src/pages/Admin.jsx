@@ -5507,6 +5507,7 @@ const ArticlesManager = ({ rows, onChange }) => {
       inlineMediaByUrl: {},
       tags: "",
       takeaways: "",
+      sourcesText: "",
     });
     setEditing("new");
   };
@@ -5531,12 +5532,24 @@ const ArticlesManager = ({ rows, onChange }) => {
         return "";
       })
       .join("\n\n");
+
+    const sourcesBlock = (row.blocks || []).find(
+      (block) => block.type === "sources",
+    );
+
+    const sourcesText = (sourcesBlock?.items || [])
+      .map((source) =>
+        [source.title, source.url, source.detail || ""].join(" | ")
+      )
+      .join("\n");
+
     setForm({
       ...row,
       bodyText,
       inlineMediaByUrl,
       tags: (row.tags || []).join(", "),
       takeaways: (row.takeaways || []).join("\n"),
+      sourcesText,
     });
     setEditing(row.id);
   };
@@ -5583,6 +5596,31 @@ const ArticlesManager = ({ rows, onChange }) => {
     return blocks;
   };
 
+  const parseSources = (text = "") => {
+    const lines = String(text)
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    return lines.map((line, index) => {
+      const [title = "", url = "", ...detailParts] = line
+        .split("|")
+        .map((part) => part.trim());
+
+      if (!title || !url) {
+        throw new Error(
+          `Source line ${index + 1} must use: Title | URL | Detail`,
+        );
+      }
+
+      return {
+        title,
+        url,
+        detail: detailParts.join(" | "),
+      };
+    });
+  };
+
   const insertInlineImage = (asset) => {
     const textarea = bodyTextareaRef.current;
     const current = form.bodyText || "";
@@ -5618,29 +5656,37 @@ const ArticlesManager = ({ rows, onChange }) => {
 
   const save = async (e) => {
     e.preventDefault();
-    const payload = {
-      topic: form.topic,
-      title: form.title,
-      excerpt: form.excerpt,
-      read: form.read,
-      updated: form.updated,
-      hero: form.hero,
-      heroAlt: form.heroAlt,
-      heroMediaId: form.heroMediaId,
-      lead: form.lead,
-      blocks: parseBody(form.bodyText, form.inlineMediaByUrl),
-      tags: (form.tags || "")
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-      takeaways: (form.takeaways || "")
-        .split("\n")
-        .map((s) => s.trim())
-        .filter(Boolean),
-      slug: form.slug,
-      status: form.status,
-    };
+
     try {
+      const sources = parseSources(form.sourcesText);
+      const bodyBlocks = parseBody(form.bodyText, form.inlineMediaByUrl);
+
+      const payload = {
+        topic: form.topic,
+        title: form.title,
+        excerpt: form.excerpt,
+        read: form.read,
+        updated: form.updated,
+        hero: form.hero,
+        heroAlt: form.heroAlt,
+        heroMediaId: form.heroMediaId,
+        lead: form.lead,
+        blocks: [
+          ...bodyBlocks,
+          ...(sources.length ? [{ type: "sources", items: sources }] : []),
+        ],
+        tags: (form.tags || "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        takeaways: (form.takeaways || "")
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        slug: form.slug,
+        status: form.status,
+      };
+
       if (editing === "new") await createArticle(payload);
       else await updateArticle(editing, payload);
       setEditing(null);
@@ -5814,6 +5860,22 @@ const ArticlesManager = ({ rows, onChange }) => {
               className={inputCls + " mt-2 font-mono text-[13px]"}
               placeholder="## First section&#10;Paragraph text here…&#10;&#10;![Alt text](https://example.com/image.jpg) — optional caption&#10;&#10;> Blockquote text — Author"
             />
+          </div>
+          <div className="md:col-span-2">
+            <Field label="Sources (one per line: Title | URL | Detail)">
+              <textarea
+                rows={5}
+                value={form.sourcesText || ""}
+                onChange={(e) =>
+                  setForm({ ...form, sourcesText: e.target.value })
+                }
+                className={inputCls + " font-mono text-[12.5px]"}
+                placeholder="World Health Organization — Report title | https://example.org/report | Short note about why this source is used"
+              />
+            </Field>
+            <p className="mt-1 text-ink/55 text-[11.5px]">
+              Sources appear at the end of the public article. The detail column is optional.
+            </p>
           </div>
           <div className="md:col-span-2">
             <Field label="Takeaways (one per line)">
