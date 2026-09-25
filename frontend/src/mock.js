@@ -12,6 +12,8 @@ export const NAV_LINKS = [
       { label: 'Volunteer', href: '/get-involved/volunteer' },
       { label: 'Support Our Work', href: '/get-involved/support' },
       { label: 'Shop for the Cause', href: '/get-involved/shop' },
+      { label: 'Subscribe to our Newsletter', href: '/newsletters' },
+      { label: 'Contact Us', href: '/contact' },
     ]
   },
 
@@ -20,7 +22,7 @@ export const NAV_LINKS = [
 export const HERO = {
   eyebrow: ['ART', 'WELLBEING', 'TECHNOLOGY'],
   title: 'Creativity can become a place to breathe.',
-  body: 'ArtNovaX creates spaces where art, mental wellbeing and thoughtful technology come together—helping people pause, express, connect and create.',
+  body: 'We create spaces where art, mental wellbeing and thoughtful technology come together to help people slow down, express themselves, connect with others and make something of their own.',
   primaryCta: { label: 'Explore Our Work', href: '/our-work' },
   secondaryCta: { label: 'Discover ArtNovaX', href: '/app' },
   image: '/assets/images/home/home-art-therapy.webp',

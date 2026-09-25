@@ -2682,7 +2682,7 @@ const GetInvolvedPageManager = ({ content, onChange }) => {
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
-            Get Involved Overview Content
+            Overview Content
           </h3>
           <p className="mt-1 text-ink/60 text-[13px]">
             Volunteer roles, applications, partner enquiries, and products remain managed from their dedicated tabs.

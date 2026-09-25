@@ -26,7 +26,7 @@ export const RESEARCH = {
   },
   newsletter: {
     title: 'Stay informed',
-    body: 'Get new articles, research summaries and practical resources in your inbox.',
+    body: 'Be the first to receive fresh artistic insights, creative reflections and wellbeing resources straight to your inbox.',
     placeholder: 'Enter your email',
     button: 'Subscribe'
   }

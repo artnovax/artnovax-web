@@ -224,7 +224,7 @@ const HeaderInner = ({
                             transition-colors
                           "
                         >
-                          Get Involved Overview
+                          Overview
                         </Link>
 
                         <div className="h-px bg-ivory-300 mx-3" />
@@ -471,7 +471,7 @@ const MobileNavItem = ({
               hover:text-burgundy
             "
           >
-            Get Involved Overview
+            Overview
           </Link>
 
           {link.children.map((child) => (
