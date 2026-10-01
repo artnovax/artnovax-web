@@ -26,10 +26,10 @@ export const HERO = {
   primaryCta: { label: 'Explore Our Work', href: '/our-work' },
   secondaryCta: { label: 'Discover ArtNovaX', href: '/app' },
   image: '/assets/images/home/home-art-therapy.webp',
-  imageAlt: 'Young person engaged in guided art therapy session with paintbrush and colorful paper',
+  imageAlt: 'Young person engaged in a creative ArtNovaX session with paintbrush and colorful paper',
   bullets: [
-    { icon: 'users', label: 'Community programs' },
-    { icon: 'book-open', label: 'Research-informed design' },
+    { icon: 'users', label: 'Creative wellbeing' },
+    { icon: 'book-open', label: 'Mental-health education' },
     { icon: 'smartphone', label: 'Digital innovation' },
   ],
 };
@@ -44,29 +44,29 @@ export const MISSION_BAND = {
     { text: 'minds', style: 'italic' },
     { text: ' transform.', style: 'normal' },
   ],
-  subhead: 'We believe technology should protect meaningful human experiences—not compete with them.',
+  subhead: 'From creative sessions and open mental-health conversations to a digital experience in development, we are building more ways for people to create and reflect.',
 };
 
 export const WHAT_WE_DO = {
   eyebrow: 'WHAT WE DO',
-  title: 'Creativity, care and technology—working together.',
+  title: 'Creativity, conversation and technology—working together.',
   items: [
     {
       icon: 'brush',
       title: 'Creative Wellbeing',
-      body: 'We create guided experiences where people use art, doodling, poetry and other forms of expression as space for reflection and connection.',
+      body: 'We create guided and free-form art experiences that give people room to express themselves, reflect and connect with others.',
       link: { label: 'Explore our programs', href: '/our-work' },
     },
     {
       icon: 'brain',
-      title: 'Research & Advocacy',
-      body: 'We share accessible mental-health information and explore the evidence behind creative approaches to wellbeing.',
-      link: { label: 'Explore research', href: '/research' },
+      title: 'Mental Health Education',
+      body: 'Through talks, webinars and open Q&A sessions, we create space for practical conversations about mental health and support.',
+      link: { label: 'See our events', href: '/events' },
     },
     {
       icon: 'app',
-      title: 'Technology for Focus',
-      body: 'We are developing ArtNovaX as a distraction-conscious digital experience for guided creative wellbeing.',
+      title: 'Digital Innovation',
+      body: 'We are developing ArtNovaX as a focused digital experience for guided creativity, reflection and in-app art making.',
       link: { label: 'Discover the app', href: '/app' },
     },
   ],

@@ -66,7 +66,7 @@ export const defaultResearchPageContent = () => ({
 
 export const defaultAppPageContent = () => ({
   ...clone(APP),
-  statusLabel: 'In development · Launching later this year',
+  statusLabel: 'In development',
 });
 
 export const defaultGetInvolvedPageContent = () => ({
@@ -151,7 +151,7 @@ export const defaultVolunteerPageContent = () => ({
 export const defaultPartnerPageContent = () => ({
   eyebrow: 'PARTNER WITH US',
   title: 'Interested in working with ArtNovaX?',
-  body: 'We work with universities, community groups, mental-health organisations, companies and other teams that have a clear idea for something we can do together. Tell us what you have in mind and our partnerships team will follow up.',
+  body: 'We work with universities, student groups, nonprofits and organisations to create art-based wellbeing experiences, mental-health conversations and community programmes. If you have a clear idea for something we could build together, tell us about it.',
   organisationHeading: 'ORGANISATION',
   orgNamePlaceholder: 'Organisation name *',
   websitePlaceholder: 'Website',

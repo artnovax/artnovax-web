@@ -3,70 +3,70 @@
 export const RESEARCH = {
   eyebrow: 'RESEARCH & INSIGHTS',
   title: 'Research,\nwithout the jargon.',
-  body: 'We look at research on creativity and mental health and explain what it means in clear, practical language.',
-  cta: { label: 'Explore All Insights', href: '#topics' },
+  body: 'We look at research on creativity and mental health, translate it into clear language, and use feedback from our programmes to guide what we explore next.',
+  cta: { label: 'Explore Insights', href: '#topics' },
   image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/08/837a00fd-e656-4ced-bfa3-f12126171da2-research-mental-health.jpg',
   imageAlt: 'Watercolor journal and creative supplies on a wooden table',
-  topicsTitle: 'What We Read About',
+  topicsTitle: 'What we explore',
   topics: [
     { icon: 'brain', title: 'Art & Emotional\nWellbeing', body: 'What research says about creative expression, stress, emotions and self-awareness.' },
     { icon: 'sparkles', title: 'Creativity &\nThe Brain', body: 'What we know about attention, flow and what happens when we become absorbed in making something.' },
     { icon: 'book', title: 'Art Therapy\nExplained', body: 'What art therapy is, how it differs from creative wellbeing activities and where professional care fits in.' },
-    { icon: 'users', title: 'Youth &\nMental Health', body: 'Research and observations on the pressures affecting young people at school, online and in their communities.' },
-    { icon: 'plant', title: 'Culture, Identity &\nWellbeing', body: 'How culture, community and identity shape the way people understand and care for their mental health.' },
+    { icon: 'users', title: 'Youth &\nMental Health', body: 'Research and practical perspectives on the pressures affecting young people and the support available to them.' },
+    { icon: 'plant', title: 'Learning From\nOur Programmes', body: 'How participant feedback, event surveys and community conversations can help us shape future programmes and digital experiences.' },
   ],
   band: {
     quote: 'Art can express the inexpressible, can communicate the unknowable.',
     author: '– Louise Bourgeois',
     integrity: {
-      title: 'Evidence with Integrity',
-      body: 'We try to be clear about what research supports, what is still uncertain and where our own observations end.',
-      link: { label: 'Our Research Approach', href: '/research/approach' }
+      title: 'Learning from the people we serve',
+      body: 'At our March 2026 University of Nairobi event, we asked students about their understanding of art therapy and what they would want from a digital art experience. That feedback is helping shape ArtNovaX as it develops.',
+      link: { label: 'See the app in development', href: '/app' }
     }
   },
   newsletter: {
     title: 'Stay informed',
-    body: 'Be the first to receive fresh artistic insights, creative reflections and wellbeing resources straight to your inbox.',
+    body: 'Get new articles, research notes and updates on what we are learning through our programmes.',
     placeholder: 'Enter your email',
     button: 'Subscribe'
   }
 };
 
 export const APP = {
-  eyebrow: 'ARTNOVAX APP  ·  COMING SOON',
-  title: 'A calmer way\nto create \u2014 soon.',
-  body: 'We are building ArtNovaX as a distraction-conscious art therapy app. It will guide you through creative exercises, give you space to reflect and help you check in with how you are feeling without adding more noise to your screen.',
+  eyebrow: 'ARTNOVAX APP',
+  title: 'A calmer space\nto create and reflect.',
+  body: 'We are building ArtNovaX as a distraction-conscious creative wellbeing app — a focused place for guided sessions, in-app drawing and reflection without the usual noise of your screen.',
   primaryCta: { label: 'Join the Waitlist', href: '#waitlist' },
-  secondaryCta: { label: 'Preview How It Will Work', href: '#how' },
+  secondaryCta: { label: 'See How It Will Work', href: '#how' },
   bullets: [
-    { icon: 'shield', title: 'Distraction-Free', sub: 'Focus Mode' },
-    { icon: 'sparkles', title: 'Guided Sessions', sub: 'Developed with therapists' },
-    { icon: 'download', title: 'Offline Access', sub: 'Use downloaded sessions anywhere' },
-    { icon: 'lock', title: 'Private & Secure', sub: 'You choose what to keep' },
+    { icon: 'shield', title: 'Focused Experience', sub: 'Fewer distractions' },
+    { icon: 'sparkles', title: 'Guided Sessions', sub: 'Step-by-step prompts' },
+    { icon: 'download', title: 'Draw & Paint', sub: 'Create inside the app' },
+    { icon: 'lock', title: 'Private by Design', sub: 'You choose what to keep' },
   ],
-  featuresTitle: 'What we\u2019re building',
+  featuresTitle: 'What we’re building',
   features: [
-    { icon: 'shield', title: 'Distraction-Conscious', body: 'A focused experience designed to keep notifications and unnecessary prompts out of the way.' },
-    { icon: 'flower', title: 'Guided Art Therapy', body: 'Structured creative exercises developed with mental-health professionals.' },
-    { icon: 'palette', title: 'Draw & Paint', body: 'Simple in-app tools for drawing, painting and responding to prompts.' },
-    { icon: 'download', title: 'Offline & Reliable', body: 'Download sessions ahead of time and use them without staying connected.' },
-    { icon: 'lock', title: 'Private by Design', body: 'Clear choices about what you save and what stays private.' },
-    { icon: 'globe', title: 'Culturally Connected', body: 'Designed with African contexts, stories and creative traditions in mind.' },
+    { icon: 'shield', title: 'Distraction-Conscious', body: 'A focused experience designed to keep unnecessary prompts and interruptions out of the way.' },
+    { icon: 'flower', title: 'Guided Creative Sessions', body: 'Structured exercises that give you a clear place to begin, create and reflect.' },
+    { icon: 'palette', title: 'Draw & Paint', body: 'Simple in-app tools for drawing, painting and responding directly to creative prompts.' },
+    { icon: 'smile', title: 'Emotion Check-ins', body: 'Space to notice how you feel before and after a session and reflect on changes over time.' },
+    { icon: 'lock', title: 'Private by Design', body: 'Clear choices around what you save, what you revisit and what remains private.' },
+    { icon: 'globe', title: 'Shaped by Community', body: 'Student input and real-world programme experience are helping us shape the digital experience.' },
   ],
   howTitle: 'How ArtNovaX will work',
   steps: [
-    { icon: 'download', title: '1. Set Your Space', body: 'Turn on Focus Mode and choose how you want to check in.' },
-    { icon: 'list', title: '2. Choose a Session', body: 'Pick a guided exercise that fits the time and energy you have.' },
-    { icon: 'brush', title: '3. Create & Reflect', body: 'Follow the prompt, make something and pause to notice what comes up.' },
-    { icon: 'smile', title: '4. Check In Again', body: 'Record how you feel afterwards and, over time, notice your own patterns.' },
+    { icon: 'smile', title: '1. Check In', body: 'Pause for a moment and notice how you are feeling.' },
+    { icon: 'list', title: '2. Choose a Session', body: 'Pick a guided creative exercise that fits your time and energy.' },
+    { icon: 'brush', title: '3. Create', body: 'Follow the prompt and use the in-app canvas to draw or paint.' },
+    { icon: 'sparkles', title: '4. Reflect', body: 'Check in again, add a reflection and notice what changed.' },
   ],
   journey: {
-    title: 'Short sessions or longer ones',
-    body: 'Sessions will range from quick creative check-ins to longer guided activities, so you can choose what fits the moment.',
+    title: 'Shaped with student input',
+    body: 'At our March 2026 University of Nairobi event, students shared what they knew about art therapy and what they wanted from a digital art experience. That feedback is helping shape development.',
   },
   waitlist: {
-    title: 'Want to try it when early access opens?',
-    body: 'Leave your email and we will let you know when the first test version is ready.',
+    title: 'Want to try ArtNovaX when early testing opens?',
+    body: 'Join the waitlist and we will let you know when there is a version ready to explore.',
     placeholder: 'Enter your email',
     button: 'Join Waitlist',
   }
@@ -82,7 +82,7 @@ export const GET_INVOLVED = {
   waysTitle: 'Ways to Get Involved',
   ways: [
     { icon: 'calendar', title: 'Attend an Event', body: 'Join a creative session, workshop or community event near you.', link: { label: 'View Events', href: '/events' } },
-    { icon: 'handshake', title: 'Partner With Us', body: 'Work with us to run programmes with universities, schools, organisations or community groups.', link: { label: 'Partner With Us', href: '/get-involved/partner' } },
+    { icon: 'handshake', title: 'Partner With Us', body: 'Work with us to create programmes with universities, student groups, organisations or communities.', link: { label: 'Partner With Us', href: '/get-involved/partner' } },
     { icon: 'heart-hands', title: 'Volunteer', body: 'See where we currently need help and whether your skills are a good fit.', link: { label: 'Volunteer With Us', href: '/get-involved/volunteer' } },
     { icon: 'gift', title: 'Support Our Work', body: 'Donations help cover materials, events, research and the everyday cost of running our programmes.', link: { label: 'Donate Now', href: '/get-involved/support' } },
     { icon: 'shopping-bag', title: 'Shop for the Cause', body: 'Buy ArtNovaX merchandise and help fund the work behind our programmes.', link: { label: 'Shop Now', href: '/shop' } },
@@ -98,7 +98,7 @@ export const CONTACT = {
   eyebrow: 'CONTACT US',
   title: 'We’d love to\nhear from you.',
   body: 'Have a question, an idea or something you would like to work on with us? Send us a message.',
-  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/08/5e6789c2-052d-42f3-98df-6ad64ef6766c-contact-us.png',
+  image: 'assets/images/events/events-art-contest.webp',
   imageAlt: 'Two friends chatting warmly over coffee in soft sunlight',
   quickInfo: [
     { icon: 'mail', label: 'Email', value: 'info@artnovax.org' },

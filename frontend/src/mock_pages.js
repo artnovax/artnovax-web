@@ -3,13 +3,25 @@
 export const ABOUT = {
   eyebrow: 'ABOUT US',
   title: 'Our story is\nrooted in creativity,\ncare and community.',
-  body: 'We began with a simple belief: everyone deserves spaces to express, reflect and heal. Technology should help protect those spaces, not compete for our attention.',
-  image: 'https://images.pexels.com/photos/7859206/pexels-photo-7859206.jpeg',
+  body: 'Since 2024, ArtNovaX has brought art, mental wellbeing, community and technology together through creative programmes, campus outreach and a growing digital vision.',
+  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/10/5a8c22d0-3e45-4fec-83a6-cda1adf04641-7-studentexplaininghisartpieceandhowitrelatestohismentalheal.jpg',
   imageAlt: 'Close-up of hands painting with colorful watercolors',
   pillars: [
-    { icon: 'target', title: 'Our Mission', body: 'We use creative expression, community programmes, research and technology to make mental-health support easier to engage with.' },
-    { icon: 'eye', title: 'Our Vision', body: 'We want creative expression to be a normal part of how people care for their mental health, especially young people.' },
-    { icon: 'values', title: 'Our Values', list: ['Compassion', 'Creativity', 'Community', 'Integrity', 'Inclusivity'] },
+    {
+      icon: 'target',
+      title: 'Our Mission',
+      body: 'To make creative approaches to mental wellbeing more accessible, engaging and relevant to young people.'
+    },
+    {
+      icon: 'eye',
+      title: 'Our Approach',
+      body: 'We combine creative expression, mental-health education, community partnerships and thoughtful technology.'
+    },
+    {
+      icon: 'values',
+      title: 'Our Direction',
+      body: 'We are growing from in-person experiences into digital tools designed to make creative wellbeing easier to access.'
+    },
   ],
   founders: {
     eyebrow: 'MEET THE TEAM',
@@ -94,12 +106,11 @@ export const ABOUT = {
     ]
   },
   stats: {
-    title: 'A growing community,\none session at a time.',
+    title: 'Growing the work,\none project at a time.',
     items: [
-      { icon: 'users', value: '80+', label: 'Participants\nengaged' },
-      { icon: 'calendar', value: '15+', label: 'Creative sessions\nhosted' },
-      { icon: 'landmark', value: '5+', label: 'Campuses & community\npartners' },
-      { icon: 'globe', value: '3', label: 'Cities across\nKenya' },
+      { icon: 'users', value: '480+', label: 'Direct\nengagements' },
+      { icon: 'calendar', value: '5', label: 'Projects\ndelivered' },
+      { icon: 'globe', value: '2.9K', label: 'Estimated online\nreach' },
     ]
   },
   cta: {
@@ -111,106 +122,64 @@ export const ABOUT = {
 
 export const OUR_WORK = {
   eyebrow: 'OUR WORK',
-  title: 'Creating spaces where\npeople can slow down,\nmake something and\nconnect.',
-  body: 'We run creative programmes in campuses, schools and community spaces, combining art, reflection and conversation in ways that feel welcoming and practical.',
+  title: 'Creating space to\nmake, reflect and\nconnect.',
+  body: 'We bring together creative expression, mental-health education, community partnerships and technology to make wellbeing support feel more approachable.',
   cta: { label: 'Explore Our Programs', href: '#programs' },
-  image: 'https://images.unsplash.com/photo-1459908676235-d5f02a50184b',
+  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/10/4e42656c-1434-4cf8-85c8-16b565b8b30d-1-sessionwithacertifiedpsychologistduringtheeventonsuicidepr.jpg',
   imageAlt: 'Colorful paintbrushes and vibrant paint — an artist\u2019s working still life',
   programsEyebrow: 'OUR PROGRAM AREAS',
   programsTitle: 'What we do',
   programs: [
     {
       icon: 'brush',
-      title: 'Creative Wellbeing\nExperiences',
-      body: 'Guided art making, doodling, poetry and reflection sessions that give people room to slow down, express themselves and notice how they are feeling.',
-      link: { label: 'See upcoming events', href: '/events' },
-      img: 'https://images.unsplash.com/photo-1461344577544-4e5dc9487184'
-    },
-    {
-      icon: 'users',
-      title: 'Community &\nPartnerships',
-      body: 'We work with universities, schools, youth groups and organisations to shape sessions around the people and communities taking part.',
-      link: { label: 'Partner with us', href: '/get-involved/partner' },
-      img: '/assets/images/community/community-kabete-session.jpg'
+      title: 'Creative\nWellbeing',
+      body: 'Guided and free-form art experiences that create room for expression, reflection and connection.',
+      link: { label: 'See our events', href: '/events' },
+      img: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/10/4dc72b77-90dc-455e-b1a7-228145e9af6e-3-studentstakingpartinaguidedarttherapysessionbypainting-ihi.jpg'
     },
     {
       icon: 'book-open',
-      title: 'Research &\nKnowledge Sharing',
-      body: 'We look at research on creativity and mental health, then turn what we learn into useful, easy-to-understand resources.',
-      link: { label: 'Learn more', href: '/research' },
+      title: 'Mental Health\nEducation',
+      body: 'Talks, webinars and Q&A sessions that open up practical conversations around mental health and support.',
+      link: { label: 'Explore research', href: '/research' },
       img: 'https://images.unsplash.com/photo-1579017308347-e53e0d2fc5e9'
+    },
+    {
+      icon: 'users',
+      title: 'Community &\nInnovation',
+      body: 'Campus partnerships and participant feedback help us shape our programmes and the digital ArtNovaX experience.',
+      link: { label: 'Discover the app', href: '/app' },
+      img: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/10/5c302989-d058-4f09-96d3-37878d19c9ad-2-studentstakingpartinateambuildingsessionduringtheevent-ihi.jpg'
     },
   ],
   stats: {
     title: 'What we have\ndone so far',
-    body: 'We keep track of where we have been, who we are reaching and what participants tell us so we can improve the next session.',
-    footnote: '*Numbers updated as of May 2026',
+    body: 'Since 2024, our work has grown across campus events, online programming and digital outreach.',
+    footnote: '*Updated through March 2026',
     items: [
-      { icon: 'users', value: '80+', label: 'Participants\nengaged' },
-      { icon: 'calendar', value: '15+', label: 'Creative sessions\nhosted' },
-      { icon: 'landmark', value: '5+', label: 'Campuses &\ncommunity partners' },
-      { icon: 'globe', value: '3', label: 'Cities across\nKenya' },
+      { icon: 'users', value: '480+', label: 'Direct\nengagements' },
+      { icon: 'calendar', value: '5', label: 'Projects\ndelivered' },
+      { icon: 'globe', value: 'Up to 2.9K', label: 'Estimated online\nreach' },
     ]
   },
   partnerCta: {
-    body: 'If you have a group, campus or community that could use a creative wellbeing session, we would like to hear what you have in mind.',
+    body: 'Bring ArtNovaX to your campus or community. If you have an idea for a creative wellbeing programme, we would like to hear it.',
     button: { label: 'Partner With Us', href: '/get-involved/partner' }
   }
 };
 
 export const EVENTS = {
   eyebrow: 'EVENTS',
-  title: 'Make something.\nMeet people.\nTake a break.',
-  body: 'Our events are relaxed spaces to make art, try something new, talk with other people and take some time away from the usual routine.',
-  primaryCta: { label: 'View Upcoming Events', href: '#upcoming' },
-  secondaryCta: { label: 'See Past Events', href: '#past' },
-  image: '/assets/images/events/events-art-contest.webp',
-  imageAlt: 'Group of young people painting together at an ArtNovaX event',
-  featured: {
-    tag: 'UPCOMING',
-    title: 'Mental Health\nAwareness 2026',
-    theme: 'Mindful of You: Campus of Care',
-    date: 'Wednesday, 4th March 2026',
-    location: 'University of Nairobi',
-    audience: 'Open to all students',
-    tags: 'Creative Expression • Mindfulness • Community',
-    body: 'Join us for a day of creative activities, conversations and resources focused on mental wellbeing and building a supportive campus community.',
-    posterTitle: 'Mental\nHealth',
-    posterSubtitle: 'AWARENESS 2026',
-    partners: ['ZURI HEALTH', 'ArtNovaX', 'NACADA']
-  },
-  upcoming: [
-    {
-      dateMonth: 'MAY', dateDay: '17', day: 'SAT',
-      title: 'Doodling Together',
-      subtitle: 'Creative expression session',
-      location: 'Nairobi, Kenya',
-      body: 'A guided doodling and reflection session exploring emotions through art.',
-      img: 'https://images.unsplash.com/photo-1560831340-b9679dc9e9f0'
-    },
-    {
-      dateMonth: 'JUN', dateDay: '21', day: 'SAT',
-      title: 'Art & Mind Workshop',
-      subtitle: 'Exploring art for wellbeing',
-      location: 'Nairobi, Kenya',
-      body: 'A hands-on workshop using art to reduce stress and spark joy.',
-      img: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca'
-    }
-  ],
-  past: [
-    { title: 'Creative Circle – UoN', when: 'Feb 2026', img: 'https://images.unsplash.com/photo-1544928147-79a2dbc1f389' },
-    { title: 'CD Art Therapy Session', when: 'Jan 2026', img: 'https://images.unsplash.com/photo-1510832842230-87253f48d74f' },
-    { title: 'Colours of Connection', when: 'Dec 2025', img: 'https://images.pexels.com/photos/2559741/pexels-photo-2559741.jpeg' },
-    { title: 'Mindful Art Sunday', when: 'Nov 2025', img: null },
-  ],
-  testimonials: [
-    { quote: 'For once, I wasn’t worried about making something perfect. I could just create.', author: 'Participant, Doodling Together' },
-    { quote: 'ArtNovaX gave me a space to breathe. I left lighter than I came.', author: 'Participant, Mindful Art Sunday' },
-    { quote: 'It felt like therapy without the pressure. Just paint, people and honesty.', author: 'Participant, Creative Circle' },
-  ],
+  title: 'Create together.\nReflect together.\nConnect.',
+  body: 'From campus art sessions to online creative challenges and mental-health webinars, our events bring people together to make, learn and talk openly about wellbeing.',
+  primaryCta: { label: 'Explore Events', href: '#events' },
+  secondaryCta: { label: 'See Past Events', href: '#events' },
+  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/10/a414405c-c8bf-4f86-bb34-4cd11a703774-1-studentspaintingduringanarttherapysession-uon-2026-copyrig.jpg',
+  imageAlt: 'ArtNovaX creative wellbeing event',
+  testimonials: [],
   ideaCta: {
     title: 'Have an idea for an event?',
-    body: "If there is a creative activity, conversation or community event you would like to run with us, tell us about it.",
+    body: 'If there is a creative activity, conversation or campus programme you would like to run with us, tell us what you have in mind.',
     button: {
       label: 'Share Your Idea',
       href: '/contact?topic=event-idea'
