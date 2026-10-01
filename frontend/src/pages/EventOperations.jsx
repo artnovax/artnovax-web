@@ -20,6 +20,14 @@ import {
 
   RefreshCw,
 
+  Search,
+
+  AlertTriangle,
+
+  MailCheck,
+
+  Clock3,
+
   Save,
 
   Settings2,
@@ -97,6 +105,15 @@ const formatDateTime = (value) => {
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
 
 };
+
+const percent = (value, total) =>
+  total > 0 ? Math.round((value / total) * 100) : 0;
+
+const normalizedText = (value) =>
+  String(value || "").trim().toLowerCase();
+
+const answerValue = (value) =>
+  Array.isArray(value) ? value.join(", ") : String(value ?? "");
 
 
 
@@ -574,6 +591,16 @@ const EventOperations = () => {
 
   const [walkIn, setWalkIn] = useState({ name: "", email: "", phone: "" });
 
+  const [registrationQuery, setRegistrationQuery] = useState("");
+
+  const [registrationStatusFilter, setRegistrationStatusFilter] = useState("all");
+
+  const [attendanceQuery, setAttendanceQuery] = useState("");
+
+  const [attendanceFilter, setAttendanceFilter] = useState("all");
+
+  const [notice, setNotice] = useState(null);
+
 
 
   const selected = useMemo(
@@ -583,6 +610,102 @@ const EventOperations = () => {
     [events, selectedId],
 
   );
+
+  const eventGroups = useMemo(() => {
+    const startTime = (event) => {
+      const value = new Date(event.starts_at || event.date || 0).getTime();
+      return Number.isNaN(value) ? Number.MAX_SAFE_INTEGER : value;
+    };
+
+    const upcoming = events
+      .filter((event) => event.status === "upcoming")
+      .sort((a, b) => startTime(a) - startTime(b));
+
+    const drafts = events
+      .filter((event) => event.status === "draft")
+      .sort((a, b) => startTime(a) - startTime(b));
+
+    const past = events
+      .filter((event) => event.status === "past")
+      .sort((a, b) => startTime(b) - startTime(a));
+
+    return [
+      ["Upcoming", upcoming],
+      ["Drafts", drafts],
+      ["Past", past],
+    ].filter(([, rows]) => rows.length > 0);
+  }, [events]);
+
+  const questionLabels = useMemo(
+    () =>
+      Object.fromEntries(
+        (selected?.questions || []).map((question) => [
+          question.id,
+          question.label || question.id,
+        ]),
+      ),
+    [selected],
+  );
+
+  const feedbackQuestionLabels = useMemo(
+    () =>
+      Object.fromEntries(
+        (selected?.feedbackQuestions || selected?.feedback_questions || []).map(
+          (question) => [question.id, question.label || question.id],
+        ),
+      ),
+    [selected],
+  );
+
+  const filteredRegistrations = useMemo(() => {
+    const query = normalizedText(registrationQuery);
+
+    return registrations.filter((registration) => {
+      if (
+        registrationStatusFilter !== "all" &&
+        registration.status !== registrationStatusFilter
+      ) {
+        return false;
+      }
+
+      if (!query) return true;
+
+      return normalizedText(
+        [
+          registration.name,
+          registration.email,
+          registration.phone,
+          registration.registration_source,
+        ].join(" "),
+      ).includes(query);
+    });
+  }, [registrations, registrationQuery, registrationStatusFilter]);
+
+  const attendanceRows = useMemo(() => {
+    const query = normalizedText(attendanceQuery);
+
+    return registrations.filter((registration) => {
+      if (registration.status !== "confirmed") return false;
+
+      if (
+        attendanceFilter !== "all" &&
+        registration.attendance_status !== attendanceFilter
+      ) {
+        return false;
+      }
+
+      if (!query) return true;
+
+      return normalizedText(
+        [
+          registration.name,
+          registration.email,
+          registration.phone,
+          registration.registration_source,
+        ].join(" "),
+      ).includes(query);
+    });
+  }, [registrations, attendanceQuery, attendanceFilter]);
 
 
 
@@ -704,6 +827,11 @@ const EventOperations = () => {
 
     if (!authorized || !selectedId) return;
 
+    setRegistrationQuery("");
+    setRegistrationStatusFilter("all");
+    setAttendanceQuery("");
+    setAttendanceFilter("all");
+    setNotice(null);
     setLoading(true);
 
     loadEventData(selectedId)
@@ -737,6 +865,7 @@ const EventOperations = () => {
     setSaving(true);
 
     setError(null);
+    setNotice(null);
 
     try {
 
@@ -744,7 +873,7 @@ const EventOperations = () => {
 
       setEvents((current) => current.map((event) => event.id === saved.id ? saved : event));
 
-      window.alert("Event lifecycle settings saved.");
+      setNotice("Event lifecycle settings saved.");
 
     } catch (saveError) {
 
@@ -803,6 +932,7 @@ const EventOperations = () => {
       setWalkIn({ name: "", email: "", phone: "" });
 
       await loadEventData(selectedId);
+      setNotice("Walk-in attendee added.");
 
     } catch (walkInError) {
 
@@ -844,11 +974,16 @@ const EventOperations = () => {
 
     try {
 
-      await finalizeEventAttendance(selected.id);
+      const result = await finalizeEventAttendance(selected.id);
 
       const eventId = await loadEvents(selected.id);
 
       await loadEventData(eventId);
+      setNotice(
+        result?.new_no_show_count
+          ? `Attendance finalized. ${result.new_no_show_count} registration${result.new_no_show_count === 1 ? "" : "s"} marked no-show.`
+          : "Attendance finalized.",
+      );
 
     } catch (finalizeError) {
 
@@ -868,108 +1003,181 @@ const EventOperations = () => {
 
     const count = (predicate) => registrations.filter(predicate).length;
 
+    const confirmed = count((registration) => registration.status === "confirmed");
+    const waitlist = count((registration) => registration.status === "waitlist");
+    const cancelled = count((registration) => registration.status === "cancelled");
     const attended = count((registration) => registration.attendance_status === "attended");
-
+    const noShow = count((registration) => registration.attendance_status === "no_show");
+    const pending = count(
+      (registration) =>
+        registration.status === "confirmed" &&
+        registration.attendance_status === "pending",
+    );
+    const walkIns = count((registration) => registration.registration_source === "walk_in");
+    const feedbackEligible = count(
+      (registration) =>
+        registration.status === "confirmed" &&
+        registration.attendance_status === "attended" &&
+        !!registration.email,
+    );
+    const invitationsSent = count(
+      (registration) => !!registration.feedback_email_sent_at,
+    );
+    const emailIssues = count(
+      (registration) =>
+        !!registration.email_last_error ||
+        !!registration.feedback_email_last_error,
+    );
     const responses = feedback.length;
+    const attendanceDecided = attended + noShow;
 
     return {
-
       total: registrations.length,
-
-      confirmed: count((registration) => registration.status === "confirmed"),
-
-      waitlist: count((registration) => registration.status === "waitlist"),
-
-      cancelled: count((registration) => registration.status === "cancelled"),
-
+      confirmed,
+      waitlist,
+      cancelled,
       attended,
-
-      noShow: count((registration) => registration.attendance_status === "no_show"),
-
-      walkIns: count((registration) => registration.registration_source === "walk_in"),
-
+      noShow,
+      pending,
+      attendanceDecided,
+      attendanceRate: percent(attended, attendanceDecided),
+      walkIns,
+      feedbackEligible,
+      invitationsSent,
+      feedbackUnsent: Math.max(feedbackEligible - invitationsSent, 0),
+      invitationCoverage: percent(invitationsSent, feedbackEligible),
       responses,
-
-      responseRate: attended ? Math.round((responses / attended) * 100) : 0,
-
+      responseRate: percent(responses, invitationsSent),
+      capacityUtilization:
+        selected?.capacity != null
+          ? percent(confirmed, Number(selected.capacity))
+          : null,
+      emailIssues,
       evaluationYes: count((registration) => registration.evaluation_consent === true),
-
       futureContactYes: count((registration) => registration.future_contact_consent === true),
-
       photoYes: count((registration) => registration.photo_consent === true),
-
+      webRegistrations: count((registration) => registration.registration_source === "web"),
+      staffRegistrations: count((registration) => registration.registration_source === "staff"),
     };
 
-  }, [registrations, feedback]);
+  }, [registrations, feedback, selected]);
+
+  const reminderProgress = useMemo(() => {
+    const eligible = registrations.filter(
+      (registration) => registration.status === "confirmed" && !!registration.email,
+    );
+
+    return (selected?.reminder_hours || []).map((hours) => {
+      const sent = eligible.filter((registration) =>
+        (registration.reminders_sent_hours || []).includes(hours),
+      ).length;
+
+      return {
+        hours,
+        sent,
+        total: eligible.length,
+        rate: percent(sent, eligible.length),
+      };
+    });
+  }, [registrations, selected]);
 
 
 
   const downloadCsv = () => {
 
+    const questions = selected?.questions || [];
     const headers = [
-
-      "name", "email", "phone", "registration_status", "attendance_status", "registration_source",
-
-      "evaluation_consent", "future_contact_consent", "photo_consent", "created_at", "checked_in_at",
-
-      "feedback_email_sent_at", "feedback_submitted_at", "answers_json",
-
+      "name",
+      "email",
+      "phone",
+      "registration_status",
+      "attendance_status",
+      "registration_source",
+      "evaluation_consent",
+      "future_contact_consent",
+      "photo_consent",
+      "created_at",
+      "checked_in_at",
+      "confirmation_email_sent_at",
+      "reminders_sent_hours",
+      "feedback_email_sent_at",
+      "feedback_submitted_at",
+      "email_last_error",
+      ...questions.map((question) => question.label || question.id),
+      "answers_json",
     ];
 
     const escape = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
-
-    const lines = [headers.join(",")];
+    const lines = [headers.map(escape).join(",")];
 
     registrations.forEach((registration) => {
-
       lines.push([
-
         registration.name,
-
         registration.email,
-
         registration.phone,
-
         registration.status,
-
         registration.attendance_status,
-
         registration.registration_source,
-
         registration.evaluation_consent,
-
         registration.future_contact_consent,
-
         registration.photo_consent,
-
         registration.created_at,
-
         registration.checked_in_at,
-
+        registration.confirmation_email_sent_at,
+        (registration.reminders_sent_hours || []).join("|"),
         registration.feedback_email_sent_at,
-
         registration.feedback_submitted_at,
-
+        registration.email_last_error || registration.feedback_email_last_error,
+        ...questions.map((question) => answerValue(registration.answers?.[question.id])),
         JSON.stringify(registration.answers || {}),
-
       ].map(escape).join(","));
-
     });
 
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${selected?.slug || "event"}-registrations.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
 
+  };
+
+  const downloadFeedbackCsv = () => {
+
+    const questions =
+      selected?.feedbackQuestions || selected?.feedback_questions || [];
+    const headers = [
+      "name",
+      "email",
+      "submitted_at",
+      ...questions.map((question) => question.label || question.id),
+      "answers_json",
+    ];
+
+    const escape = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+    const lines = [headers.map(escape).join(",")];
+
+    feedback.forEach((response) => {
+      const registration = registrations.find(
+        (row) => row.id === response.registration_id,
+      );
+
+      lines.push([
+        registration?.name,
+        registration?.email,
+        response.submitted_at,
+        ...questions.map((question) => answerValue(response.answers?.[question.id])),
+        JSON.stringify(response.answers || {}),
+      ].map(escape).join(","));
+    });
 
     const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
-
     const url = URL.createObjectURL(blob);
-
     const anchor = document.createElement("a");
-
     anchor.href = url;
-
-    anchor.download = `${selected?.slug || "event"}-registrations.csv`;
-
+    anchor.download = `${selected?.slug || "event"}-feedback.csv`;
     anchor.click();
-
     URL.revokeObjectURL(url);
 
   };
@@ -1044,6 +1252,8 @@ const EventOperations = () => {
 
         {error && <div className="mt-4 rounded-xl bg-red-50 text-red-800 px-4 py-3 text-[13px]">{error}</div>}
 
+        {notice && <div className="mt-4 rounded-xl bg-emerald-50 text-emerald-800 px-4 py-3 text-[13px]">{notice}</div>}
+
 
 
         <div className="mt-6 rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-4">
@@ -1054,14 +1264,14 @@ const EventOperations = () => {
 
             <select value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className={`${inputClass} max-w-[620px]`}>
 
-              {events.map((event) => (
-
-                <option key={event.id} value={event.id}>
-
-                  {event.title} — {event.status}
-
-                </option>
-
+              {eventGroups.map(([label, rows]) => (
+                <optgroup key={label} label={label}>
+                  {rows.map((event) => (
+                    <option key={event.id} value={event.id}>
+                      {event.title}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
 
             </select>
@@ -1095,6 +1305,21 @@ const EventOperations = () => {
         </div>
 
 
+
+        {selected && (
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Metric label="Confirmed" value={metrics.confirmed} />
+            <Metric
+              label="Attendance rate"
+              value={metrics.attendanceDecided ? `${metrics.attendanceRate}%` : "—"}
+            />
+            <Metric
+              label="Feedback response"
+              value={metrics.invitationsSent ? `${metrics.responseRate}%` : "—"}
+            />
+            <Metric label="Email issues" value={metrics.emailIssues} />
+          </div>
+        )}
 
         <div className="mt-5 flex flex-wrap gap-2">
 
@@ -1153,6 +1378,20 @@ const EventOperations = () => {
                 className="mt-3"
 
               />
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(selected.reminder_hours || []).length > 0 ? (
+                  selected.reminder_hours.map((hours) => (
+                    <span key={hours} className="rounded-full bg-burgundy/10 text-burgundy px-3 py-1 text-[11.5px] font-semibold">
+                      {hours}h before
+                    </span>
+                  ))
+                ) : (
+                  <span className="rounded-full bg-ivory px-3 py-1 text-[11.5px] text-ink/55 ring-1 ring-ivory-300">
+                    Reminders disabled
+                  </span>
+                )}
+              </div>
 
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
 
@@ -1218,68 +1457,89 @@ const EventOperations = () => {
 
         ) : tab === "registrations" ? (
 
-          <div className="mt-6 space-y-3">
+          <div className="mt-6 space-y-4">
+
+            <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">Registrations</h3>
+                  <p className="mt-1 text-[12px] text-ink/60">
+                    Search participants, review answers and consent, and spot delivery issues.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-[minmax(240px,1fr)_160px] gap-2 w-full lg:w-auto">
+                  <label className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/40" />
+                    <input value={registrationQuery} onChange={(event) => setRegistrationQuery(event.target.value)} placeholder="Search name, email or phone" className={`${inputClass} pl-9`} />
+                  </label>
+                  <select value={registrationStatusFilter} onChange={(event) => setRegistrationStatusFilter(event.target.value)} className={inputClass}>
+                    <option value="all">All RSVP states</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="waitlist">Waitlist</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2 text-[11.5px] text-ink/65">
+                <span className="rounded-full bg-ivory px-3 py-1 ring-1 ring-ivory-300">{metrics.confirmed} confirmed</span>
+                <span className="rounded-full bg-ivory px-3 py-1 ring-1 ring-ivory-300">{metrics.waitlist} waitlisted</span>
+                <span className="rounded-full bg-ivory px-3 py-1 ring-1 ring-ivory-300">{metrics.cancelled} cancelled</span>
+              </div>
+            </section>
 
             {registrations.length === 0 ? (
-
               <div className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-8 text-center text-ink/60">No registrations yet.</div>
-
-            ) : registrations.map((registration) => (
-
+            ) : filteredRegistrations.length === 0 ? (
+              <div className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-8 text-center text-ink/60">No registrations match these filters.</div>
+            ) : filteredRegistrations.map((registration) => (
               <details key={registration.id} className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-4">
-
                 <summary className="cursor-pointer list-none flex items-center justify-between gap-3 flex-wrap">
-
                   <div>
-
                     <div className="font-semibold text-ink">{registration.name} <span className="font-normal text-ink/50">— {registration.email || "walk-in"}</span></div>
-
                     <div className="mt-1 text-[11.5px] text-ink/60">{registration.status} • {registration.registration_source || "web"} • {formatDateTime(registration.created_at)}</div>
-
                   </div>
-
-                  <span className="rounded-full bg-ivory px-3 py-1 text-[11px] ring-1 ring-ivory-300">{registration.attendance_status || "pending"}</span>
-
+                  <div className="flex items-center gap-2">
+                    {(registration.email_last_error || registration.feedback_email_last_error) && (
+                      <span title="Email delivery issue" className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200"><AlertTriangle className="w-3.5 h-3.5" /></span>
+                    )}
+                    <span className="rounded-full bg-ivory px-3 py-1 text-[11px] ring-1 ring-ivory-300">{registration.attendance_status || "pending"}</span>
+                  </div>
                 </summary>
 
-                <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4 text-[12.5px]">
+                {(registration.email_last_error || registration.feedback_email_last_error) && (
+                  <div className="mt-4 rounded-xl bg-amber-50 text-amber-800 ring-1 ring-amber-200 px-4 py-3 text-[12px]"><b>Email issue:</b> {registration.feedback_email_last_error || registration.email_last_error}</div>
+                )}
+
+                <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-[12.5px]">
+                  <div className="rounded-xl bg-ivory p-4 ring-1 ring-ivory-300">
+                    <div className="text-[11px] uppercase tracking-widest text-ink/50 font-semibold">Contact</div>
+                    <div className="mt-2"><b>Email:</b> {registration.email || "—"}</div>
+                    <div className="mt-1"><b>Phone:</b> {registration.phone || "—"}</div>
+                    <div className="mt-1"><b>Source:</b> {registration.registration_source || "web"}</div>
+                    <div className="mt-1"><b>Registered:</b> {formatDateTime(registration.created_at)}</div>
+                  </div>
 
                   <div className="rounded-xl bg-ivory p-4 ring-1 ring-ivory-300">
-
                     <div className="text-[11px] uppercase tracking-widest text-ink/50 font-semibold">Consent</div>
-
                     <div className="mt-2 space-y-1"><b>Evaluation:</b> <ConsentValue value={registration.evaluation_consent} /></div>
-
                     <div className="space-y-1"><b>Future contact:</b> <ConsentValue value={registration.future_contact_consent} /></div>
-
                     <div className="space-y-1"><b>Photo/video:</b> <ConsentValue value={registration.photo_consent} /></div>
-
                     <div className="mt-1 text-ink/50">Version: {registration.consent_version || "—"}</div>
-
                   </div>
 
                   <div className="rounded-xl bg-ivory p-4 ring-1 ring-ivory-300">
-
                     <div className="text-[11px] uppercase tracking-widest text-ink/50 font-semibold">Answers</div>
-
                     <div className="mt-2 space-y-2">
-
-                      {Object.entries(registration.answers || {}).filter(([key]) => key !== "_consent").map(([key, value]) => (
-
-                        <div key={key}><b>{key}:</b> {Array.isArray(value) ? value.join(", ") : String(value ?? "")}</div>
-
+                      {Object.entries(registration.answers || {}).filter(([key]) => key !== "_consent").length === 0 ? (
+                        <div className="text-ink/50">No custom answers.</div>
+                      ) : Object.entries(registration.answers || {}).filter(([key]) => key !== "_consent").map(([key, value]) => (
+                        <div key={key}><b>{questionLabels[key] || key}:</b> {answerValue(value)}</div>
                       ))}
-
                     </div>
-
                   </div>
-
                 </div>
-
               </details>
-
             ))}
-
           </div>
 
         ) : tab === "attendance" ? (
@@ -1287,99 +1547,70 @@ const EventOperations = () => {
           <div className="mt-6 space-y-5">
 
             <form onSubmit={addWalkIn} className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5">
-
               <div className="flex items-center gap-2 text-burgundy font-semibold"><UserPlus className="w-4 h-4" /> Add walk-in attendee</div>
-
               <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
-
                 <input required value={walkIn.name} onChange={(event) => setWalkIn({ ...walkIn, name: event.target.value })} placeholder="Name *" className={inputClass} />
-
                 <input type="email" value={walkIn.email} onChange={(event) => setWalkIn({ ...walkIn, email: event.target.value })} placeholder="Email (optional)" className={inputClass} />
-
                 <input value={walkIn.phone} onChange={(event) => setWalkIn({ ...walkIn, phone: event.target.value })} placeholder="Phone (optional)" className={inputClass} />
-
               </div>
-
               <button disabled={saving} className="mt-3 inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-4 py-2 text-[12.5px] font-semibold disabled:opacity-60"><Plus className="w-4 h-4" /> Add walk-in</button>
-
             </form>
 
-
+            <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Metric label="Attended" value={metrics.attended} />
+                <Metric label="Pending" value={metrics.pending} />
+                <Metric label="No-shows" value={metrics.noShow} />
+                <Metric label="Show rate" value={metrics.attendanceDecided ? `${metrics.attendanceRate}%` : "—"} />
+              </div>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-[minmax(240px,1fr)_170px] gap-2">
+                <label className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/40" />
+                  <input value={attendanceQuery} onChange={(event) => setAttendanceQuery(event.target.value)} placeholder="Search attendees" className={`${inputClass} pl-9`} />
+                </label>
+                <select value={attendanceFilter} onChange={(event) => setAttendanceFilter(event.target.value)} className={inputClass}>
+                  <option value="all">All attendance</option>
+                  <option value="pending">Pending</option>
+                  <option value="attended">Attended</option>
+                  <option value="no_show">No-show</option>
+                </select>
+              </div>
+            </section>
 
             <div className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 overflow-hidden">
-
-              {registrations.filter((registration) => registration.status === "confirmed").map((registration) => (
-
+              {registrations.filter((registration) => registration.status === "confirmed").length === 0 ? (
+                <div className="px-4 py-8 text-center text-ink/60 text-[13px]">No confirmed attendees yet.</div>
+              ) : attendanceRows.length === 0 ? (
+                <div className="px-4 py-8 text-center text-ink/60 text-[13px]">No attendees match these filters.</div>
+              ) : attendanceRows.map((registration) => (
                 <div key={registration.id} className="px-4 py-3 border-b border-ivory-300 last:border-0 flex items-center justify-between gap-3 flex-wrap">
-
                   <div>
-
                     <div className="font-semibold text-[13.5px] text-ink">{registration.name}</div>
-
-                    <div className="text-[11.5px] text-ink/55">{registration.email || "No email"} • {registration.registration_source || "web"}</div>
-
+                    <div className="text-[11.5px] text-ink/55">{registration.email || "No email"} • {registration.registration_source || "web"}{registration.checked_in_at ? ` • checked in ${formatDateTime(registration.checked_in_at)}` : ""}</div>
                   </div>
-
                   <div className="flex items-center gap-1.5 flex-wrap">
-
                     {["attended", "no_show", "pending"].map((status) => (
-
-                      <button
-
-                        key={status}
-
-                        type="button"
-
-                        disabled={workingId === registration.id}
-
-                        onClick={() => changeAttendance(registration, status)}
-
-                        className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold ring-1 ${registration.attendance_status === status ? "bg-burgundy text-ivory ring-burgundy" : "bg-ivory text-ink/70 ring-ivory-300"}`}
-
-                      >
-
+                      <button key={status} type="button" disabled={workingId === registration.id} onClick={() => changeAttendance(registration, status)} className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold ring-1 ${registration.attendance_status === status ? "bg-burgundy text-ivory ring-burgundy" : "bg-ivory text-ink/70 ring-ivory-300"}`}>
                         {status === "no_show" ? "No-show" : status.charAt(0).toUpperCase() + status.slice(1)}
-
                       </button>
-
                     ))}
-
                   </div>
-
                 </div>
-
               ))}
-
             </div>
 
-
-
             <section className="rounded-2xl bg-burgundy/5 ring-1 ring-burgundy/20 p-5">
-
               <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">Finalize attendance</h3>
-
-              <p className="mt-1 text-[12.5px] text-ink/70 leading-relaxed">
-
-                Finalization is intentionally separate from RSVP status. It marks remaining confirmed, pending registrations as no-shows. Feedback invitations are not eligible until this step is complete.
-
-              </p>
-
+              <p className="mt-1 text-[12.5px] text-ink/70 leading-relaxed">Finalization is intentionally separate from RSVP status. It marks remaining confirmed, pending registrations as no-shows. Feedback invitations are not eligible until this step is complete.</p>
               {selected.attendanceFinalizedAt ? (
-
-                <div className="mt-3 inline-flex items-center gap-2 text-emerald-700 text-[12.5px] font-semibold"><Check className="w-4 h-4" /> Finalized {formatDateTime(selected.attendanceFinalizedAt)}</div>
-
+                <div>
+                  <div className="mt-3 inline-flex items-center gap-2 text-emerald-700 text-[12.5px] font-semibold"><Check className="w-4 h-4" /> Finalized {formatDateTime(selected.attendanceFinalizedAt)}</div>
+                  <p className="mt-2 text-[11.5px] text-ink/55">You can still correct individual attendance records if needed. Feedback may already have been sent to attendees.</p>
+                </div>
               ) : (
-
-                <button onClick={finalize} disabled={saving || !isEventEnded(selected)} className="mt-3 inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-4 py-2.5 text-[12.5px] font-semibold disabled:opacity-40">
-
-                  <ClipboardCheck className="w-4 h-4" /> Finalize attendance
-
-                </button>
-
+                <button onClick={finalize} disabled={saving || !isEventEnded(selected)} className="mt-3 inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-4 py-2.5 text-[12.5px] font-semibold disabled:opacity-40"><ClipboardCheck className="w-4 h-4" /> Finalize attendance</button>
               )}
-
               {!isEventEnded(selected) && !selected.attendanceFinalizedAt && <p className="mt-2 text-[11.5px] text-ink/50">Available after the event ends.</p>}
-
             </section>
 
           </div>
@@ -1389,48 +1620,49 @@ const EventOperations = () => {
           <div className="mt-6 space-y-4">
 
             <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5">
-
-              <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">Feedback delivery</h3>
-
-              <p className="mt-1 text-[12.5px] text-ink/65 leading-relaxed">
-
-                The scheduled feedback worker only emails confirmed attendees marked attended, only after attendance is finalized, and only after the configured delay from the event end time.
-
-              </p>
-
-              <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-
-                <Metric label="Attended" value={metrics.attended} />
-
-                <Metric label="Invitations sent" value={registrations.filter((registration) => !!registration.feedback_email_sent_at).length} />
-
-                <Metric label="Responses" value={metrics.responses} />
-
-                <Metric label="Response rate" value={`${metrics.responseRate}%`} />
-
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">Feedback delivery</h3>
+                  <p className="mt-1 text-[12.5px] text-ink/65 leading-relaxed">Invitations go only to confirmed attendees marked attended, with an email address, after attendance is finalized and the configured delay has passed.</p>
+                </div>
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11.5px] font-semibold ${selected.feedbackEnabled !== false ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" : "bg-ivory text-ink/55 ring-1 ring-ivory-300"}`}>
+                  <MailCheck className="w-3.5 h-3.5" /> {selected.feedbackEnabled !== false ? "Feedback enabled" : "Feedback disabled"}
+                </span>
               </div>
 
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                <Metric label="Eligible by email" value={metrics.feedbackEligible} />
+                <Metric label="Invitations sent" value={metrics.invitationsSent} />
+                <Metric label="Responses" value={metrics.responses} />
+                <Metric label="Response rate" value={metrics.invitationsSent ? `${metrics.responseRate}%` : "—"} />
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-3 text-[11.5px] text-ink/60">
+                <span className="inline-flex items-center gap-1.5"><Clock3 className="w-3.5 h-3.5" /> Delay: {selected.feedbackDelayHours ?? selected.feedback_delay_hours ?? 24}h after event end</span>
+                <span>Invitation coverage: {metrics.feedbackEligible ? `${metrics.invitationCoverage}%` : "—"}</span>
+                {metrics.feedbackUnsent > 0 && selected.attendanceFinalizedAt && <span className="text-amber-700">{metrics.feedbackUnsent} eligible attendee{metrics.feedbackUnsent === 1 ? "" : "s"} still awaiting an invitation.</span>}
+              </div>
             </section>
 
             {feedback.length === 0 ? (
-
               <div className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-8 text-center text-ink/60">No feedback submitted yet.</div>
-
-            ) : feedback.map((response) => (
-
-              <details key={response.id} className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-4">
-
-                <summary className="cursor-pointer list-none flex justify-between gap-3"><b>Response</b><span className="text-[11.5px] text-ink/60">{formatDateTime(response.submitted_at)}</span></summary>
-
-                <div className="mt-3 space-y-2 text-[12.5px]">
-
-                  {Object.entries(response.answers || {}).map(([key, value]) => <div key={key}><b>{key}:</b> {Array.isArray(value) ? value.join(", ") : String(value ?? "")}</div>)}
-
-                </div>
-
-              </details>
-
-            ))}
+            ) : feedback.map((response) => {
+              const registration = registrations.find((row) => row.id === response.registration_id);
+              return (
+                <details key={response.id} className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-4">
+                  <summary className="cursor-pointer list-none flex justify-between gap-3 flex-wrap">
+                    <div>
+                      <b>{registration?.name || "Feedback response"}</b>
+                      {registration?.email && <span className="text-ink/50 font-normal"> — {registration.email}</span>}
+                    </div>
+                    <span className="text-[11.5px] text-ink/60">{formatDateTime(response.submitted_at)}</span>
+                  </summary>
+                  <div className="mt-3 space-y-2 text-[12.5px]">
+                    {Object.entries(response.answers || {}).map(([key, value]) => <div key={key}><b>{feedbackQuestionLabels[key] || key}:</b> {answerValue(value)}</div>)}
+                  </div>
+                </details>
+              );
+            })}
 
           </div>
 
@@ -1439,45 +1671,72 @@ const EventOperations = () => {
           <div className="mt-6 space-y-5">
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-
               <Metric label="Registrations" value={metrics.total} />
-
               <Metric label="Confirmed" value={metrics.confirmed} />
-
-              <Metric label="Waitlist" value={metrics.waitlist} />
-
-              <Metric label="Cancelled" value={metrics.cancelled} />
-
+              <Metric label="Capacity used" value={metrics.capacityUtilization == null ? "—" : `${metrics.capacityUtilization}%`} />
+              <Metric label="Show rate" value={metrics.attendanceDecided ? `${metrics.attendanceRate}%` : "—"} />
               <Metric label="Attended" value={metrics.attended} />
-
               <Metric label="No-shows" value={metrics.noShow} />
-
-              <Metric label="Walk-ins" value={metrics.walkIns} />
-
-              <Metric label="Feedback rate" value={`${metrics.responseRate}%`} />
-
+              <Metric label="Feedback invitations" value={metrics.invitationsSent} />
+              <Metric label="Feedback response" value={metrics.invitationsSent ? `${metrics.responseRate}%` : "—"} />
             </div>
 
             <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5">
-
-              <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">Consent snapshot</h3>
-
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-
-                <Metric label="Evaluation / research — Yes" value={metrics.evaluationYes} />
-
-                <Metric label="Future contact — Yes" value={metrics.futureContactYes} />
-
-                <Metric label="Photo / video — Yes" value={metrics.photoYes} />
-
+              <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">Event funnel</h3>
+              <p className="mt-1 text-[12px] text-ink/60">A quick view from registration through post-event feedback.</p>
+              <div className="mt-4 space-y-3">
+                <ProgressRow label="Registrations" value={metrics.total} total={metrics.total} />
+                <ProgressRow label="Confirmed" value={metrics.confirmed} total={metrics.total} />
+                <ProgressRow label="Attended" value={metrics.attended} total={metrics.total} />
+                <ProgressRow label="Feedback invitations" value={metrics.invitationsSent} total={metrics.total} />
+                <ProgressRow label="Feedback responses" value={metrics.responses} total={metrics.total} />
               </div>
-
             </section>
 
-            <div className="flex justify-end">
+            <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5">
+              <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">Reminder delivery</h3>
+              <p className="mt-1 text-[12px] text-ink/60">Delivery progress for currently confirmed registrations with email addresses.</p>
+              {(selected.reminder_hours || []).length === 0 ? (
+                <div className="mt-4 rounded-xl bg-ivory p-4 ring-1 ring-ivory-300 text-[12.5px] text-ink/60">Reminders are disabled for this event.</div>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {reminderProgress.map((reminder) => <ProgressRow key={reminder.hours} label={`${reminder.hours}h before`} value={reminder.sent} total={reminder.total} />)}
+                </div>
+              )}
+            </section>
 
-              <button onClick={downloadCsv} className="inline-flex items-center gap-2 rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[12.5px] font-semibold"><Download className="w-4 h-4" /> Download registration CSV</button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5">
+                <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">Registration sources</h3>
+                <div className="mt-4 space-y-3">
+                  <ProgressRow label="Web" value={metrics.webRegistrations} total={metrics.total} />
+                  <ProgressRow label="Walk-ins" value={metrics.walkIns} total={metrics.total} />
+                  <ProgressRow label="Staff" value={metrics.staffRegistrations} total={metrics.total} />
+                </div>
+              </section>
 
+              <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5">
+                <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">Operations health</h3>
+                <div className="mt-4 space-y-3 text-[12.5px]">
+                  <div className="flex items-center justify-between gap-4 rounded-xl bg-ivory ring-1 ring-ivory-300 px-4 py-3"><span>Pending attendance</span><b className={metrics.pending > 0 && isEventEnded(selected) ? "text-amber-700" : "text-ink"}>{metrics.pending}</b></div>
+                  <div className="flex items-center justify-between gap-4 rounded-xl bg-ivory ring-1 ring-ivory-300 px-4 py-3"><span>Email delivery issues</span><b className={metrics.emailIssues > 0 ? "text-red-700" : "text-emerald-700"}>{metrics.emailIssues}</b></div>
+                  <div className="flex items-center justify-between gap-4 rounded-xl bg-ivory ring-1 ring-ivory-300 px-4 py-3"><span>Eligible feedback invites unsent</span><b className={metrics.feedbackUnsent > 0 && selected.attendanceFinalizedAt ? "text-amber-700" : "text-ink"}>{metrics.feedbackUnsent}</b></div>
+                </div>
+              </section>
+            </div>
+
+            <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5">
+              <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">Consent snapshot</h3>
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Metric label="Evaluation / research — Yes" value={metrics.evaluationYes} />
+                <Metric label="Future contact — Yes" value={metrics.futureContactYes} />
+                <Metric label="Photo / video — Yes" value={metrics.photoYes} />
+              </div>
+            </section>
+
+            <div className="flex justify-end gap-2 flex-wrap">
+              <button onClick={downloadFeedbackCsv} disabled={feedback.length === 0} className="inline-flex items-center gap-2 rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[12.5px] font-semibold disabled:opacity-40"><Download className="w-4 h-4" /> Download feedback CSV</button>
+              <button onClick={downloadCsv} className="inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-4 py-2.5 text-[12.5px] font-semibold"><Download className="w-4 h-4" /> Download registration CSV</button>
             </div>
 
           </div>
@@ -1507,6 +1766,25 @@ const Metric = ({ label, value }) => (
   </div>
 
 );
+
+const ProgressRow = ({ label, value, total }) => {
+  const rate = percent(value, total);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3 text-[12.5px]">
+        <span className="text-ink/75">{label}</span>
+        <span className="font-semibold text-ink">
+          {value} / {total || 0}
+          {total > 0 ? <span className="text-ink/45 font-normal"> · {rate}%</span> : null}
+        </span>
+      </div>
+      <div className="mt-1.5 h-2 rounded-full bg-ivory-300 overflow-hidden">
+        <div className="h-full bg-burgundy rounded-full transition-[width]" style={{ width: `${Math.min(100, rate)}%` }} />
+      </div>
+    </div>
+  );
+};
 
 
 
