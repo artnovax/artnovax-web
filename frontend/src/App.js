@@ -11,6 +11,7 @@ import OurWork from './pages/OurWork';
 import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
 import EventRegister from './pages/EventRegister';
+import EventFeedback from './pages/EventFeedback';
 import FounderDetail from './pages/FounderDetail';
 import Volunteer from './pages/Volunteer';
 import VolunteerApply from './pages/VolunteerApply';
@@ -29,6 +30,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
 import AdminPayments from './pages/AdminPayments';
+import EventOperations from './pages/EventOperations';
 import InfoPage from './pages/InfoPage';
 
 function App() {
@@ -71,8 +73,11 @@ function App() {
               <Route path="*" element={<Home />} />
             </Route>
 
+            <Route path="/events/:slug/feedback" element={<EventFeedback />} />
+
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/payments" element={<AdminPayments />} />
+            <Route path="/admin/events" element={<EventOperations />} />
           </Routes>
           <CartDrawer />
         </BrowserRouter>

@@ -50,3 +50,12 @@ verify_jwt = false
 
 [functions.send-event-reminders]
 verify_jwt = false
+
+# Public feedback submission is authorized by the unique feedback token and
+# then validated against finalized attendance inside the function.
+[functions.event-feedback]
+verify_jwt = false
+
+# Scheduled worker protected by CRON_SECRET in x-cron-secret.
+[functions.send-event-feedback]
+verify_jwt = false

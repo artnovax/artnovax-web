@@ -1,15 +1,53 @@
 import { supabase } from '@/lib/supabase';
 
-function toFrontendEvent(row) {
+const DEFAULT_TIMEZONE = 'Africa/Nairobi';
+const DEFAULT_DURATION_MINUTES = 180;
+
+const normalizeList = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (!value) return [];
+  return String(value).split(',').map((v) => v.trim()).filter(Boolean);
+};
+
+const normalizeReminderHours = (value) => {
+  if (!Array.isArray(value)) return [48];
+  return Array.from(
+    new Set(
+      value
+        .map(Number)
+        .filter((hours) => Number.isFinite(hours) && hours > 0),
+    ),
+  ).sort((a, b) => b - a);
+};
+
+const slugify = (value = '') => value
+  .toLowerCase()
+  .trim()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '');
+
+export function isEventEnded(event, now = new Date()) {
+  const endValue = event?.ends_at ?? event?.endsAt;
+  if (!endValue) return false;
+
+  const end = new Date(endValue);
+  return !Number.isNaN(end.getTime()) && end.getTime() <= now.getTime();
+}
+
+export function toFrontendEvent(row) {
   if (!row) return null;
+
+  const ended = isEventEnded(row);
+  const effectiveStatus = row.status === 'upcoming' && ended ? 'past' : row.status;
 
   return {
     ...row,
+    status: effectiveStatus,
 
     date:
       row.date_text ??
       row.date ??
-      "",
+      '',
 
     img:
       row.image_path ??
@@ -19,7 +57,7 @@ function toFrontendEvent(row) {
     imgAlt:
       row.image_alt_text ??
       row.imgAlt ??
-      "",
+      '',
 
     posterMediaId:
       row.poster_media_id ??
@@ -28,14 +66,32 @@ function toFrontendEvent(row) {
 
     timezone:
       row.timezone ||
-      "Africa/Nairobi",
+      DEFAULT_TIMEZONE,
 
     durationMinutes:
       row.duration_minutes ??
-      180,
+      DEFAULT_DURATION_MINUTES,
 
     endsAt:
       row.ends_at ??
+      null,
+
+    reminderHours: Array.isArray(row.reminder_hours)
+      ? row.reminder_hours
+      : [48],
+
+    feedbackEnabled:
+      row.feedback_enabled !== false,
+
+    feedbackDelayHours:
+      row.feedback_delay_hours ??
+      24,
+
+    feedbackQuestions:
+      row.feedback_questions || [],
+
+    attendanceFinalizedAt:
+      row.attendance_finalized_at ??
       null,
   };
 }
@@ -64,12 +120,12 @@ function toDatabaseEvent(event) {
 
     timezone:
       event.timezone ||
-      "Africa/Nairobi",
+      DEFAULT_TIMEZONE,
 
     duration_minutes:
       event.durationMinutes ??
       event.duration_minutes ??
-      180,
+      DEFAULT_DURATION_MINUTES,
 
     location:
       event.location || null,
@@ -100,7 +156,7 @@ function toDatabaseEvent(event) {
 
     status:
       event.status ||
-      "upcoming",
+      'upcoming',
 
     featured:
       !!event.featured,
@@ -112,44 +168,53 @@ function toDatabaseEvent(event) {
       event.poster || null,
 
     capacity:
-      event.capacity === "" ||
-        event.capacity == null
+      event.capacity === '' || event.capacity == null
         ? null
         : Number(event.capacity),
 
+    // IMPORTANT: [] means reminders are intentionally disabled.
     reminder_hours:
-      event.reminder_hours ||
-      [48],
+      event.reminder_hours !== undefined
+        ? normalizeReminderHours(event.reminder_hours)
+        : event.reminderHours !== undefined
+          ? normalizeReminderHours(event.reminderHours)
+          : [48],
 
     questions:
-      event.questions || [],
+      Array.isArray(event.questions) ? event.questions : [],
+
+    feedback_enabled:
+      event.feedback_enabled ??
+      event.feedbackEnabled ??
+      true,
+
+    feedback_delay_hours:
+      Number(
+        event.feedback_delay_hours ??
+        event.feedbackDelayHours ??
+        24,
+      ),
+
+    feedback_questions:
+      Array.isArray(event.feedback_questions)
+        ? event.feedback_questions
+        : Array.isArray(event.feedbackQuestions)
+          ? event.feedbackQuestions
+          : [],
   };
 }
 
-
-const normalizeList = (value) => {
-  if (Array.isArray(value)) return value.filter(Boolean);
-  if (!value) return [];
-  return String(value).split(',').map((v) => v.trim()).filter(Boolean);
-};
-
-const slugify = (value = '') => value
-  .toLowerCase()
-  .trim()
-  .replace(/[^a-z0-9]+/g, '-')
-  .replace(/^-+|-+$/g, '');
-
 export async function getEvents({ includeDrafts = false } = {}) {
   let query = supabase
-    .from("events")
-    .select("*")
-    .order("starts_at", {
+    .from('events')
+    .select('*')
+    .order('starts_at', {
       ascending: true,
       nullsFirst: false,
     });
 
   if (!includeDrafts) {
-    query = query.neq("status", "draft");
+    query = query.neq('status', 'draft');
   }
 
   const { data, error } = await query;
@@ -172,7 +237,21 @@ export async function registerForEvent({
   email,
   phone,
   answers,
+  evaluationConsent = null,
+  futureContactConsent = null,
+  photoConsent = null,
+  consentVersion = '2026-09',
 }) {
+  const lifecycleAnswers = {
+    ...(answers || {}),
+    _consent: {
+      evaluation_consent: evaluationConsent,
+      future_contact_consent: futureContactConsent,
+      photo_consent: photoConsent,
+      consent_version: consentVersion,
+    },
+  };
+
   const { data, error } =
     await supabase.functions.invoke(
       'public-submission',
@@ -184,13 +263,20 @@ export async function registerForEvent({
             name,
             email,
             phone,
-            answers,
+            answers: lifecycleAnswers,
           },
         },
       },
     );
 
-  if (error) throw error;
+  if (error) {
+    let message = error.message || 'Registration failed.';
+    try {
+      const body = await error?.context?.json?.();
+      message = body?.error || message;
+    } catch {}
+    throw new Error(message);
+  }
 
   if (data?.error) {
     throw new Error(data.error);
@@ -200,14 +286,23 @@ export async function registerForEvent({
 }
 
 export async function createEvent(event) {
-  const { data, error } = await supabase.from('events').insert(toDatabaseEvent(event)).select().single();
+  const { data, error } = await supabase
+    .from('events')
+    .insert(toDatabaseEvent(event))
+    .select()
+    .single();
   if (error) throw error;
   return toFrontendEvent(data);
 }
 
 export async function updateEvent(id, event) {
   const payload = toDatabaseEvent(event);
-  const { data, error } = await supabase.from('events').update(payload).eq('id', id).select().single();
+  const { data, error } = await supabase
+    .from('events')
+    .update(payload)
+    .eq('id', id)
+    .select()
+    .single();
   if (error) throw error;
   return toFrontendEvent(data);
 }
@@ -215,4 +310,101 @@ export async function updateEvent(id, event) {
 export async function deleteEvent(id) {
   const { error } = await supabase.from('events').delete().eq('id', id);
   if (error) throw error;
+}
+
+export async function getEventRegistrations(eventId) {
+  const { data, error } = await supabase
+    .from('event_registrations')
+    .select('*')
+    .eq('event_id', eventId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getEventFeedback(eventId) {
+  const { data, error } = await supabase
+    .from('event_feedback')
+    .select('*')
+    .eq('event_id', eventId)
+    .order('submitted_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function setRegistrationAttendance(
+  registrationId,
+  attendanceStatus,
+) {
+  const allowed = ['pending', 'attended', 'no_show'];
+  if (!allowed.includes(attendanceStatus)) {
+    throw new Error('Invalid attendance status.');
+  }
+
+  const patch = {
+    attendance_status: attendanceStatus,
+    checked_in_at: attendanceStatus === 'attended'
+      ? new Date().toISOString()
+      : null,
+  };
+
+  const { data, error } = await supabase
+    .from('event_registrations')
+    .update(patch)
+    .eq('id', registrationId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function addEventWalkIn({
+  eventId,
+  name,
+  email = null,
+  phone = null,
+}) {
+  const { data, error } = await supabase.rpc('add_event_walk_in', {
+    p_event_id: eventId,
+    p_name: name,
+    p_email: email || null,
+    p_phone: phone || null,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function finalizeEventAttendance(eventId) {
+  const { data, error } = await supabase.rpc('finalize_event_attendance', {
+    p_event_id: eventId,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function getEventFeedbackContext(token) {
+  const { data, error } = await supabase.rpc('get_event_feedback_context', {
+    p_token: token,
+  });
+  if (error) throw error;
+  if (!data) throw new Error('This feedback link is not available.');
+  return data;
+}
+
+export async function submitEventFeedback({ token, answers }) {
+  const { data, error } = await supabase.functions.invoke('event-feedback', {
+    body: { token, answers },
+  });
+
+  if (error) {
+    let message = error.message || 'Feedback submission failed.';
+    try {
+      const body = await error?.context?.json?.();
+      message = body?.error || message;
+    } catch {}
+    throw new Error(message);
+  }
+
+  if (data?.error) throw new Error(data.error);
+  return data;
 }

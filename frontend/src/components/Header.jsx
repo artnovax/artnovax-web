@@ -25,12 +25,11 @@ const HeaderInner = ({
   const [dropdown, setDropdown] = useState(null);
   const desktopNavRef = useRef(null);
   const { count, setOpen: setCartOpen } = useCart();
+  const adminContext = activePath === "/admin" || activePath.startsWith("/admin/");
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
-
     document.body.style.overflow = open ? "hidden" : "";
-
     return () => {
       document.body.style.overflow = previousOverflow;
     };
@@ -38,10 +37,7 @@ const HeaderInner = ({
 
   useEffect(() => {
     const handlePointerDown = (event) => {
-      if (
-        desktopNavRef.current &&
-        !desktopNavRef.current.contains(event.target)
-      ) {
+      if (desktopNavRef.current && !desktopNavRef.current.contains(event.target)) {
         setDropdown(null);
       }
     };
@@ -64,16 +60,10 @@ const HeaderInner = ({
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setOpen(false);
-      }
+      if (window.innerWidth >= 1024) setOpen(false);
     };
-
     window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const closeMenus = () => {
@@ -88,23 +78,8 @@ const HeaderInner = ({
 
   return (
     <>
-      <header
-        className="
-          sticky top-0 z-50 w-full
-          bg-ivory
-          shadow-[0_2px_20px_-12px_rgba(92,21,25,0.25)]
-        "
-      >
-        <div
-          className="
-            mx-auto
-            max-w-[1280px]
-            px-4 md:px-8
-            h-[84px] md:h-[100px]
-            flex items-center justify-between
-            gap-6
-          "
-        >
+      <header className="sticky top-0 z-50 w-full bg-ivory shadow-[0_2px_20px_-12px_rgba(92,21,25,0.25)]">
+        <div className="mx-auto max-w-[1280px] px-4 md:px-8 h-[84px] md:h-[100px] flex items-center justify-between gap-6">
           <Link
             to="/"
             aria-label="ArtNovaX home"
@@ -114,16 +89,7 @@ const HeaderInner = ({
             <LogoWithTagline />
           </Link>
 
-          <nav
-            ref={desktopNavRef}
-            className="
-              hidden lg:flex
-              items-center
-              gap-7
-              flex-1
-              justify-center
-            "
-          >
+          <nav ref={desktopNavRef} className="hidden lg:flex items-center gap-7 flex-1 justify-center">
             {NAV_LINKS.map((link) => {
               const isDropdownOpen = dropdown === link.label;
               const isActive =
@@ -137,13 +103,7 @@ const HeaderInner = ({
                     to={resolveNavHref(link.href)}
                     data-active={isActive}
                     onClick={closeMenus}
-                    className="
-                      nav-link
-                      text-[15px]
-                      font-medium
-                      text-ink
-                      hover:text-burgundy
-                    "
+                    className="nav-link text-[15px] font-medium text-ink hover:text-burgundy"
                   >
                     {link.label}
                   </Link>
@@ -157,93 +117,32 @@ const HeaderInner = ({
                     aria-haspopup="menu"
                     aria-expanded={isDropdownOpen}
                     data-active={isActive}
-                    onClick={() =>
-                      setDropdown(isDropdownOpen ? null : link.label)
-                    }
-                    className="
-                      nav-link
-                      bg-transparent
-                      border-0
-                      text-[15px]
-                      font-medium
-                      text-ink
-                      hover:text-burgundy
-                      inline-flex
-                      items-center
-                      gap-1
-                      cursor-pointer
-                    "
+                    onClick={() => setDropdown(isDropdownOpen ? null : link.label)}
+                    className="nav-link bg-transparent border-0 text-[15px] font-medium text-ink hover:text-burgundy inline-flex items-center gap-1 cursor-pointer"
                   >
                     {link.label}
-                    <ChevronDown
-                      className={`
-                        w-4 h-4
-                        transition-transform
-                        duration-200
-                        ${isDropdownOpen ? "rotate-180" : ""}
-                      `}
-                    />
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
                   </button>
 
                   {isDropdownOpen && (
-                    <div
-                      className="
-                        absolute
-                        top-full
-                        left-1/2
-                        -translate-x-1/2
-                        pt-3
-                        w-60
-                        z-[70]
-                      "
-                    >
-                      <div
-                        role="menu"
-                        className="
-                          rounded-xl
-                          bg-white
-                          shadow-[0_20px_40px_-18px_rgba(92,21,25,0.35)]
-                          ring-1
-                          ring-ivory-300
-                          py-2
-                          overflow-hidden
-                        "
-                      >
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 w-60 z-[70]">
+                      <div role="menu" className="rounded-xl bg-white shadow-[0_20px_40px_-18px_rgba(92,21,25,0.35)] ring-1 ring-ivory-300 py-2 overflow-hidden">
                         <Link
                           to={resolveNavHref(link.href)}
                           role="menuitem"
                           onClick={closeMenus}
-                          className="
-                            block
-                            px-4 py-3
-                            text-sm
-                            font-medium
-                            text-ink
-                            hover:bg-ivory-200
-                            hover:text-burgundy
-                            transition-colors
-                          "
+                          className="block px-4 py-3 text-sm font-medium text-ink hover:bg-ivory-200 hover:text-burgundy transition-colors"
                         >
                           Overview
                         </Link>
-
                         <div className="h-px bg-ivory-300 mx-3" />
-
                         {link.children.map((child) => (
                           <Link
                             key={child.label}
                             to={resolveNavHref(child.href)}
                             role="menuitem"
                             onClick={closeMenus}
-                            className="
-                              block
-                              px-4 py-3
-                              text-sm
-                              text-ink
-                              hover:bg-ivory-200
-                              hover:text-burgundy
-                              transition-colors
-                            "
+                            className="block px-4 py-3 text-sm text-ink hover:bg-ivory-200 hover:text-burgundy transition-colors"
                           >
                             {child.label}
                           </Link>
@@ -257,43 +156,25 @@ const HeaderInner = ({
           </nav>
 
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
+            {adminContext && (
+              <Link
+                to="/admin/events"
+                onClick={closeMenus}
+                className="hidden md:inline-flex items-center rounded-full ring-1 ring-burgundy/30 text-burgundy px-4 py-2.5 text-[12.5px] font-semibold hover:bg-burgundy/10"
+              >
+                Event operations
+              </Link>
+            )}
+
             <button
               type="button"
               onClick={() => setCartOpen(true)}
               aria-label="Open cart"
-              className="
-                relative
-                inline-flex
-                items-center
-                justify-center
-                w-11 h-11
-                rounded-full
-                text-burgundy
-                hover:bg-ivory-200
-                transition-colors
-              "
+              className="relative inline-flex items-center justify-center w-11 h-11 rounded-full text-burgundy hover:bg-ivory-200 transition-colors"
             >
               <ShoppingBag className="w-5 h-5" />
-
               {count > 0 && (
-                <span
-                  className="
-                    absolute
-                    -top-0.5
-                    -right-0.5
-                    min-w-[18px]
-                    h-[18px]
-                    rounded-full
-                    bg-burgundy
-                    text-ivory
-                    text-[10.5px]
-                    font-semibold
-                    flex
-                    items-center
-                    justify-center
-                    px-1
-                  "
-                >
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-burgundy text-ivory text-[10.5px] font-semibold flex items-center justify-center px-1">
                   {count}
                 </span>
               )}
@@ -302,20 +183,7 @@ const HeaderInner = ({
             <Link
               to="/get-involved/support"
               onClick={closeMenus}
-              className="
-                cta-btn
-                hidden md:inline-flex
-                items-center
-                gap-2
-                rounded-full
-                bg-burgundy
-                text-ivory
-                px-5 py-3
-                text-[14px]
-                font-semibold
-                hover:bg-burgundy-light
-                shadow-[0_10px_25px_-14px_rgba(92,21,25,0.7)]
-              "
+              className="cta-btn hidden md:inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-5 py-3 text-[14px] font-semibold hover:bg-burgundy-light shadow-[0_10px_25px_-14px_rgba(92,21,25,0.7)]"
             >
               <Heart className="w-4 h-4" fill="#FBF3E8" />
               Support Our Work
@@ -327,17 +195,7 @@ const HeaderInner = ({
               aria-expanded={open}
               aria-controls="mobile-navigation"
               onClick={toggleMobileMenu}
-              className="
-                lg:hidden
-                inline-flex
-                items-center
-                justify-center
-                w-11 h-11
-                rounded-full
-                text-burgundy
-                hover:bg-ivory-200
-                transition-colors
-              "
+              className="lg:hidden inline-flex items-center justify-center w-11 h-11 rounded-full text-burgundy hover:bg-ivory-200 transition-colors"
             >
               {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -348,22 +206,19 @@ const HeaderInner = ({
       {open && (
         <div
           id="mobile-navigation"
-          className="
-            lg:hidden
-            fixed
-            inset-x-0
-            top-[84px]
-            md:top-[100px]
-            bottom-0
-            z-40
-            bg-ivory
-            overflow-y-auto
-            overscroll-contain
-            border-t
-            border-ivory-300
-          "
+          className="lg:hidden fixed inset-x-0 top-[84px] md:top-[100px] bottom-0 z-40 bg-ivory overflow-y-auto overscroll-contain border-t border-ivory-300"
         >
           <div className="px-6 py-6 md:px-10 md:py-8">
+            {adminContext && (
+              <Link
+                to="/admin/events"
+                onClick={closeMenus}
+                className="mb-4 inline-flex w-full justify-center rounded-full ring-1 ring-burgundy/30 text-burgundy px-5 py-3 text-[14px] font-semibold"
+              >
+                Event operations
+              </Link>
+            )}
+
             <nav className="flex flex-col divide-y divide-ivory-300">
               {NAV_LINKS.map((link) => (
                 <MobileNavItem
@@ -378,22 +233,7 @@ const HeaderInner = ({
             <Link
               to="/get-involved/support"
               onClick={closeMenus}
-              className="
-                cta-btn
-                mt-8
-                inline-flex
-                w-full
-                justify-center
-                items-center
-                gap-2
-                rounded-full
-                bg-burgundy
-                text-ivory
-                px-5 py-4
-                text-[15px]
-                font-semibold
-                hover:bg-burgundy-light
-              "
+              className="cta-btn mt-8 inline-flex w-full justify-center items-center gap-2 rounded-full bg-burgundy text-ivory px-5 py-4 text-[15px] font-semibold hover:bg-burgundy-light"
             >
               <Heart className="w-4 h-4" fill="#FBF3E8" />
               Support Our Work
@@ -405,11 +245,7 @@ const HeaderInner = ({
   );
 };
 
-const MobileNavItem = ({
-  link,
-  onNavigate,
-  resolveNavHref,
-}) => {
+const MobileNavItem = ({ link, onNavigate, resolveNavHref }) => {
   const [expanded, setExpanded] = useState(false);
 
   if (!link.hasDropdown) {
@@ -417,13 +253,7 @@ const MobileNavItem = ({
       <Link
         to={resolveNavHref(link.href)}
         onClick={onNavigate}
-        className="
-          py-4
-          text-lg
-          font-medium
-          text-ink
-          hover:text-burgundy
-        "
+        className="py-4 text-lg font-medium text-ink hover:text-burgundy"
       >
         {link.label}
       </Link>
@@ -436,26 +266,10 @@ const MobileNavItem = ({
         type="button"
         aria-expanded={expanded}
         onClick={() => setExpanded((current) => !current)}
-        className="
-          w-full
-          flex
-          items-center
-          justify-between
-          py-3
-          text-lg
-          font-medium
-          text-ink
-        "
+        className="w-full flex items-center justify-between py-3 text-lg font-medium text-ink"
       >
         {link.label}
-        <ChevronDown
-          className={`
-            w-5 h-5
-            transition-transform
-            duration-200
-            ${expanded ? "rotate-180" : ""}
-          `}
-        />
+        <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
       </button>
 
       {expanded && (
@@ -463,28 +277,16 @@ const MobileNavItem = ({
           <Link
             to={resolveNavHref(link.href)}
             onClick={onNavigate}
-            className="
-              py-3
-              text-[15px]
-              font-medium
-              text-ink
-              hover:text-burgundy
-            "
+            className="py-3 text-[15px] font-medium text-ink hover:text-burgundy"
           >
             Overview
           </Link>
-
           {link.children.map((child) => (
             <Link
               key={child.label}
               to={resolveNavHref(child.href)}
               onClick={onNavigate}
-              className="
-                py-3
-                text-[15px]
-                text-muted-foreground
-                hover:text-burgundy
-              "
+              className="py-3 text-[15px] text-muted-foreground hover:text-burgundy"
             >
               {child.label}
             </Link>
