@@ -148,12 +148,6 @@ export const SHOP = {
   collectionTitle: 'Shop Our Collection',
   categories: ['All Products', 'Stickers', 'Book Cards', 'Apparel', 'Accessories', 'Bundles'],
   products: [
-    { name: 'Sticker Pack', price: 'KES 300', img: null, category: 'Stickers' },
-    { name: 'Book Cards (Set of 5)', price: 'KES 600', img: null, category: 'Book Cards' },
-    { name: 'ArtNovaX Hoodie', price: 'KES 2,500', img: null, category: 'Apparel' },
-    { name: 'Canvas Tote Bag', price: 'KES 1,200', img: null, category: 'Accessories' },
-    { name: 'Enamel Pin', price: 'KES 400', img: null, category: 'Accessories' },
-    { name: 'Ceramic Mug', price: 'KES 900', img: null, category: 'Accessories' },
   ],
   thanks: {
     title: 'Thanks for supporting the work.',

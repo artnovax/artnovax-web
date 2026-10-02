@@ -141,70 +141,104 @@ const Shop = () => {
           <div className="mx-auto mt-2 w-16 h-0.5 bg-burgundy/40" />
         </div>
 
-        <div className="mt-8 flex items-center gap-2 flex-wrap justify-center">
-          {categories.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCategory(c)}
-              className={`px-4 py-2 rounded-full text-[13.5px] font-semibold transition-colors ${activeCategory === c ? "bg-burgundy text-ivory" : "text-ink/70 hover:text-burgundy ring-1 ring-ivory-300 bg-ivory-100"}`}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+        {products.length > 0 && (
+          <div className="mt-8 flex items-center gap-2 flex-wrap justify-center">
+            {categories.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCategory(c)}
+                className={`px-4 py-2 rounded-full text-[13.5px] font-semibold transition-colors ${
+                  activeCategory === c
+                    ? "bg-burgundy text-ivory"
+                    : "text-ink/70 hover:text-burgundy ring-1 ring-ivory-300 bg-ivory-100"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
 
-        <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
-          {products.map((p) => (
-            <article
-              key={p.id || p.name}
-              className="wwd-card rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 overflow-hidden"
-            >
-              {p.id ? (
-                <a href={`/shop/${p.id}`} className="relative block aspect-square bg-ivory-200 overflow-hidden group">
-                  <img
-                    src={p.img}
-                    alt={p.imgAlt || p.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                  />
-                  {(p.images || []).length > 1 && (
-                    <span className="absolute right-2 bottom-2 rounded-full bg-ink/70 text-ivory px-2 py-1 text-[10px] font-semibold">
-                      {p.images.length} photos
-                    </span>
-                  )}
-                </a>
-              ) : (
-                <div className="aspect-square bg-ivory-200">
-                  <img src={p.img} alt={p.imgAlt || p.name} className="w-full h-full object-cover" />
+        {products.length === 0 ? (
+          <div className="mt-8 rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 px-6 py-12 text-center">
+            <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
+              Plot twist, we sold out
+            </h3>
+
+            <p className="mt-2 text-[14px] text-ink/65 max-w-[520px] mx-auto leading-relaxed">
+              We’re working on the next merch drop. Check back soon.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
+            {products.map((p) => (
+              <article
+                key={p.id || p.name}
+                className="wwd-card rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 overflow-hidden"
+              >
+                {p.id ? (
+                  <a
+                    href={`/shop/${p.id}`}
+                    className="relative block aspect-square bg-ivory-200 overflow-hidden group"
+                  >
+                    <img
+                      src={p.img}
+                      alt={p.imgAlt || p.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    />
+
+                    {(p.images || []).length > 1 && (
+                      <span className="absolute right-2 bottom-2 rounded-full bg-ink/70 text-ivory px-2 py-1 text-[10px] font-semibold">
+                        {p.images.length} photos
+                      </span>
+                    )}
+                  </a>
+                ) : (
+                  <div className="aspect-square bg-ivory-200">
+                    <img
+                      src={p.img}
+                      alt={p.imgAlt || p.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
+                <div className="px-3 py-3 flex items-start justify-between gap-2">
+                  <div>
+                    {p.id ? (
+                      <a
+                        href={`/shop/${p.id}`}
+                        className="text-[13.5px] font-semibold text-ink hover:text-burgundy"
+                      >
+                        {p.name}
+                      </a>
+                    ) : (
+                      <div className="text-[13.5px] font-semibold text-ink">
+                        {p.name}
+                      </div>
+                    )}
+
+                    <div className="text-[12.5px] text-ink/70">{p.price}</div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      add(p);
+                      toast({
+                        title: "Added to bag",
+                        description: `${p.name} — ${p.price}`,
+                      });
+                    }}
+                    aria-label={`Add ${p.name} to cart`}
+                    className="cta-btn shrink-0 w-9 h-9 rounded-full bg-burgundy/10 text-burgundy hover:bg-burgundy hover:text-ivory flex items-center justify-center"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                  </button>
                 </div>
-              )}
-              <div className="px-3 py-3 flex items-start justify-between gap-2">
-                <div>
-                  {p.id ? (
-                    <a href={`/shop/${p.id}`} className="text-[13.5px] font-semibold text-ink hover:text-burgundy">
-                      {p.name}
-                    </a>
-                  ) : (
-                    <div className="text-[13.5px] font-semibold text-ink">{p.name}</div>
-                  )}
-                  <div className="text-[12.5px] text-ink/70">{p.price}</div>
-                </div>
-                <button
-                  onClick={() => {
-                    add(p);
-                    toast({
-                      title: "Added to bag",
-                      description: `${p.name} — ${p.price}`,
-                    });
-                  }}
-                  aria-label={`Add ${p.name} to cart`}
-                  className="cta-btn shrink-0 w-9 h-9 rounded-full bg-burgundy/10 text-burgundy hover:bg-burgundy hover:text-ivory flex items-center justify-center"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Thanks */}
@@ -225,7 +259,9 @@ const Shop = () => {
             <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
               {pageContent.thanks.title}
             </h3>
-            <p className="text-ink/80 text-[14px] mt-1">{pageContent.thanks.body}</p>
+            <p className="text-ink/80 text-[14px] mt-1">
+              {pageContent.thanks.body}
+            </p>
           </div>
           <a
             href={pageContent.thanks.cta.href}

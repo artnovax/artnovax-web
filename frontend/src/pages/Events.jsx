@@ -196,7 +196,15 @@ const Events = () => {
   }, []);
 
   const featuredList = useMemo(
-    () => events.filter((event) => event.featured).slice(0, 2),
+    () =>
+      events
+        .filter((event) => event.featured)
+        .sort((a, b) => {
+          const aTime = a.starts_at ? new Date(a.starts_at).getTime() : 0;
+          const bTime = b.starts_at ? new Date(b.starts_at).getTime() : 0;
+          return bTime - aTime;
+        })
+        .slice(0, 4),
     [events],
   );
 
@@ -318,7 +326,7 @@ const Events = () => {
                   </div>
 
                   <div className="mt-auto pt-2 text-burgundy text-[13px] font-semibold inline-flex items-center gap-1">
-                    Read the story <ArrowRight className="w-3.5 h-3.5" />
+                    View details <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
               </a>
