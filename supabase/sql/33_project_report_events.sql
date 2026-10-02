@@ -56,7 +56,7 @@ values
   'University of Nairobi Upper Kabete Campus students',
   array['Creative Expression', 'Mental Health Awareness', 'Online'],
   E'For five days, participants created artwork around a different mental-health theme, shared it online and added a short reflection connecting the piece to their emotions or wellbeing.\n\nTwelve participants took part, four winners received ArtNovaX-branded notebooks and badges, and the shared work reached an estimated audience of about 400 people.',
-  '/assets/images/events/events-art-contest.webp',
+  null,
   'ArtNovaX Art Therapy Contest',
   'past',
   false,

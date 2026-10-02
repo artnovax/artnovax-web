@@ -123,8 +123,8 @@ const Shop = () => {
           <BrushFrame
             src={pageContent.image}
             alt={pageContent.imageAlt}
-            aspect="aspect-[5/4]"
-            objectPosition="center"
+            aspect="aspect-[3/2]"
+            objectPosition="center top"
           />
         </div>
       </section>

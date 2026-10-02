@@ -4,7 +4,7 @@ export const ABOUT = {
   eyebrow: 'ABOUT US',
   title: 'Our story is\nrooted in creativity,\ncare and community.',
   body: 'Since 2024, ArtNovaX has brought art, mental wellbeing, community and technology together through creative programmes, campus outreach and a growing digital vision.',
-  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/10/5a8c22d0-3e45-4fec-83a6-cda1adf04641-7-studentexplaininghisartpieceandhowitrelatestohismentalheal.jpg',
+  image: '/assets/images/about/about-hero.jpg',
   imageAlt: 'Close-up of hands painting with colorful watercolors',
   pillars: [
     {
@@ -125,7 +125,7 @@ export const OUR_WORK = {
   title: 'Creating space to\nmake, reflect and\nconnect.',
   body: 'We bring together creative expression, mental-health education, community partnerships and technology to make wellbeing support feel more approachable.',
   cta: { label: 'Explore Our Programs', href: '#programs' },
-  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/10/4e42656c-1434-4cf8-85c8-16b565b8b30d-1-sessionwithacertifiedpsychologistduringtheeventonsuicidepr.jpg',
+  image: '/assets/images/our-work/our-work-hero.jpg',
   imageAlt: 'Colorful paintbrushes and vibrant paint — an artist\u2019s working still life',
   programsEyebrow: 'OUR PROGRAM AREAS',
   programsTitle: 'What we do',
@@ -135,21 +135,21 @@ export const OUR_WORK = {
       title: 'Creative\nWellbeing',
       body: 'Guided and free-form art experiences that create room for expression, reflection and connection.',
       link: { label: 'See our events', href: '/events' },
-      img: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/10/4dc72b77-90dc-455e-b1a7-228145e9af6e-3-studentstakingpartinaguidedarttherapysessionbypainting-ihi.jpg'
+      img: '/assets/images/our-work/creative-wellbeing-card.jpg'
     },
     {
       icon: 'book-open',
       title: 'Mental Health\nEducation',
       body: 'Talks, webinars and Q&A sessions that open up practical conversations around mental health and support.',
       link: { label: 'Explore research', href: '/research' },
-      img: 'https://images.unsplash.com/photo-1579017308347-e53e0d2fc5e9'
+      img: '/assets/images/our-work/mental-health-education-card.jpg'
     },
     {
       icon: 'users',
       title: 'Community &\nInnovation',
       body: 'Campus partnerships and participant feedback help us shape our programmes and the digital ArtNovaX experience.',
       link: { label: 'Discover the app', href: '/app' },
-      img: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/10/5c302989-d058-4f09-96d3-37878d19c9ad-2-studentstakingpartinateambuildingsessionduringtheevent-ihi.jpg'
+      img: '/assets/images/our-work/community-innovation-card.jpg'
     },
   ],
   stats: {
@@ -174,7 +174,7 @@ export const EVENTS = {
   body: 'From campus art sessions to online creative challenges and mental-health webinars, our events bring people together to make, learn and talk openly about wellbeing.',
   primaryCta: { label: 'Explore Events', href: '#events' },
   secondaryCta: { label: 'See Past Events', href: '#events' },
-  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/10/a414405c-c8bf-4f86-bb34-4cd11a703774-1-studentspaintingduringanarttherapysession-uon-2026-copyrig.jpg',
+  image: '/assets/images/events/events-hero.jpg',
   imageAlt: 'ArtNovaX creative wellbeing event',
   testimonials: [],
   ideaCta: {

@@ -5,7 +5,7 @@ export const RESEARCH = {
   title: 'Research,\nwithout the jargon.',
   body: 'We look at research on creativity and mental health, translate it into clear language, and use feedback from our programmes to guide what we explore next.',
   cta: { label: 'Explore Insights', href: '#topics' },
-  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/08/837a00fd-e656-4ced-bfa3-f12126171da2-research-mental-health.jpg',
+  image: '/assets/images/research/research-hero.jpg',
   imageAlt: 'Watercolor journal and creative supplies on a wooden table',
   topicsTitle: 'What we explore',
   topics: [
@@ -98,7 +98,7 @@ export const CONTACT = {
   eyebrow: 'CONTACT US',
   title: 'We’d love to\nhear from you.',
   body: 'Have a question, an idea or something you would like to work on with us? Send us a message.',
-  image: 'assets/images/events/events-art-contest.webp',
+  image: '/assets/images/contact-us/contact-us-hero.webp',
   imageAlt: 'Two friends chatting warmly over coffee in soft sunlight',
   quickInfo: [
     { icon: 'mail', label: 'Email', value: 'info@artnovax.org' },
@@ -138,7 +138,7 @@ export const SHOP = {
   title: 'Merch that helps\nfund the work.',
   body: 'Sales from the shop help cover the cost of our creative wellbeing programmes, events and activities.',
   cta: { label: 'Shop All Products', href: '#products' },
-  image: 'https://bgforwdcdkqzqelunmzr.supabase.co/storage/v1/object/public/site-media/2026/08/d0ea9232-5534-480a-9d87-452a1a71ac4a-artnovax-shop-hero.png',
+  image: '/assets/images/shop/shop-hero.png',
   imageAlt: 'ArtNovaX merchandise collection displayed together',
   bullets: [
     { icon: 'heart', title: 'Support the Work', sub: 'Proceeds help fund our programmes.' },
