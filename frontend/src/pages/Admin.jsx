@@ -351,9 +351,9 @@ const Admin = () => {
               />
               <TabPill
                 icon={Users}
-                label={`Applications (${data.applications.length})`}
+                label={`Volunteer Applications (${data.applications.length})`}
                 active={tab === "applications"}
-                onClick={() => setTab("applications")}
+                onClick={() => { window.location.href = "/admin/volunteers"; }}
               />
               <TabPill
                 icon={BookOpen}
@@ -6385,51 +6385,83 @@ const RegistrationsList = ({ rows }) => (
   />
 );
 
-const ApplicationsList = ({ rows }) => (
-  <div className="space-y-4">
-    {rows.length === 0 && (
-      <div className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-8 text-center text-ink/60 text-[13.5px]">
-        No volunteer applications yet.
-      </div>
-    )}
-    {rows.map((a) => (
-      <div
-        key={a.id}
-        className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5"
-      >
-        <div className="flex items-center justify-between flex-wrap gap-2">
+// VOLUNTEER_LIFECYCLE_MANAGER
+const ApplicationsList = ({ rows }) => {
+  const counts = rows.reduce((acc, row) => {
+    const status = row.status || "new";
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+
+  const activeCount = rows.filter((row) =>
+    !["onboarded", "rejected", "withdrawn", "archived"].includes(row.status)
+  ).length;
+
+  const recent = rows.slice(0, 5);
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-3xl bg-ivory-100 ring-1 ring-ivory-300 p-5 md:p-6">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <div className="text-[14.5px] font-semibold text-ink">
-              {a.name}{" "}
-              <span className="text-ink/50 font-normal">— {a.email}</span>
-            </div>
-            <div className="font-serif-display text-burgundy text-[17px] font-semibold mt-0.5">
-              {a.role_title}
-            </div>
+            <h3 className="font-serif-display text-burgundy text-[24px] font-semibold">
+              Volunteer Application Lifecycle
+            </h3>
+            <p className="mt-1 max-w-[720px] text-ink/60 text-[13px] leading-relaxed">
+              Review, shortlist, interview, accept, reject and onboard applicants from one workspace, with internal notes, applicant emails and a full activity history.
+            </p>
           </div>
-          <div className="text-[12px] text-ink/60">
-            {new Date(a.created_at).toLocaleString()}
-          </div>
+          <a
+            href="/admin/volunteers"
+            className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-5 py-3 text-[13px] font-semibold hover:bg-burgundy-light"
+          >
+            Open Volunteer Operations →
+          </a>
         </div>
-        <dl className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-[13.5px]">
-          {Object.entries(a.answers || {}).map(([k, v]) => (
-            <div
-              key={k}
-              className="rounded-lg bg-ivory-200/60 ring-1 ring-ivory-300 p-3"
-            >
-              <dt className="text-ink/60 text-[11.5px] uppercase tracking-widest">
-                {k}
-              </dt>
-              <dd className="mt-1 text-ink/85 whitespace-pre-wrap">
-                {String(v)}
-              </dd>
+
+        <div className="mt-5 grid grid-cols-2 md:grid-cols-5 gap-3">
+          {[
+            ["All", rows.length],
+            ["Active", activeCount],
+            ["New", counts.new || 0],
+            ["Interview", counts.interview || 0],
+            ["Onboarding", (counts.accepted || 0) + (counts.onboarding || 0)],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-2xl bg-ivory ring-1 ring-ivory-300 p-3.5">
+              <div className="text-[10.5px] uppercase tracking-[0.14em] text-ink/45">{label}</div>
+              <div className="mt-1 font-serif-display text-burgundy text-[24px] font-semibold">{value}</div>
             </div>
           ))}
-        </dl>
+        </div>
       </div>
-    ))}
-  </div>
-);
+
+      {recent.length > 0 && (
+        <div className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 overflow-hidden">
+          <div className="px-5 py-3 border-b border-ivory-300 text-[11px] uppercase tracking-[0.14em] text-ink/45">
+            Most recent applications
+          </div>
+          <div className="divide-y divide-ivory-300">
+            {recent.map((application) => (
+              <a
+                key={application.id}
+                href={`/admin/volunteers?application=${encodeURIComponent(application.id)}`}
+                className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-ivory-200/50"
+              >
+                <div className="min-w-0">
+                  <div className="text-[13.5px] font-semibold text-ink truncate">{application.name}</div>
+                  <div className="text-[12px] text-ink/55 truncate">{application.role_title || "Volunteer role"}</div>
+                </div>
+                <span className="shrink-0 rounded-full bg-ivory px-2.5 py-1 ring-1 ring-ivory-300 text-[11px] font-semibold text-burgundy">
+                  {(application.status || "new").replaceAll("_", " ")}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const InquiriesList = ({ rows }) => (
   <div className="space-y-4">

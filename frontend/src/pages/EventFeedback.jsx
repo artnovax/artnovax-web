@@ -7,92 +7,25 @@ import {
   getEventFeedbackContext,
   submitEventFeedback,
 } from "../services/events";
-
-const defaultFeedbackQuestions = [
-  {
-    id: "overall_rating",
-    label: "Overall, how would you rate this ArtNovaX activity?",
-    type: "radio",
-    required: true,
-    options: ["1", "2", "3", "4", "5"],
-    help: "1 = very poor, 5 = excellent",
-  },
-  {
-    id: "feelings_during_activity",
-    label: "How did you feel during the activity? Select all that apply.",
-    type: "checkbox-group",
-    options: [
-      "Calm",
-      "Relaxed",
-      "Happy",
-      "Connected",
-      "Focused",
-      "Creative",
-      "Unsure",
-      "Anxious",
-      "Other",
-    ],
-  },
-  {
-    id: "enjoyment",
-    label: "How much did you enjoy the activity?",
-    type: "radio",
-    options: ["Not at all", "A little", "Somewhat", "A lot", "Very much"],
-  },
-  {
-    id: "post_activity_mood",
-    label: "Compared with before the activity, how do you feel now?",
-    type: "radio",
-    options: [
-      "Much worse",
-      "A little worse",
-      "About the same",
-      "A little better",
-      "Much better",
-    ],
-  },
-  {
-    id: "creative_expression",
-    label: "Did the activity help you express yourself creatively?",
-    type: "radio",
-    options: ["Yes", "Somewhat", "No"],
-  },
-  {
-    id: "inclusion",
-    label: "Did you feel welcomed and included?",
-    type: "radio",
-    options: ["Yes", "Mostly", "No"],
-  },
-  {
-    id: "self_discovery",
-    label: "Did you learn or notice anything new about yourself?",
-    type: "radio",
-    options: ["Yes", "Maybe", "No"],
-  },
-  {
-    id: "return_likelihood",
-    label: "How likely are you to join another ArtNovaX activity?",
-    type: "radio",
-    options: ["Very unlikely", "Unlikely", "Not sure", "Likely", "Very likely"],
-  },
-  {
-    id: "improvements",
-    label: "What could we improve?",
-    type: "textarea",
-  },
-  {
-    id: "future_offerings",
-    label:
-      "What kinds of activities would you like ArtNovaX to offer in the future?",
-    type: "textarea",
-  },
-];
+import { DEFAULT_EVENT_FEEDBACK_QUESTIONS } from "../config/eventQuestionDefaults";
 
 const inputClass =
   "w-full rounded-lg ring-1 ring-ivory-300 bg-ivory-100 px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40";
 
 const FeedbackField = ({ question, value, onChange }) => {
   const set = (nextValue) => onChange(question.id, nextValue);
+
+  if (question.systemValue && question.readOnly) {
+    return (
+      <input
+        type="text"
+        value={value ?? ""}
+        readOnly
+        aria-readonly="true"
+        className={`${inputClass} bg-ivory-200/70 text-ink/70 cursor-not-allowed`}
+      />
+    );
+  }
 
   if (question.type === "textarea") {
     return (
@@ -246,6 +179,19 @@ const EventFeedback = () => {
       try {
         const data = await getEventFeedbackContext(token);
         setContext(data);
+
+        const configuredQuestions =
+          Array.isArray(data.feedback_questions) && data.feedback_questions.length
+            ? data.feedback_questions
+            : DEFAULT_EVENT_FEEDBACK_QUESTIONS;
+
+        if (configuredQuestions.some((question) => question.id === "activity_participated")) {
+          setAnswers((current) => ({
+            ...current,
+            activity_participated: data.event_title || "",
+          }));
+        }
+
         if (data.already_submitted) setDone(true);
       } catch (loadError) {
         setError(loadError?.message || "This feedback link is not available.");
@@ -259,7 +205,7 @@ const EventFeedback = () => {
     const configured = context?.feedback_questions;
     return Array.isArray(configured) && configured.length
       ? configured
-      : defaultFeedbackQuestions;
+      : DEFAULT_EVENT_FEEDBACK_QUESTIONS;
   }, [context]);
 
   const setAnswer = (key, value) =>

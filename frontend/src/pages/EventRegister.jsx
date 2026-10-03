@@ -14,6 +14,7 @@ import {
   isEventEnded,
   registerForEvent,
 } from "../services/events";
+import { DEFAULT_EVENT_REGISTRATION_QUESTIONS } from "../config/eventQuestionDefaults";
 
 const CONSENT_VERSION = "2026-09";
 
@@ -47,75 +48,6 @@ const googleCalendarUrl = (event) => {
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 };
-
-const defaultQuestions = [
-  {
-    id: "prior_participation",
-    label: "Have you participated in an ArtNovaX activity before?",
-    type: "radio",
-    options: ["Yes", "No"],
-  },
-  {
-    id: "referral",
-    label: "How did you hear about this event?",
-    type: "select",
-    options: [
-      "Friend or family",
-      "Social media",
-      "University or school",
-      "Partner organisation",
-      "ArtNovaX event",
-      "Other",
-    ],
-  },
-  {
-    id: "creative_frequency",
-    label: "How often do you currently take part in creative activities?",
-    type: "select",
-    options: [
-      "Daily",
-      "A few times a week",
-      "A few times a month",
-      "Rarely",
-      "Never",
-    ],
-  },
-  {
-    id: "creative_interests",
-    label: "Which creative activities interest you? Select all that apply.",
-    type: "checkbox-group",
-    options: [
-      "Drawing",
-      "Painting",
-      "Colouring",
-      "Music",
-      "Writing or poetry",
-      "Photography",
-      "Crafts",
-      "Dance",
-      "Other",
-    ],
-  },
-  {
-    id: "desired_outcomes",
-    label: "What would you most like to get from the session? Select all that apply.",
-    type: "checkbox-group",
-    options: [
-      "Relaxation or stress relief",
-      "Creative expression",
-      "Connection with others",
-      "Learning something new",
-      "Self-reflection",
-      "Having fun",
-      "Other",
-    ],
-  },
-  {
-    id: "accessibility",
-    label: "Any accessibility needs or dietary requirements we should know about?",
-    type: "textarea",
-  },
-];
 
 const inputClass =
   "w-full rounded-lg ring-1 ring-ivory-300 bg-ivory-100 px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40";
@@ -307,7 +239,7 @@ const EventRegister = () => {
     () =>
       event && Array.isArray(event.questions) && event.questions.length
         ? event.questions
-        : defaultQuestions,
+        : DEFAULT_EVENT_REGISTRATION_QUESTIONS,
     [event],
   );
 
@@ -522,7 +454,7 @@ const EventRegister = () => {
           </p>
           <div className="mt-4 grid grid-cols-1 gap-3">
             <ConsentChoice
-              label="May ArtNovaX use my responses for programme evaluation and research?"
+              label="Are you comfortable with ArtNovaX using your data for programme evaluation and research purposes?"
               help="This may include aggregated or de-identified learning about how participants experience ArtNovaX activities."
               value={consents.evaluation}
               onChange={(value) =>
@@ -530,14 +462,14 @@ const EventRegister = () => {
               }
             />
             <ConsentChoice
-              label="May ArtNovaX contact me in the future about related activities or research?"
+              label="Are you comfortable being contacted about future ArtNovaX activities?"
               value={consents.futureContact}
               onChange={(value) =>
                 setConsents((current) => ({ ...current, futureContact: value }))
               }
             />
             <ConsentChoice
-              label="May ArtNovaX use photographs or video of me from this event in its communications?"
+              label="I authorize ArtNovaX to use photographs in which I appear for social media and promotional purposes."
               value={consents.photo}
               onChange={(value) =>
                 setConsents((current) => ({ ...current, photo: value }))

@@ -68,6 +68,12 @@ import {
 
 } from "../services/events";
 
+import {
+  DEFAULT_EVENT_REGISTRATION_QUESTIONS,
+  DEFAULT_EVENT_FEEDBACK_QUESTIONS,
+  mergeMissingQuestions,
+} from "../config/eventQuestionDefaults";
+
 
 
 const questionTypes = [
@@ -259,7 +265,7 @@ const NumberListInput = ({
 
 
 
-const QuestionEditor = ({ questions, onChange, title }) => {
+const QuestionEditor = ({ questions, onChange, title, defaultQuestions = [], note = null }) => {
 
   const update = (index, patch) =>
 
@@ -297,7 +303,8 @@ const QuestionEditor = ({ questions, onChange, title }) => {
 
     ]);
 
-
+  const addDefaults = () =>
+    onChange(mergeMissingQuestions(questions, defaultQuestions));
 
   const remove = (index) =>
 
@@ -330,6 +337,9 @@ const QuestionEditor = ({ questions, onChange, title }) => {
         <div>
 
           <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">{title}</h3>
+          {note && (
+            <p className="text-[12px] text-ink/55 mt-1 leading-relaxed">{note}</p>
+          )}
 
           <p className="text-[12px] text-ink/60 mt-1">
 
@@ -339,19 +349,24 @@ const QuestionEditor = ({ questions, onChange, title }) => {
 
         </div>
 
-        <button
-
-          type="button"
-
-          onClick={add}
-
-          className="inline-flex items-center gap-1.5 rounded-full ring-1 ring-burgundy/30 px-3 py-2 text-[12.5px] font-semibold text-burgundy hover:bg-burgundy/10"
-
-        >
-
-          <Plus className="w-4 h-4" /> Add question
-
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {defaultQuestions.length > 0 && (
+            <button
+              type="button"
+              onClick={addDefaults}
+              className="inline-flex items-center gap-1.5 rounded-full ring-1 ring-ivory-300 px-3 py-2 text-[12.5px] font-semibold text-ink/70 hover:bg-ivory-200"
+            >
+              <Plus className="w-4 h-4" /> Add standard questions
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={add}
+            className="inline-flex items-center gap-1.5 rounded-full ring-1 ring-burgundy/30 px-3 py-2 text-[12.5px] font-semibold text-burgundy hover:bg-burgundy/10"
+          >
+            <Plus className="w-4 h-4" /> Add question
+          </button>
+        </div>
 
       </div>
 
@@ -361,7 +376,7 @@ const QuestionEditor = ({ questions, onChange, title }) => {
 
         <div className="rounded-xl bg-ivory ring-1 ring-ivory-300 px-4 py-5 text-[13px] text-ink/60">
 
-          No custom questions configured. The public form will use its built-in defaults.
+          No questions configured. Add the ArtNovaX standard questions or create a custom question.
 
         </div>
 
@@ -1423,6 +1438,10 @@ const EventOperations = () => {
 
               questions={selected.questions || []}
 
+              defaultQuestions={DEFAULT_EVENT_REGISTRATION_QUESTIONS}
+
+              note="Full name, email address and phone number are collected separately. Programme evaluation/research, future-contact and photograph consent choices are also collected separately on the registration form."
+
               onChange={(questions) => patchSelected({ questions })}
 
             />
@@ -1434,6 +1453,10 @@ const EventOperations = () => {
               title="Feedback questions"
 
               questions={selected.feedbackQuestions || selected.feedback_questions || []}
+
+              defaultQuestions={DEFAULT_EVENT_FEEDBACK_QUESTIONS}
+
+              note="The standard activity question is filled automatically with this event's title on the participant feedback form."
 
               onChange={(feedbackQuestions) => patchSelected({ feedbackQuestions, feedback_questions: feedbackQuestions })}
 

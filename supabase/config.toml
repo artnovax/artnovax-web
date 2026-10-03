@@ -59,3 +59,8 @@ verify_jwt = false
 # Scheduled worker protected by CRON_SECRET in x-cron-secret.
 [functions.send-event-feedback]
 verify_jwt = false
+
+# Staff-only volunteer lifecycle email actions. Supabase verifies the JWT,
+# then the function performs an additional admin/editor role check.
+[functions.volunteer-application-email]
+verify_jwt = true

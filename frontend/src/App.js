@@ -31,6 +31,7 @@ import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
 import AdminPayments from './pages/AdminPayments';
 import EventOperations from './pages/EventOperations';
+import VolunteerOperations from './pages/VolunteerOperations';
 import InfoPage from './pages/InfoPage';
 
 function App() {
@@ -78,6 +79,8 @@ function App() {
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/payments" element={<AdminPayments />} />
             <Route path="/admin/events" element={<EventOperations />} />
+            <Route path="/admin/volunteers" element={<VolunteerOperations />} />
+            <Route path="/admin/applications" element={<VolunteerOperations />} />
           </Routes>
           <CartDrawer />
         </BrowserRouter>

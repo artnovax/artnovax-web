@@ -1,4 +1,9 @@
 import { supabase } from '@/lib/supabase';
+import {
+  DEFAULT_EVENT_REGISTRATION_QUESTIONS,
+  DEFAULT_EVENT_FEEDBACK_QUESTIONS,
+  cloneQuestionSet,
+} from '../config/eventQuestionDefaults';
 
 const DEFAULT_TIMEZONE = 'Africa/Nairobi';
 const DEFAULT_DURATION_MINUTES = 180;
@@ -181,7 +186,9 @@ function toDatabaseEvent(event) {
           : [48],
 
     questions:
-      Array.isArray(event.questions) ? event.questions : [],
+      Array.isArray(event.questions)
+        ? event.questions
+        : cloneQuestionSet(DEFAULT_EVENT_REGISTRATION_QUESTIONS),
 
     feedback_enabled:
       event.feedback_enabled ??
@@ -200,7 +207,7 @@ function toDatabaseEvent(event) {
         ? event.feedback_questions
         : Array.isArray(event.feedbackQuestions)
           ? event.feedbackQuestions
-          : [],
+          : cloneQuestionSet(DEFAULT_EVENT_FEEDBACK_QUESTIONS),
   };
 }
 
