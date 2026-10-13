@@ -44,9 +44,9 @@ async function requireStaff(req: Request): Promise<string> {
     .eq("user_id", userData.user.id)
     .single();
 
-  if (roleError || !["admin", "editor"].includes(role?.role)) {
-    throw new Error("Website staff access is required.");
-  }
+if (roleError || role?.role !== "admin") {
+  throw new Error("Administrator access is required to send newsletters.");
+}
 
   return userData.user.id;
 }

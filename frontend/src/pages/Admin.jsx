@@ -28,6 +28,8 @@ import {
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import MediaLibrary, { MediaPicker } from "../components/admin/MediaLibrary";
+import AccessControlManager from "../components/admin/AccessControlManager";
+import { getMySiteAccess, hasPermission } from "../services/access";
 import {
   signInAdmin,
   signOutAdmin,
@@ -99,6 +101,7 @@ const emptyData = {
 const Admin = () => {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null);
+  const [access, setAccess] = useState(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [tab, setTab] = useState("events");
@@ -106,13 +109,13 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
-  const authorized = !!session && ["admin", "editor"].includes(role);
+  const authorized = !!session && !!access?.active && hasPermission(access, "cms.access");
 
   const load = async () => {
     setLoading(true);
     setErr(null);
     try {
-      setData(await loadAdminDashboard());
+      setData(await loadAdminDashboard(access));
     } catch (e) {
       console.error(e);
       setErr(e?.message || "Failed to load dashboard data.");
@@ -125,10 +128,11 @@ const Admin = () => {
     (async () => {
       const current = await getSession();
       if (current) {
-        const currentRole = await getCurrentRole();
-        if (["admin", "editor"].includes(currentRole)) {
+        const currentAccess = await getMySiteAccess();
+        if (currentAccess?.active && hasPermission(currentAccess, "cms.access")) {
           setSession(current);
-          setRole(currentRole);
+          setRole(currentAccess.role || null);
+          setAccess(currentAccess);
         } else {
           await signOutAdmin();
         }
@@ -141,15 +145,52 @@ const Admin = () => {
     if (authorized) load();
   }, [authorized]);
 
+  useEffect(() => {
+    if (!authorized || !access) return;
+    const inlineTabs = [
+      ["media", "media.read"],
+      ["homepage", "pages.home.publish"],
+      ["aboutpage", "pages.about.publish"],
+      ["ourworkpage", "pages.our_work.publish"],
+      ["eventspage", "pages.events.publish"],
+      ["researchpage", "pages.research.publish"],
+      ["apppage", "pages.app.publish"],
+      ["getinvolvedpage", "pages.get_involved.publish"],
+      ["contactpage", "pages.contact.publish"],
+      ["shoppage", "pages.shop.publish"],
+      ["supportpage", "pages.support.publish"],
+      ["volunteerpage", "pages.volunteer.publish"],
+      ["partnerpage", "pages.partner.publish"],
+      ["informationpages", "pages.information.publish"],
+      ["events", "events.read"],
+      ["registrations", "registrations.read"],
+      ["vroles", "volunteer_roles.read"],
+      ["articles", "articles.read"],
+      ["founders", "team.publish"],
+      ["products", "products.publish"],
+      ["newsletters", "newsletters.read"],
+      ["subscribers", "newsletter_subscribers.read"],
+      ["waitlist", "waitlist.read"],
+      ["messages", "messages.read"],
+      ["inquiries", "partners.read"],
+      ["access", "access.manage"],
+    ];
+    const currentPermission = inlineTabs.find(([key]) => key === tab)?.[1];
+    if (!currentPermission || hasPermission(access, currentPermission)) return;
+    const firstAllowed = inlineTabs.find(([, permission]) => hasPermission(access, permission));
+    if (firstAllowed) setTab(firstAllowed[0]);
+  }, [authorized, access, tab]);
+
   const signIn = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErr(null);
     try {
       const result = await signInAdmin(email, password);
-      const currentRole = await getCurrentRole();
+      const currentAccess = await getMySiteAccess();
       setSession(result.session);
-      setRole(currentRole);
+      setRole(currentAccess?.role || null);
+      setAccess(currentAccess);
       setPassword("");
     } catch (e) {
       setErr(e?.message || "Sign in failed.");
@@ -162,6 +203,7 @@ const Admin = () => {
     await signOutAdmin();
     setSession(null);
     setRole(null);
+    setAccess(null);
     setData(emptyData);
     setPassword("");
   };
@@ -217,7 +259,7 @@ const Admin = () => {
                   Dashboard
                 </h1>
                 <p className="text-ink/60 text-[13.5px]">
-                  Supabase CMS · signed in as {role}.
+                  Supabase CMS · signed in as {access?.roleName || role}.
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -247,162 +289,36 @@ const Admin = () => {
             )}
 
             <div className="mt-6 flex flex-wrap gap-2">
-              <TabPill
-                icon={Images}
-                label="Media Library"
-                active={tab === "media"}
-                onClick={() => setTab("media")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="Homepage"
-                active={tab === "homepage"}
-                onClick={() => setTab("homepage")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="About Page"
-                active={tab === "aboutpage"}
-                onClick={() => setTab("aboutpage")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="Our Work Page"
-                active={tab === "ourworkpage"}
-                onClick={() => setTab("ourworkpage")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="Events Page"
-                active={tab === "eventspage"}
-                onClick={() => setTab("eventspage")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="Research Page"
-                active={tab === "researchpage"}
-                onClick={() => setTab("researchpage")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="App Page"
-                active={tab === "apppage"}
-                onClick={() => setTab("apppage")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="Get Involved Page"
-                active={tab === "getinvolvedpage"}
-                onClick={() => setTab("getinvolvedpage")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="Contact Page"
-                active={tab === "contactpage"}
-                onClick={() => setTab("contactpage")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="Shop Page"
-                active={tab === "shoppage"}
-                onClick={() => setTab("shoppage")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="Support Page"
-                active={tab === "supportpage"}
-                onClick={() => setTab("supportpage")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="Volunteer Pages"
-                active={tab === "volunteerpage"}
-                onClick={() => setTab("volunteerpage")}
-              />
-              <TabPill
-                icon={PanelsTopLeft}
-                label="Partner Page"
-                active={tab === "partnerpage"}
-                onClick={() => setTab("partnerpage")}
-              />
-              <TabPill
-                icon={Globe2}
-                label="Information Pages"
-                active={tab === "informationpages"}
-                onClick={() => setTab("informationpages")}
-              />
-              <TabPill
-                icon={Calendar}
-                label={`Events (${data.events.length})`}
-                active={tab === "events"}
-                onClick={() => setTab("events")}
-              />
-              <TabPill
-                icon={Ticket}
-                label={`Registrations (${data.registrations.length})`}
-                active={tab === "registrations"}
-                onClick={() => setTab("registrations")}
-              />
-              <TabPill
-                icon={Users}
-                label={`Volunteer Roles (${data.roles.length})`}
-                active={tab === "vroles"}
-                onClick={() => setTab("vroles")}
-              />
-              <TabPill
-                icon={Users}
-                label={`Volunteer Applications (${data.applications.length})`}
-                active={tab === "applications"}
-                onClick={() => { window.location.href = "/admin/volunteers"; }}
-              />
-              <TabPill
-                icon={BookOpen}
-                label={`Articles (${data.articles.length})`}
-                active={tab === "articles"}
-                onClick={() => setTab("articles")}
-              />
-              <TabPill
-                icon={UserSquare2}
-                label={`Team (${data.founders.length})`}
-                active={tab === "founders"}
-                onClick={() => setTab("founders")}
-              />
-              <TabPill
-                icon={Package}
-                label={`Products (${data.products.length})`}
-                active={tab === "products"}
-                onClick={() => setTab("products")}
-              />
-              <TabPill
-                icon={Mail}
-                label={`Newsletter Issues (${data.newsletters.length})`}
-                active={tab === "newsletters"}
-                onClick={() => setTab("newsletters")}
-              />
-              <TabPill
-                icon={Mail}
-                label={`Subscribers (${data.subscribers.length})`}
-                active={tab === "subscribers"}
-                onClick={() => setTab("subscribers")}
-              />
-              <TabPill
-                icon={Mail}
-                label={`App Waitlist (${data.waitlist.length})`}
-                active={tab === "waitlist"}
-                onClick={() => setTab("waitlist")}
-              />
-              <TabPill
-                icon={MessageSquare}
-                label={`Messages (${data.messages.length})`}
-                active={tab === "messages"}
-                onClick={() => setTab("messages")}
-              />
-              <TabPill
-                icon={Handshake}
-                label={`Partners (${data.inquiries.length})`}
-                active={tab === "inquiries"}
-                onClick={() => setTab("inquiries")}
-              />
+              {hasPermission(access, "media.read") && <TabPill icon={Images} label="Media Library" active={tab === "media"} onClick={() => setTab("media")} />}
+              {hasPermission(access, "pages.home.publish") && <TabPill icon={PanelsTopLeft} label="Homepage" active={tab === "homepage"} onClick={() => setTab("homepage")} />}
+              {hasPermission(access, "pages.about.publish") && <TabPill icon={PanelsTopLeft} label="About Page" active={tab === "aboutpage"} onClick={() => setTab("aboutpage")} />}
+              {hasPermission(access, "pages.our_work.publish") && <TabPill icon={PanelsTopLeft} label="Our Work Page" active={tab === "ourworkpage"} onClick={() => setTab("ourworkpage")} />}
+              {hasPermission(access, "pages.events.publish") && <TabPill icon={PanelsTopLeft} label="Events Page" active={tab === "eventspage"} onClick={() => setTab("eventspage")} />}
+              {hasPermission(access, "pages.research.publish") && <TabPill icon={PanelsTopLeft} label="Research Page" active={tab === "researchpage"} onClick={() => setTab("researchpage")} />}
+              {hasPermission(access, "pages.app.publish") && <TabPill icon={PanelsTopLeft} label="App Page" active={tab === "apppage"} onClick={() => setTab("apppage")} />}
+              {hasPermission(access, "pages.get_involved.publish") && <TabPill icon={PanelsTopLeft} label="Get Involved Page" active={tab === "getinvolvedpage"} onClick={() => setTab("getinvolvedpage")} />}
+              {hasPermission(access, "pages.contact.publish") && <TabPill icon={PanelsTopLeft} label="Contact Page" active={tab === "contactpage"} onClick={() => setTab("contactpage")} />}
+              {hasPermission(access, "pages.shop.publish") && <TabPill icon={PanelsTopLeft} label="Shop Page" active={tab === "shoppage"} onClick={() => setTab("shoppage")} />}
+              {hasPermission(access, "pages.support.publish") && <TabPill icon={PanelsTopLeft} label="Support Page" active={tab === "supportpage"} onClick={() => setTab("supportpage")} />}
+              {hasPermission(access, "pages.volunteer.publish") && <TabPill icon={PanelsTopLeft} label="Volunteer Pages" active={tab === "volunteerpage"} onClick={() => setTab("volunteerpage")} />}
+              {hasPermission(access, "pages.partner.publish") && <TabPill icon={PanelsTopLeft} label="Partner Page" active={tab === "partnerpage"} onClick={() => setTab("partnerpage")} />}
+              {hasPermission(access, "pages.information.publish") && <TabPill icon={Globe2} label="Information Pages" active={tab === "informationpages"} onClick={() => setTab("informationpages")} />}
+
+              {hasPermission(access, "events.read") && <TabPill icon={Calendar} label={`Events (${data.events.length})`} active={tab === "events"} onClick={() => setTab("events")} />}
+              {hasPermission(access, "events.operations") && <TabPill icon={Calendar} label="Event Operations" active={false} onClick={() => { window.location.href = "/admin/events"; }} />}
+              {hasPermission(access, "registrations.read") && <TabPill icon={Ticket} label={`Registrations (${data.registrations.length})`} active={tab === "registrations"} onClick={() => setTab("registrations")} />}
+              {hasPermission(access, "volunteer_roles.read") && <TabPill icon={Users} label={`Volunteer Roles (${data.roles.length})`} active={tab === "vroles"} onClick={() => setTab("vroles")} />}
+              {hasPermission(access, "volunteer_applications.manage") && <TabPill icon={Users} label={`Volunteer Applications (${data.applications.length})`} active={false} onClick={() => { window.location.href = "/admin/volunteers"; }} />}
+              {hasPermission(access, "articles.read") && <TabPill icon={BookOpen} label={`Articles (${data.articles.length})`} active={tab === "articles"} onClick={() => setTab("articles")} />}
+              {hasPermission(access, "team.publish") && <TabPill icon={UserSquare2} label={`Team (${data.founders.length})`} active={tab === "founders"} onClick={() => setTab("founders")} />}
+              {hasPermission(access, "products.publish") && <TabPill icon={Package} label={`Products (${data.products.length})`} active={tab === "products"} onClick={() => setTab("products")} />}
+              {hasPermission(access, "newsletters.read") && <TabPill icon={Mail} label={`Newsletter Issues (${data.newsletters.length})`} active={tab === "newsletters"} onClick={() => setTab("newsletters")} />}
+              {hasPermission(access, "newsletter_subscribers.read") && <TabPill icon={Mail} label={`Subscribers (${data.subscribers.length})`} active={tab === "subscribers"} onClick={() => setTab("subscribers")} />}
+              {hasPermission(access, "waitlist.read") && <TabPill icon={Mail} label={`App Waitlist (${data.waitlist.length})`} active={tab === "waitlist"} onClick={() => setTab("waitlist")} />}
+              {hasPermission(access, "messages.read") && <TabPill icon={MessageSquare} label={`Messages (${data.messages.length})`} active={tab === "messages"} onClick={() => setTab("messages")} />}
+              {hasPermission(access, "partners.read") && <TabPill icon={Handshake} label={`Partners (${data.inquiries.length})`} active={tab === "inquiries"} onClick={() => setTab("inquiries")} />}
+              {hasPermission(access, "payments.read") && <TabPill icon={Ticket} label="Payment Review" active={false} onClick={() => { window.location.href = "/admin/payments"; }} />}
+              {hasPermission(access, "access.manage") && <TabPill icon={Lock} label="Access Control" active={tab === "access"} onClick={() => setTab("access")} />}
             </div>
 
             <div className="mt-8">
@@ -447,19 +363,19 @@ const Admin = () => {
                 <InformationPagesManager content={data.informationPages} onChange={refresh} />
               )}
               {tab === "events" && (
-                <EventsManager rows={data.events} onChange={refresh} />
+                <EventsManager rows={data.events} access={access} onChange={refresh} />
               )}
               {tab === "registrations" && (
                 <RegistrationsList rows={data.registrations} />
               )}
               {tab === "vroles" && (
-                <VolunteerRolesManager rows={data.roles} onChange={refresh} />
+                <VolunteerRolesManager rows={data.roles} access={access} onChange={refresh} />
               )}
               {tab === "applications" && (
                 <ApplicationsList rows={data.applications} />
               )}
               {tab === "articles" && (
-                <ArticlesManager rows={data.articles} onChange={refresh} />
+                <ArticlesManager rows={data.articles} access={access} onChange={refresh} />
               )}
               {tab === "founders" && (
                 <FoundersManager rows={data.founders} onChange={refresh} />
@@ -471,6 +387,7 @@ const Admin = () => {
                 <NewsletterManager
                   rows={data.newsletters}
                   subscriberCount={data.subscribers.length}
+                  access={access}
                   onChange={refresh}
                 />
               )}
@@ -480,6 +397,9 @@ const Admin = () => {
               {tab === "waitlist" && <WaitlistTable rows={data.waitlist} />}
               {tab === "messages" && <MessagesList rows={data.messages} />}
               {tab === "inquiries" && <InquiriesList rows={data.inquiries} />}
+              {tab === "access" && hasPermission(access, "access.manage") && (
+                <AccessControlManager currentUserId={session?.user?.id} />
+              )}
             </div>
           </div>
         )}
@@ -4676,10 +4596,14 @@ const InformationPagesManager = ({ content, onChange }) => {
 };
 
 // ---- Newsletter Issues Manager ----
-const NewsletterManager = ({ rows, subscriberCount, onChange }) => {
+const NewsletterManager = ({ rows, subscriberCount, access, onChange }) => {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
   const [sendingId, setSendingId] = useState(null);
+  const canWrite = hasPermission(access, "newsletters.write");
+  const canPublish = hasPermission(access, "newsletters.publish");
+  const canSend = hasPermission(access, "newsletters.send");
+  const canDelete = hasPermission(access, "newsletters.delete");
 
   const startNew = () => {
     setForm({
@@ -4710,8 +4634,9 @@ const NewsletterManager = ({ rows, subscriberCount, onChange }) => {
   const save = async (event) => {
     event.preventDefault();
     try {
-      if (editing === "new") await createNewsletterIssue(form);
-      else await updateNewsletterIssue(editing, form);
+      const payload = canPublish ? form : { ...form, status: "draft" };
+      if (editing === "new") await createNewsletterIssue(payload);
+      else await updateNewsletterIssue(editing, payload);
       setEditing(null);
       onChange();
     } catch (error) {
@@ -4789,6 +4714,7 @@ const NewsletterManager = ({ rows, subscriberCount, onChange }) => {
             Publish an issue, preview it, then send it once through the Resend newsletter audience.
           </p>
         </div>
+        {canWrite && (
         <button
           onClick={startNew}
           className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-4 py-2 text-[13px] font-semibold hover:bg-burgundy-light"
@@ -4796,6 +4722,7 @@ const NewsletterManager = ({ rows, subscriberCount, onChange }) => {
           <Plus className="w-4 h-4" />
           New issue
         </button>
+        )}
       </div>
 
       {editing && (
@@ -4984,6 +4911,7 @@ const NewsletterManager = ({ rows, subscriberCount, onChange }) => {
                 >
                   <ExternalLink className="w-4 h-4" />
                 </a>
+                {canPublish && (
                 <button
                   onClick={() => changePublication(row)}
                   title={row.status === "published" ? "Unpublish" : "Publish"}
@@ -4992,7 +4920,8 @@ const NewsletterManager = ({ rows, subscriberCount, onChange }) => {
                 >
                   <Globe2 className="w-4 h-4" />
                 </button>
-                {row.status === "published" && row.email_send_status !== "queued" && (
+                )}
+                {canSend && row.status === "published" && row.email_send_status !== "queued" && (
                   <button
                     onClick={() => sendIssue(row)}
                     disabled={sendingId === row.id || row.email_send_status === "syncing" || subscriberCount === 0}
@@ -5007,6 +4936,7 @@ const NewsletterManager = ({ rows, subscriberCount, onChange }) => {
                     )}
                   </button>
                 )}
+                {canWrite && (row.status === "draft" || canPublish) && (
                 <button
                   onClick={() => startEdit(row)}
                   aria-label={`Edit ${row.title}`}
@@ -5014,6 +4944,8 @@ const NewsletterManager = ({ rows, subscriberCount, onChange }) => {
                 >
                   <Pencil className="w-4 h-4" />
                 </button>
+                )}
+                {canDelete && (
                 <button
                   onClick={() => remove(row)}
                   aria-label={`Delete ${row.title}`}
@@ -5021,6 +4953,7 @@ const NewsletterManager = ({ rows, subscriberCount, onChange }) => {
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
+                )}
               </div>
             </div>
           ))
@@ -5066,9 +4999,12 @@ const EVENT_TIMEZONES = [
 ];
 
 // ---- Events Manager ----
-const EventsManager = ({ rows, onChange }) => {
+const EventsManager = ({ rows, access, onChange }) => {
   const [editing, setEditing] = useState(null); // null | 'new' | id
   const [form, setForm] = useState({});
+  const canWrite = hasPermission(access, "events.write");
+  const canPublish = hasPermission(access, "events.publish");
+  const canDelete = hasPermission(access, "events.delete");
 
 const startNew = () => {
   setForm({
@@ -5085,7 +5021,7 @@ const startNew = () => {
     img: "",
     imgAlt: "",
     posterMediaId: null,
-    status: "upcoming",
+    status: "draft",
     featured: false,
     partners: "",
     tags: "",
@@ -5165,6 +5101,7 @@ const save = async (e) => {
   };
 
   delete payload.startsAtLocal;
+  payload.status = canPublish ? (form.status || "draft") : "draft";
 
   try {
     if (editing === "new") {
@@ -5196,6 +5133,7 @@ const save = async (e) => {
         <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
           Events
         </h3>
+        {canWrite && (
         <button
           onClick={startNew}
           className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-4 py-2 text-[13px] font-semibold hover:bg-burgundy-light"
@@ -5203,6 +5141,7 @@ const save = async (e) => {
           <Plus className="w-4 h-4" />
           New event
         </button>
+        )}
       </div>
 
       {editing && (
@@ -5294,12 +5233,14 @@ const save = async (e) => {
           </Field>
           <Field label="Status">
             <select
-              value={form.status || "upcoming"}
+              value={form.status || "draft"}
+              disabled={!canPublish}
               onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className={inputCls}
+              className={`${inputCls} disabled:opacity-60`}
             >
-              <option value="upcoming">Upcoming</option>
-              <option value="past">Past</option>
+              <option value="draft">Draft</option>
+              {canPublish && <option value="upcoming">Upcoming</option>}
+              {canPublish && <option value="past">Past</option>}
             </select>
           </Field>
           <div className="md:col-span-2">
@@ -5465,18 +5406,22 @@ const save = async (e) => {
                 )}
               </div>
               <div className="flex gap-1 justify-end">
+                {canWrite && (r.status === "draft" || canPublish) && (
                 <button
                   onClick={() => startEdit(r)}
                   className="w-8 h-8 rounded-full hover:bg-ivory-200 flex items-center justify-center text-burgundy"
                 >
                   <Pencil className="w-4 h-4" />
                 </button>
+                )}
+                {canDelete && (
                 <button
                   onClick={() => remove(r.id)}
                   className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center text-red-700"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
+                )}
               </div>
             </div>
           ))
@@ -5487,10 +5432,13 @@ const save = async (e) => {
 };
 
 // ---- Articles Manager ----
-const ArticlesManager = ({ rows, onChange }) => {
+const ArticlesManager = ({ rows, access, onChange }) => {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
   const bodyTextareaRef = useRef(null);
+  const canWrite = hasPermission(access, "articles.write");
+  const canPublish = hasPermission(access, "articles.publish");
+  const canDelete = hasPermission(access, "articles.delete");
 
   const startNew = () => {
     setForm({
@@ -5508,6 +5456,7 @@ const ArticlesManager = ({ rows, onChange }) => {
       tags: "",
       takeaways: "",
       sourcesText: "",
+      status: "draft",
     });
     setEditing("new");
   };
@@ -5684,7 +5633,7 @@ const ArticlesManager = ({ rows, onChange }) => {
           .map((s) => s.trim())
           .filter(Boolean),
         slug: form.slug,
-        status: form.status,
+        status: canPublish ? (form.status || "draft") : "draft",
       };
 
       if (editing === "new") await createArticle(payload);
@@ -5706,12 +5655,27 @@ const ArticlesManager = ({ rows, onChange }) => {
     }
   };
 
+  const changePublication = async (row) => {
+    if (!canPublish) return;
+    const nextStatus = row.status === "published" ? "draft" : "published";
+    const action = nextStatus === "published" ? "Publish" : "Unpublish";
+    if (!window.confirm(`${action} “${row.title}”?`)) return;
+    try {
+      await updateArticle(row.id, { ...row, status: nextStatus });
+      if (editing === row.id) setEditing(null);
+      onChange();
+    } catch (error) {
+      alert(error?.message || `${action} failed`);
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
           Articles
         </h3>
+        {canWrite && (
         <button
           onClick={startNew}
           className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-4 py-2 text-[13px] font-semibold hover:bg-burgundy-light"
@@ -5719,6 +5683,7 @@ const ArticlesManager = ({ rows, onChange }) => {
           <Plus className="w-4 h-4" />
           New article
         </button>
+        )}
       </div>
 
       {editing && (
@@ -5925,25 +5890,39 @@ const ArticlesManager = ({ rows, onChange }) => {
             >
               <div>
                 <div className="font-semibold text-ink truncate">{r.title}</div>
-                <div className="text-ink/60 text-[12px]">/{r.slug}</div>
+                <div className="text-ink/60 text-[12px]">/{r.slug} · {r.status || "published"}</div>
               </div>
               <div className="text-ink/70 truncate">{r.topic}</div>
               <div className="text-ink/70">
                 {(r.blocks || []).length} blocks
               </div>
               <div className="flex gap-1 justify-end">
+                {canPublish && (
+                  <button
+                    onClick={() => changePublication(r)}
+                    title={r.status === "published" ? "Unpublish" : "Publish"}
+                    aria-label={`${r.status === "published" ? "Unpublish" : "Publish"} ${r.title}`}
+                    className="w-8 h-8 rounded-full hover:bg-ivory-200 flex items-center justify-center text-burgundy"
+                  >
+                    <Globe2 className="w-4 h-4" />
+                  </button>
+                )}
+                {canWrite && ((r.status || "published") === "draft" || canPublish) && (
                 <button
                   onClick={() => startEdit(r)}
                   className="w-8 h-8 rounded-full hover:bg-ivory-200 flex items-center justify-center text-burgundy"
                 >
                   <Pencil className="w-4 h-4" />
                 </button>
+                )}
+                {canDelete && (
                 <button
                   onClick={() => remove(r.id)}
                   className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center text-red-700"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
+                )}
               </div>
             </div>
           ))
@@ -6951,9 +6930,12 @@ const QuestionEditor = ({ questions, onChange }) => {
   );
 };
 
-const VolunteerRolesManager = ({ rows, onChange }) => {
+const VolunteerRolesManager = ({ rows, access, onChange }) => {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
+  const canWrite = hasPermission(access, "volunteer_roles.write");
+  const canPublish = hasPermission(access, "volunteer_roles.publish");
+  const canDelete = hasPermission(access, "volunteer_roles.delete");
   const startNew = () => {
     setForm({
       title: "",
@@ -6964,7 +6946,7 @@ const VolunteerRolesManager = ({ rows, onChange }) => {
       responsibilities: [],
       requirements: [],
       questions: [],
-      active: true,
+      active: false,
     });
     setEditing("new");
   };
@@ -6993,6 +6975,7 @@ const VolunteerRolesManager = ({ rows, onChange }) => {
             .map((s) => s.trim())
             .filter(Boolean),
       questions: form.questions || [],
+      active: canPublish ? form.active !== false : false,
     };
     try {
       if (editing === "new") await createVolunteerRole(payload);
@@ -7019,6 +7002,7 @@ const VolunteerRolesManager = ({ rows, onChange }) => {
         <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
           Volunteer roles
         </h3>
+        {canWrite && (
         <button
           onClick={startNew}
           className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-4 py-2 text-[13px] font-semibold hover:bg-burgundy-light"
@@ -7026,6 +7010,7 @@ const VolunteerRolesManager = ({ rows, onChange }) => {
           <Plus className="w-4 h-4" />
           New role
         </button>
+        )}
       </div>
       {editing && (
         <form
@@ -7112,6 +7097,7 @@ const VolunteerRolesManager = ({ rows, onChange }) => {
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
+              disabled={!canPublish}
               checked={form.active !== false}
               onChange={(e) => setForm({ ...form, active: e.target.checked })}
             />
@@ -7176,18 +7162,22 @@ const VolunteerRolesManager = ({ rows, onChange }) => {
                 {(r.questions || []).length} questions
               </div>
               <div className="flex gap-1 justify-end">
+                {canWrite && (r.active === false || canPublish) && (
                 <button
                   onClick={() => startEdit(r)}
                   className="w-8 h-8 rounded-full hover:bg-ivory-200 flex items-center justify-center text-burgundy"
                 >
                   <Pencil className="w-4 h-4" />
                 </button>
+                )}
+                {canDelete && (
                 <button
                   onClick={() => remove(r.id)}
                   className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center text-red-700"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
+                )}
               </div>
             </div>
           ))

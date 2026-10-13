@@ -23,7 +23,8 @@ import {
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { getCurrentRole, getSession } from '../services/admin';
+import { getSession } from '../services/admin';
+import { getMySiteAccess, hasPermission } from '../services/access';
 import {
   addVolunteerApplicationNote,
   getVolunteerApplicationDetails,
@@ -883,8 +884,9 @@ const VolunteerOperations = () => {
           return;
         }
 
-        const role = await getCurrentRole();
-        const allowed = ['admin', 'editor'].includes(role);
+        const access = await getMySiteAccess();
+        const role = access?.role || null;
+        const allowed = hasPermission(access, 'volunteer_applications.manage');
         if (cancelled) return;
 
         setAuthorized(allowed);

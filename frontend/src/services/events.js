@@ -161,7 +161,7 @@ function toDatabaseEvent(event) {
 
     status:
       event.status ||
-      'upcoming',
+      'draft',
 
     featured:
       !!event.featured,
@@ -327,6 +327,30 @@ export async function getEventRegistrations(eventId) {
     .order('created_at', { ascending: true });
   if (error) throw error;
   return data || [];
+}
+
+export async function saveEventOperationsSettings(eventId, event) {
+  const reminderHours = Array.isArray(event.reminder_hours)
+    ? event.reminder_hours
+    : Array.isArray(event.reminderHours)
+      ? event.reminderHours
+      : [];
+
+  const { data, error } = await supabase.rpc('save_event_operations_settings', {
+    p_event_id: eventId,
+    p_capacity: event.capacity === '' || event.capacity == null ? null : Number(event.capacity),
+    p_reminder_hours: normalizeReminderHours(reminderHours),
+    p_questions: Array.isArray(event.questions) ? event.questions : [],
+    p_feedback_enabled: event.feedback_enabled ?? event.feedbackEnabled ?? true,
+    p_feedback_delay_hours: Number(event.feedback_delay_hours ?? event.feedbackDelayHours ?? 24),
+    p_feedback_questions: Array.isArray(event.feedback_questions)
+      ? event.feedback_questions
+      : Array.isArray(event.feedbackQuestions)
+        ? event.feedbackQuestions
+        : [],
+  });
+  if (error) throw error;
+  return toFrontendEvent(data);
 }
 
 export async function getEventFeedback(eventId) {

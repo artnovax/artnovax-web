@@ -195,7 +195,7 @@ export const dbPayloads = {
     responsibilities: normalizeList(r.responsibilities),
     requirements: normalizeList(r.requirements),
     questions: r.questions || [],
-    active: r.active !== false,
+    active: r.active === true,
   }),
   founder: (f) => ({
     slug: f.slug || slugify(f.name), name: f.name, role: f.role || null, short: f.short || null,
@@ -209,7 +209,7 @@ export const dbPayloads = {
     read: a.read || '6 min read', updated: a.updated || null, hero: a.hero || null,
     hero_alt_text: a.heroAlt ?? a.hero_alt_text ?? null,
     hero_media_id: a.heroMediaId ?? a.hero_media_id ?? null, lead: a.lead || null,
-    blocks: a.blocks || [], takeaways: normalizeList(a.takeaways), tags: normalizeList(a.tags), status: a.status || 'published',
+    blocks: a.blocks || [], takeaways: normalizeList(a.takeaways), tags: normalizeList(a.tags), status: a.status || 'draft',
   }),
   newsletterIssue: (issue) => ({
     slug: issue.slug || slugify(issue.title),

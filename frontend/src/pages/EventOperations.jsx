@@ -46,7 +46,8 @@ import Header from "../components/Header";
 
 import Footer from "../components/Footer";
 
-import { getCurrentRole, getSession } from "../services/admin";
+import { getSession } from "../services/admin";
+import { getMySiteAccess, hasPermission } from "../services/access";
 
 import {
 
@@ -64,7 +65,7 @@ import {
 
   setRegistrationAttendance,
 
-  updateEvent,
+  saveEventOperationsSettings,
 
 } from "../services/events";
 
@@ -810,9 +811,9 @@ const EventOperations = () => {
 
         }
 
-        const role = await getCurrentRole();
+        const access = await getMySiteAccess();
 
-        const allowed = ["admin", "editor"].includes(role);
+        const allowed = hasPermission(access, "events.operations");
 
         setAuthorized(allowed);
 
@@ -884,7 +885,7 @@ const EventOperations = () => {
 
     try {
 
-      const saved = await updateEvent(selected.id, selected);
+      const saved = await saveEventOperationsSettings(selected.id, selected);
 
       setEvents((current) => current.map((event) => event.id === saved.id ? saved : event));
 

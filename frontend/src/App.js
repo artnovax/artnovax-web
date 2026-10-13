@@ -32,6 +32,7 @@ import Admin from './pages/Admin';
 import AdminPayments from './pages/AdminPayments';
 import EventOperations from './pages/EventOperations';
 import VolunteerOperations from './pages/VolunteerOperations';
+import SetupPassword from './pages/SetupPassword';
 import InfoPage from './pages/InfoPage';
 
 function App() {
@@ -76,6 +77,7 @@ function App() {
 
             <Route path="/events/:slug/feedback" element={<EventFeedback />} />
 
+            <Route path="/admin/setup-password" element={<SetupPassword />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/payments" element={<AdminPayments />} />
             <Route path="/admin/events" element={<EventOperations />} />

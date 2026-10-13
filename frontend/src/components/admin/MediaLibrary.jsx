@@ -17,6 +17,7 @@ import {
   uploadMediaAsset,
   validateMediaFile,
 } from '@/services/media';
+import { getMySiteAccess, hasPermission } from '@/services/access';
 
 const inputCls =
   'w-full rounded-lg ring-1 ring-ivory-300 bg-ivory px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40';
@@ -94,6 +95,9 @@ const MediaLibrary = ({ onSelect, selectedId = null }) => {
   const [metadata, setMetadata] = useState(emptyMetadata);
   const [editing, setEditing] = useState(null);
   const [editMetadata, setEditMetadata] = useState(emptyMetadata);
+  const [access, setAccess] = useState(null);
+  const canWrite = hasPermission(access, 'media.write');
+  const canDelete = hasPermission(access, 'media.delete');
 
   const load = async () => {
     setLoading(true);
@@ -109,6 +113,7 @@ const MediaLibrary = ({ onSelect, selectedId = null }) => {
 
   useEffect(() => {
     load();
+    getMySiteAccess().then(setAccess).catch(() => setAccess(null));
   }, []);
 
   const filteredAssets = useMemo(() => {
@@ -220,6 +225,7 @@ const MediaLibrary = ({ onSelect, selectedId = null }) => {
             Upload authentic images once, then reuse them across the website.
           </p>
         </div>
+        {canWrite && (
         <button
           type="button"
           onClick={() => setShowUpload((current) => !current)}
@@ -228,6 +234,7 @@ const MediaLibrary = ({ onSelect, selectedId = null }) => {
           {showUpload ? <X className="w-4 h-4" /> : <ImagePlus className="w-4 h-4" />}
           {showUpload ? 'Close upload' : 'Upload image'}
         </button>
+        )}
       </div>
 
       {error && (
@@ -236,7 +243,7 @@ const MediaLibrary = ({ onSelect, selectedId = null }) => {
         </div>
       )}
 
-      {showUpload && (
+      {canWrite && showUpload && (
         <form
           onSubmit={handleUpload}
           className="mt-4 rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5 grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -266,7 +273,7 @@ const MediaLibrary = ({ onSelect, selectedId = null }) => {
         </form>
       )}
 
-      {editing && (
+      {canWrite && editing && (
         <form
           onSubmit={handleUpdate}
           className="mt-4 rounded-2xl bg-ivory-100 ring-1 ring-burgundy/30 p-5 grid grid-cols-1 md:grid-cols-[140px_1fr_1fr] gap-4"
@@ -361,6 +368,7 @@ const MediaLibrary = ({ onSelect, selectedId = null }) => {
                       Use image
                     </button>
                   )}
+                  {canWrite && (
                   <button
                     type="button"
                     aria-label={`Edit ${asset.title || asset.original_filename}`}
@@ -369,6 +377,8 @@ const MediaLibrary = ({ onSelect, selectedId = null }) => {
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
+                  )}
+                  {canDelete && (
                   <button
                     type="button"
                     aria-label={`Delete ${asset.title || asset.original_filename}`}
@@ -378,6 +388,7 @@ const MediaLibrary = ({ onSelect, selectedId = null }) => {
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
+                  )}
                 </div>
               </div>
             </article>
