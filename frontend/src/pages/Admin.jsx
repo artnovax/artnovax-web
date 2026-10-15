@@ -4425,7 +4425,7 @@ const PartnerPageManager = ({ content, onChange }) => {
 // ---- Information Pages Manager ----
 const INFORMATION_PAGE_META = {
   privacy: { label: "Privacy Policy", href: "/privacy" },
-  terms: { label: "Terms of Use", href: "/terms" },
+  terms: { label: "Terms & Conditions", href: "/terms" },
   accessibility: { label: "Accessibility", href: "/accessibility" },
   research_approach: { label: "Research Approach", href: "/research/approach" },
 };

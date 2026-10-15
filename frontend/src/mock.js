@@ -131,7 +131,7 @@ export const FOOTER = {
   },
   legal: [
     { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Use', href: '/terms' },
+    { label: 'Terms & Conditions', href: '/terms' },
     { label: 'Accessibility', href: '/accessibility' },
   ],
   copyright: '© 2026 ArtNovaX Mental Health Foundation. All rights reserved.'
