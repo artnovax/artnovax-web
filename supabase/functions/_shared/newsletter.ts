@@ -99,13 +99,12 @@ export function renderNewsletterEmail(
         </div>
         ${hero}
         <div style="padding:30px 28px;">
-          <h1 style="margin:0 0 14px;color:#5C1519;font-family:Georgia,serif;font-size:32px;line-height:1.2;">
-            ${escapeNewsletterHtml(issue.title)}
-          </h1>
-          ${
-            issue.excerpt
-              ? `<p style="margin:0 0 24px;color:#6B5A55;font-size:16px;line-height:1.7;">${escapeNewsletterHtml(issue.excerpt)}</p>`
-              : ""
+          <p style="margin:0 0 18px;color:#2A1B1C;font-size:15px;line-height:1.8;">
+            Hi {{{FIRST_NAME|there}}}
+          </p>
+          ${issue.excerpt
+            ? `<p style="margin:0 0 24px;color:#6B5A55;font-size:16px;line-height:1.7;">${escapeNewsletterHtml(issue.excerpt)}</p>`
+            : ""
           }
           ${renderNewsletterBody(issue.body)}
           <p style="margin:28px 0 0;">
@@ -178,17 +177,21 @@ export async function syncNewsletterContact({
   apiKey,
   segmentId,
   email,
+  firstName = null,
   reactivate = false,
 }: {
   apiKey: string;
   segmentId: string;
   email: string;
+  firstName?: string | null;
   reactivate?: boolean;
 }): Promise<string | null> {
+  const normalizedFirstName = String(firstName || "").trim() || null;
   const create = await resendRequest(apiKey, "/contacts", {
     method: "POST",
     body: JSON.stringify({
       email,
+      ...(normalizedFirstName ? { first_name: normalizedFirstName } : {}),
       unsubscribed: false,
       segments: [{ id: segmentId }],
     }),
@@ -199,11 +202,15 @@ export async function syncNewsletterContact({
   }
 
   const encodedEmail = encodeURIComponent(email);
+  const shouldPatch = reactivate || !!normalizedFirstName;
 
-  if (reactivate) {
+  if (shouldPatch) {
     const update = await resendRequest(apiKey, `/contacts/${encodedEmail}`, {
       method: "PATCH",
-      body: JSON.stringify({ unsubscribed: false }),
+      body: JSON.stringify({
+        ...(reactivate ? { unsubscribed: false } : {}),
+        ...(normalizedFirstName ? { first_name: normalizedFirstName } : {}),
+      }),
     });
 
     if (!update.ok) {

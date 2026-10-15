@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, CalendarDays, Mail } from "lucide-react";
+import { ArrowLeft, CalendarDays, Mail, ArrowRight } from "lucide-react";
 import { useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -72,6 +72,10 @@ const NewsletterDetail = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  const [firstName, setFirstName] = useState("");
+
+
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [subscribeMessage, setSubscribeMessage] = useState(null);
   const [subscribeLoading, setSubscribeLoading] = useState(false);
@@ -111,7 +115,11 @@ const NewsletterDetail = () => {
     setSubscribeMessage(null);
 
     try {
-      const result = await subscribeNewsletter(email, "newsletter-detail");
+      const result = await subscribeNewsletter(
+        email,
+        "newsletter-detail",
+        firstName,
+      );
 
       setSubscribeMessage({
         type: "ok",
@@ -119,7 +127,9 @@ const NewsletterDetail = () => {
           result?.message || "You’re subscribed to the ArtNovaX newsletter.",
       });
 
+      setFirstName("");
       setEmail("");
+      setSubscribeOpen(false);
     } catch (err) {
       setSubscribeMessage({
         type: "err",
@@ -234,54 +244,83 @@ const NewsletterDetail = () => {
 
         {/* Newsletter signup */}
         <section className="mx-auto max-w-[1080px] px-4 md:px-6 pb-16 md:pb-24">
-          <div className="rounded-3xl bg-ivory-200/70 ring-1 ring-ivory-300 p-6 md:p-8 grid grid-cols-1 md:grid-cols-[auto_1fr_auto] items-center gap-5">
+          <div className="rounded-3xl bg-ivory-200/70 ring-1 ring-ivory-300 p-6 md:p-8 lg:px-10 lg:py-9 grid grid-cols-1 md:grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 md:gap-8 lg:gap-10">
             <div className="w-14 h-14 rounded-2xl bg-burgundy/10 flex items-center justify-center">
               <Mail className="w-7 h-7 text-burgundy" strokeWidth={1.5} />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
                 Enjoyed this issue?
               </h3>
-
-              <p className="text-ink/80 text-[14px] mt-1">
+              <p className="text-ink/80 text-[14px] mt-1 max-w-[620px] leading-relaxed">
                 Be the first to receive fresh artistic insights, creative
                 reflections and wellbeing resources straight to your inbox.
               </p>
             </div>
 
-            <form
-              onSubmit={submitNewsletter}
-              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto"
-            >
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                aria-label="Email address"
-                className="flex-1 md:w-[280px] rounded-full bg-ivory ring-1 ring-ivory-300 px-5 py-3 text-[14px] text-ink focus:outline-none focus:ring-2 focus:ring-burgundy/40"
-              />
-
+          <div className="w-full md:w-auto md:min-w-[210px] flex md:justify-end md:pl-6">
+            {!subscribeOpen ? (
               <button
-                type="submit"
-                disabled={subscribeLoading}
-                className="cta-btn whitespace-nowrap rounded-full bg-burgundy text-ivory px-6 py-3 text-[14px] font-semibold hover:bg-burgundy-light disabled:opacity-70"
+                type="button"
+                onClick={() => setSubscribeOpen(true)}
+                aria-expanded={subscribeOpen}
+                className="cta-btn inline-flex items-center justify-center gap-2 rounded-full bg-burgundy text-ivory px-7 py-3.5 text-[14px] font-semibold hover:bg-burgundy-light md:min-w-[168px]"
               >
-                {subscribeLoading ? "Subscribing…" : "Subscribe"}
+                Subscribe
+                <ArrowRight className="w-4 h-4" />
               </button>
-            </form>
+            ) : (
+              <div className="w-full md:w-[390px] lg:w-[420px] rounded-2xl bg-ivory/75 ring-1 ring-ivory-300 p-4">
+                <form onSubmit={submitNewsletter} className="space-y-2.5">
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="First name (optional)"
+                    aria-label="First name"
+                    autoComplete="given-name"
+                    maxLength={80}
+                    className="w-full rounded-full bg-ivory ring-1 ring-ivory-300 px-4 py-2.5 text-[13.5px] text-ink placeholder:text-ink/50 outline-none focus:ring-2 focus:ring-burgundy/40"
+                  />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={"Enter your email"}
+                    aria-label="Email address"
+                    autoComplete="email"
+                    className="w-full rounded-full bg-ivory ring-1 ring-ivory-300 px-4 py-2.5 text-[13.5px] text-ink placeholder:text-ink/50 outline-none focus:ring-2 focus:ring-burgundy/40"
+                  />
+                  <div className="flex items-center justify-end gap-2 pt-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setSubscribeOpen(false)}
+                      className="rounded-full px-4 py-2 text-[12.5px] font-semibold text-ink/65 hover:text-burgundy"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={subscribeLoading}
+                      className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[12.5px] font-semibold hover:bg-burgundy-light disabled:opacity-70"
+                    >
+                      {subscribeLoading ? "Subscribing…" : "Subscribe"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
           </div>
 
           {subscribeMessage && (
             <div
               aria-live="polite"
-              className={`text-[13px] mt-2 md:text-right ${
-                subscribeMessage.type === "ok"
-                  ? "text-burgundy"
-                  : "text-red-700"
-              }`}
+              className={subscribeMessage.type === "ok"
+                ? "text-[13px] mt-3 md:text-right text-burgundy"
+                : "text-[13px] mt-3 md:text-right text-red-700"}
             >
               {subscribeMessage.text}
             </div>

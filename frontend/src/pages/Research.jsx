@@ -36,6 +36,10 @@ const topicIcon = (key) => {
 const Research = () => {
   const [query, setQuery] = useState("");
   const [tag, setTag] = useState("All");
+  const [firstName, setFirstName] = useState("");
+
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
+
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -71,9 +75,11 @@ const Research = () => {
     setLoading(true);
     setMsg(null);
     try {
-      const r = await subscribeNewsletter(email, "research");
+      const r = await subscribeNewsletter(email, "research", firstName);
       setMsg({ type: "ok", text: r.message });
+      setFirstName("");
       setEmail("");
+      setSubscribeOpen(false);
     } catch (err) {
       setMsg({ type: "err", text: err?.message || "Something went wrong." });
     } finally {
@@ -302,7 +308,7 @@ const Research = () => {
 
       {/* Stay informed */}
       <section className="mx-auto max-w-[1240px] px-4 md:px-8 mt-12 md:mt-16 mb-16 md:mb-24">
-        <div className="rounded-3xl bg-ivory-200/70 ring-1 ring-ivory-300 p-6 md:p-8 grid grid-cols-1 md:grid-cols-[auto_1fr_auto] items-center gap-5">
+        <div className="rounded-3xl bg-ivory-200/70 ring-1 ring-ivory-300 p-6 md:p-8 lg:px-10 lg:py-9 grid grid-cols-1 md:grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 md:gap-8 lg:gap-10">
           <div className="w-14 h-14 rounded-2xl bg-burgundy/10 flex items-center justify-center">
             <svg
               viewBox="0 0 48 48"
@@ -317,37 +323,75 @@ const Research = () => {
               <path d="M8 16l16 12 16-12" />
             </svg>
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="font-serif-display text-burgundy text-[22px] font-semibold">
               {pageContent.newsletter.title}
             </h3>
-            <p className="text-ink/80 text-[14px] mt-1">
+            <p className="text-ink/80 text-[14px] mt-1 max-w-[620px] leading-relaxed">
               {pageContent.newsletter.body}
             </p>
           </div>
-          <form
-            onSubmit={submit}
-            className="flex items-center gap-2 w-full md:w-auto"
-          >
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={pageContent.newsletter.placeholder}
-              className="flex-1 md:w-[280px] rounded-full bg-ivory ring-1 ring-ivory-300 px-5 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-burgundy/40"
-            />
-            <button
-              disabled={loading}
-              className="cta-btn rounded-full bg-burgundy text-ivory px-6 py-3 text-[14px] font-semibold hover:bg-burgundy-light disabled:opacity-70"
-            >
-              {pageContent.newsletter.button}
-            </button>
-          </form>
+
+          <div className="w-full md:w-auto md:min-w-[210px] flex md:justify-end md:pl-6">
+            {!subscribeOpen ? (
+              <button
+                type="button"
+                onClick={() => setSubscribeOpen(true)}
+                aria-expanded={subscribeOpen}
+                className="cta-btn inline-flex items-center justify-center gap-2 rounded-full bg-burgundy text-ivory px-7 py-3.5 text-[14px] font-semibold hover:bg-burgundy-light md:min-w-[168px]"
+              >
+                Subscribe
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <div className="w-full md:w-[390px] lg:w-[420px] rounded-2xl bg-ivory/75 ring-1 ring-ivory-300 p-4">
+                <form onSubmit={submit} className="space-y-2.5">
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="First name (optional)"
+                    aria-label="First name"
+                    autoComplete="given-name"
+                    maxLength={80}
+                    className="w-full rounded-full bg-ivory ring-1 ring-ivory-300 px-4 py-2.5 text-[13.5px] text-ink placeholder:text-ink/50 outline-none focus:ring-2 focus:ring-burgundy/40"
+                  />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={pageContent.newsletter.placeholder}
+                    aria-label="Email address"
+                    autoComplete="email"
+                    className="w-full rounded-full bg-ivory ring-1 ring-ivory-300 px-4 py-2.5 text-[13.5px] text-ink placeholder:text-ink/50 outline-none focus:ring-2 focus:ring-burgundy/40"
+                  />
+                  <div className="flex items-center justify-end gap-2 pt-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setSubscribeOpen(false)}
+                      className="rounded-full px-4 py-2 text-[12.5px] font-semibold text-ink/65 hover:text-burgundy"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="cta-btn rounded-full bg-burgundy text-ivory px-5 py-2.5 text-[12.5px] font-semibold hover:bg-burgundy-light disabled:opacity-70"
+                    >
+                      {loading ? "Subscribing…" : "Subscribe"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
         </div>
         {msg && (
           <div
-            className={`text-[13px] mt-2 md:text-right ${msg.type === "ok" ? "text-burgundy" : "text-red-700"}`}
+            className={msg.type === "ok"
+              ? "text-[13px] mt-3 md:text-right text-burgundy"
+              : "text-[13px] mt-3 md:text-right text-red-700"}
           >
             {msg.text}
           </div>

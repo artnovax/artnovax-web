@@ -48,6 +48,7 @@ async function invokeSubmission(type, payload) {
 export async function subscribeNewsletter(
   email,
   source,
+  firstName = null,
 ) {
   const { data, error } =
     await supabase.functions.invoke(
@@ -56,6 +57,7 @@ export async function subscribeNewsletter(
         body: {
           email,
           source: source || null,
+          first_name: firstName || null,
         },
       },
     );

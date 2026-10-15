@@ -45,6 +45,7 @@ import {
 import Header from "../components/Header";
 
 import Footer from "../components/Footer";
+import EventRegistrantEmailPanel from "../components/admin/EventRegistrantEmailPanel";
 
 import { getSession } from "../services/admin";
 import { getMySiteAccess, hasPermission } from "../services/access";
@@ -586,6 +587,7 @@ const QuestionEditor = ({ questions, onChange, title, defaultQuestions = [], not
 const EventOperations = () => {
 
   const [authorized, setAuthorized] = useState(null);
+  const [access, setAccess] = useState(null);
 
   const [events, setEvents] = useState([]);
 
@@ -627,6 +629,8 @@ const EventOperations = () => {
 
   );
 
+  const canSendEventEmail = hasPermission(access, "event_emails.send");
+
   const eventGroups = useMemo(() => {
     const startTime = (event) => {
       const value = new Date(event.starts_at || event.date || 0).getTime();
@@ -639,7 +643,7 @@ const EventOperations = () => {
 
     const drafts = events
       .filter((event) => event.status === "draft")
-      .sort((a, b) => startTime(a) - startTime(b));
+      .sort((a, b) => startTime(b) - startTime(a));
 
     const past = events
       .filter((event) => event.status === "past")
@@ -647,8 +651,8 @@ const EventOperations = () => {
 
     return [
       ["Upcoming", upcoming],
-      ["Drafts", drafts],
       ["Past", past],
+      ["Drafts", drafts],
     ].filter(([, rows]) => rows.length > 0);
   }, [events]);
 
@@ -812,6 +816,7 @@ const EventOperations = () => {
         }
 
         const access = await getMySiteAccess();
+        setAccess(access);
 
         const allowed = hasPermission(access, "events.operations");
 
@@ -1250,7 +1255,7 @@ const EventOperations = () => {
 
             <p className="mt-1 text-[13.5px] text-ink/60">
 
-              Registration setup, reminders, attendance, feedback and event reporting.
+              Registration setup, reminders, registrant emails, attendance, feedback and event reporting.
 
             </p>
 
@@ -1346,6 +1351,10 @@ const EventOperations = () => {
             ["registrations", Ticket, `Registrations (${registrations.length})`],
 
             ["attendance", ClipboardCheck, "Attendance"],
+
+            ...(canSendEventEmail
+              ? [["email", MailCheck, `Email confirmed (${metrics.confirmed})`]]
+              : []),
 
             ["feedback", Users, `Feedback (${feedback.length})`],
 
@@ -1638,6 +1647,16 @@ const EventOperations = () => {
             </section>
 
           </div>
+
+        ) : tab === "email" && canSendEventEmail ? (
+
+          <EventRegistrantEmailPanel
+            key={selected.id}
+            event={selected}
+            registrations={registrations}
+            onNotice={setNotice}
+            onError={setError}
+          />
 
         ) : tab === "feedback" ? (
 

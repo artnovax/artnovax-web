@@ -53,6 +53,10 @@ const Footer = ({
 };
 
 const FooterInner = ({ resolveNavHref }) => {
+  const [firstName, setFirstName] = useState("");
+
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -64,12 +68,14 @@ const FooterInner = ({ resolveNavHref }) => {
     setMsg(null);
 
     try {
-      const res = await subscribeNewsletter(email, "footer");
+      const res = await subscribeNewsletter(email, "footer", firstName);
       setMsg({
         type: "ok",
         text: res.message || "Thanks — you’re on the list!",
       });
+      setFirstName("");
       setEmail("");
+      setSubscribeOpen(false);
     } catch (err) {
       const text = err?.message || "Something went wrong. Please try again.";
       setMsg({ type: "err", text });
@@ -139,12 +145,12 @@ const FooterInner = ({ resolveNavHref }) => {
           </div>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-end">
-          <div>
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] items-center gap-6 md:gap-10">
+          <div className="min-w-0">
             <div className="text-ivory font-semibold text-[14px] mb-2">
               {FOOTER.newsletter.title}
             </div>
-            <p className="text-ivory/75 text-[13px] max-w-[420px]">
+            <p className="text-ivory/75 text-[13px] max-w-[520px] leading-relaxed">
               {FOOTER.newsletter.body}
             </p>
             <Link
@@ -155,35 +161,77 @@ const FooterInner = ({ resolveNavHref }) => {
             </Link>
           </div>
 
-          <form
-            onSubmit={submit}
-            className="flex items-center bg-ivory rounded-full pl-5 pr-1 py-1 w-full md:w-[380px]"
-          >
-            <input
-              type="email"
-              required
-              placeholder={FOOTER.newsletter.placeholder}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 bg-transparent outline-none text-ink placeholder:text-ink/50 text-[14px] py-2"
-            />
+          {!subscribeOpen && (
             <button
-              type="submit"
-              disabled={loading}
-              className="cta-btn inline-flex items-center justify-center w-10 h-10 rounded-full bg-burgundy text-ivory hover:bg-burgundy-light disabled:opacity-70"
+              type="button"
+              onClick={() => {
+                setMsg(null);
+                setSubscribeOpen(true);
+              }}
+              aria-expanded={subscribeOpen}
+              className="cta-btn w-fit md:justify-self-end inline-flex items-center justify-center gap-2 rounded-full bg-ivory text-burgundy px-6 py-3 text-[13.5px] font-semibold hover:bg-ivory-200 md:min-w-[168px]"
             >
+              Subscribe
               <ArrowRight className="w-4 h-4" />
             </button>
-          </form>
-        </div>
+          )}
 
-        {msg && (
-          <div
-            className={`text-[13px] mt-2 md:text-right ${msg.type === "ok" ? "text-ivory/90" : "text-red-200"}`}
-          >
-            {msg.text}
-          </div>
-        )}
+          {subscribeOpen && (
+            <div className="w-full md:w-[420px] md:justify-self-end rounded-2xl bg-ivory/10 ring-1 ring-ivory/20 p-4">
+              <form onSubmit={submit} className="space-y-2.5">
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="First name (optional)"
+                  aria-label="First name"
+                  autoComplete="given-name"
+                  maxLength={80}
+                  className="w-full rounded-full bg-ivory px-4 py-2.5 text-[13.5px] text-ink placeholder:text-ink/50 outline-none ring-1 ring-ivory-300 focus:ring-2 focus:ring-ivory/70"
+                />
+                <input
+                  type="email"
+                  required
+                  placeholder={FOOTER.newsletter.placeholder}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  aria-label="Email address"
+                  autoComplete="email"
+                  className="w-full rounded-full bg-ivory px-4 py-2.5 text-[13.5px] text-ink placeholder:text-ink/50 outline-none ring-1 ring-ivory-300 focus:ring-2 focus:ring-ivory/70"
+                />
+                <div className="flex items-center justify-end gap-2 pt-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMsg(null);
+                      setSubscribeOpen(false);
+                    }}
+                    className="rounded-full px-4 py-2 text-[12.5px] font-semibold text-ivory/85 hover:text-ivory"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="cta-btn rounded-full bg-ivory text-burgundy px-5 py-2.5 text-[12.5px] font-semibold hover:bg-ivory-200 disabled:opacity-70"
+                  >
+                    {loading ? "Subscribing…" : "Subscribe"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {msg && (
+            <div
+              className={msg.type === "ok"
+                ? "text-[13px] md:col-span-2 md:text-right text-ivory/90"
+                : "text-[13px] md:col-span-2 md:text-right text-red-200"}
+            >
+              {msg.text}
+            </div>
+          )}
+        </div>
 
         <div className="mt-14 pt-6 border-t border-ivory/15 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[12.5px] text-ivory/70">
           <div>{FOOTER.copyright}</div>

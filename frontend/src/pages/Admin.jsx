@@ -4605,6 +4605,41 @@ const NewsletterManager = ({ rows, subscriberCount, access, onChange }) => {
   const canSend = hasPermission(access, "newsletters.send");
   const canDelete = hasPermission(access, "newsletters.delete");
 
+  const handleNewsletterBodyKeyDown = (event) => {
+    if (event.key !== "Enter" || event.nativeEvent?.isComposing) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const textarea = event.currentTarget;
+    const currentBody = String(form.body || "");
+    const start = textarea.selectionStart ?? currentBody.length;
+    const end = textarea.selectionEnd ?? start;
+
+    if (currentBody.length >= 12000 && start === end) return;
+
+    const nextBody = (
+      currentBody.slice(0, start) +
+      "\n" +
+      currentBody.slice(end)
+    ).slice(0, 12000);
+
+    setForm((current) => ({
+      ...current,
+      body: nextBody,
+    }));
+
+    const nextCursorPosition = Math.min(start + 1, nextBody.length);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        nextCursorPosition,
+        nextCursorPosition,
+      );
+    });
+  };
+
   const startNew = () => {
     setForm({
       title: "",
@@ -4827,16 +4862,31 @@ const NewsletterManager = ({ rows, subscriberCount, access, onChange }) => {
           </div>
           <div className="md:col-span-2">
             <Field label="Issue body">
+              <div className="mb-3 rounded-xl bg-ivory ring-1 ring-ivory-300 px-4 py-3">
+                <div className="text-[10.5px] uppercase tracking-widest text-ink/50 font-semibold">
+                  Email-only layout preview
+                </div>
+                <div className="mt-2 space-y-2 text-[13.5px] leading-relaxed">
+                  <p className="text-ink/85">Hi Ray</p>
+                  <p className="text-ink/65">
+                    {form.excerpt || "The archive excerpt will appear here in the email."}
+                  </p>
+                  <p className="text-ink/45 text-[11.5px]">
+                    The issue body begins immediately after this. The newsletter title is not repeated inside the email because it is already represented by the email subject. This email-only greeting and layout do not change the published website issue.
+                  </p>
+                </div>
+              </div>
               <textarea
                 rows={14}
                 value={form.body || ""}
                 onChange={(event) => setForm({ ...form, body: event.target.value })}
+                onKeyDownCapture={handleNewsletterBodyKeyDown}
                 className={inputCls + " font-mono text-[13px]"}
-                placeholder="## Section heading&#10;&#10;Write each paragraph with a blank line between paragraphs.&#10;&#10;> Optional highlighted quote"
+                placeholder="Start writing the issue after the personalized greeting.&#10;&#10;## Section heading&#10;&#10;Write each paragraph with a blank line between paragraphs.&#10;&#10;> Optional highlighted quote"
               />
             </Field>
             <p className="mt-1 text-ink/55 text-[11.5px]">
-              Preview opens the last saved version. Body supports ## headings, ### subheadings, and &gt; highlighted quotes.
+              Website preview opens the last saved public version. Email delivery uses its own layout: personalized greeting, archive excerpt, then this body. The email does not repeat the issue title. Body supports ## headings, ### subheadings, and &gt; highlighted quotes.
             </p>
           </div>
           <div className="md:col-span-2 flex gap-2 justify-end">

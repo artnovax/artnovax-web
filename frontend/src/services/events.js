@@ -211,6 +211,34 @@ function toDatabaseEvent(event) {
   };
 }
 
+function sortEventsForCms(events) {
+  const timestamp = (event) => {
+    const raw = event?.starts_at || event?.created_at || 0;
+    const value = new Date(raw).getTime();
+    return Number.isNaN(value) ? 0 : value;
+  };
+
+  const rank = (event) => {
+    if (event?.status === 'upcoming') return 0;
+    if (event?.status === 'past') return 1;
+    return 2; // Drafts remain available, but published lifecycle comes first.
+  };
+
+  return [...events].sort((a, b) => {
+    const rankDifference = rank(a) - rank(b);
+    if (rankDifference !== 0) return rankDifference;
+
+    // Upcoming events: next event first. Past and draft events: newest first.
+    const timeDifference =
+      rank(a) === 0
+        ? timestamp(a) - timestamp(b)
+        : timestamp(b) - timestamp(a);
+
+    if (timeDifference !== 0) return timeDifference;
+    return String(a?.title || '').localeCompare(String(b?.title || ''));
+  });
+}
+
 export async function getEvents({ includeDrafts = false } = {}) {
   let query = supabase
     .from('events')
@@ -228,7 +256,11 @@ export async function getEvents({ includeDrafts = false } = {}) {
 
   if (error) throw error;
 
-  return (data ?? []).map(toFrontendEvent);
+  const mapped = (data ?? []).map(toFrontendEvent);
+
+  // CMS views ask for drafts too. Keep the next upcoming event first, then
+  // the most recent past events through the oldest, followed by drafts.
+  return includeDrafts ? sortEventsForCms(mapped) : mapped;
 }
 
 export async function getEventBySlug(slug) {

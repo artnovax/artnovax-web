@@ -32,15 +32,21 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const email = clean(body?.email).toLowerCase();
     const source = clean(body?.source) || null;
+    const firstName = clean(body?.first_name ?? body?.firstName) || null;
 
     if (!validEmail(email)) {
       return json({ error: "Please provide a valid email address." }, 400);
+    }
+
+    if (firstName && firstName.length > 80) {
+      return json({ error: "First name must be 80 characters or fewer." }, 400);
     }
 
     const { data: subscription, error: subscriptionError } =
       await supabaseAdmin.rpc("subscribe_newsletter", {
         p_email: email,
         p_source: source,
+        p_first_name: firstName,
       });
 
     if (subscriptionError) throw subscriptionError;
@@ -68,6 +74,7 @@ Deno.serve(async (req) => {
         apiKey,
         segmentId,
         email,
+        firstName,
         reactivate: true,
       });
 

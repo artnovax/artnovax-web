@@ -44,9 +44,9 @@ async function requireStaff(req: Request): Promise<string> {
     .eq("user_id", userData.user.id)
     .single();
 
-if (roleError || role?.role !== "admin") {
-  throw new Error("Administrator access is required to send newsletters.");
-}
+  if (roleError || role?.role !== "admin") {
+    throw new Error("Administrator access is required to send newsletters.");
+  }
 
   return userData.user.id;
 }
@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
 
     const { data: subscribers, error: subscriberError } = await supabaseAdmin
       .from("newsletter_subscribers")
-      .select("id,email,resend_contact_id")
+      .select("id,email,first_name,resend_contact_id")
       .order("subscribed_at", { ascending: true });
 
     if (subscriberError) throw subscriberError;
@@ -129,6 +129,7 @@ Deno.serve(async (req) => {
           apiKey,
           segmentId,
           email: subscriber.email,
+          firstName: subscriber.first_name,
           reactivate: false,
         });
 
