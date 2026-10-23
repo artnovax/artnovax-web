@@ -33,6 +33,31 @@ export function escapeNewsletterHtml(value: unknown): string {
 const normalizeSiteUrl = (value: string): string =>
   value.trim().replace(/\/+$/, "");
 
+const INLINE_MARKDOWN_PATTERN =
+  /\*\*([^*\n]+?)\*\*|_([^_\n]+?)_|\*([^*\n]+?)\*/g;
+
+export function renderNewsletterInlineMarkdown(value: unknown): string {
+  const escaped = escapeNewsletterHtml(value);
+
+  INLINE_MARKDOWN_PATTERN.lastIndex = 0;
+
+  return escaped.replace(
+    INLINE_MARKDOWN_PATTERN,
+    (
+      _match,
+      bold: string | undefined,
+      underscoreItalic: string | undefined,
+      asteriskItalic: string | undefined,
+    ) => {
+      if (bold !== undefined) {
+        return `<strong>${bold}</strong>`;
+      }
+
+      return `<em>${underscoreItalic ?? asteriskItalic ?? ""}</em>`;
+    },
+  );
+}
+
 export function renderNewsletterBody(body = ""): string {
   return body
     .split(/\n\s*\n/)
@@ -41,24 +66,24 @@ export function renderNewsletterBody(body = ""): string {
     .map((section) => {
       if (section.startsWith("### ")) {
         return `<h3 style="margin:28px 0 10px;color:#2A1B1C;font-size:21px;line-height:1.3;">${
-          escapeNewsletterHtml(section.slice(4).trim())
+          renderNewsletterInlineMarkdown(section.slice(4).trim())
         }</h3>`;
       }
 
       if (section.startsWith("## ")) {
         return `<h2 style="margin:34px 0 12px;color:#5C1519;font-size:26px;line-height:1.25;">${
-          escapeNewsletterHtml(section.slice(3).trim())
+          renderNewsletterInlineMarkdown(section.slice(3).trim())
         }</h2>`;
       }
 
       if (section.startsWith("> ")) {
         return `<blockquote style="margin:26px 0;padding:4px 0 4px 18px;border-left:4px solid #5C1519;color:#5C1519;font-family:Georgia,serif;font-size:20px;font-style:italic;line-height:1.6;">${
-          escapeNewsletterHtml(section.slice(2).trim())
+          renderNewsletterInlineMarkdown(section.slice(2).trim())
         }</blockquote>`;
       }
 
       return `<p style="margin:0 0 18px;color:#2A1B1C;font-size:15px;line-height:1.8;">${
-        escapeNewsletterHtml(section).replaceAll("\n", "<br />")
+        renderNewsletterInlineMarkdown(section).replaceAll("\n", "<br />")
       }</p>`;
     })
     .join("");

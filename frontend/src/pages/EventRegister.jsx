@@ -246,9 +246,12 @@ const EventRegister = () => {
   const registrationClosed =
     !!event && (event.status === "past" || isEventEnded(event));
 
+  const waitlistClosed =
+    !!event && !!event.is_full && event.waitlist_open === false;
+
   const submit = async (submitEvent) => {
     submitEvent.preventDefault();
-    if (submitting || registrationClosed) return;
+    if (submitting || registrationClosed || waitlistClosed) return;
 
     const missingRequired = questions.find((question) => {
       if (!question.required) return false;
@@ -321,6 +324,27 @@ const EventRegister = () => {
           </h1>
           <p className="mt-2 text-ink/70 text-[14px]">
             {event.title} has already ended, so new registrations are no longer accepted.
+          </p>
+          <a
+            href={`/events/${event.slug || event.id}`}
+            className="mt-6 inline-flex items-center gap-2 rounded-full border-2 border-burgundy text-burgundy px-6 py-3 text-[14px] font-semibold hover:bg-burgundy hover:text-ivory"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to event
+          </a>
+        </div>
+      </Shell>
+    );
+  }
+
+  if (waitlistClosed) {
+    return (
+      <Shell>
+        <div className="mx-auto max-w-[640px] rounded-3xl bg-ivory-100 ring-1 ring-ivory-300 p-8 text-center">
+          <h1 className="font-serif-display text-burgundy text-[32px] font-semibold">
+            Registration and waitlist are closed
+          </h1>
+          <p className="mt-2 text-ink/70 text-[14px] leading-relaxed">
+            {event.title} is currently full and the waitlist is no longer accepting new names.
           </p>
           <a
             href={`/events/${event.slug || event.id}`}

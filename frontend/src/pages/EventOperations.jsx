@@ -64,6 +64,10 @@ import {
 
   isEventEnded,
 
+  promoteEventWaitlist,
+
+  setEventWaitlistOpen,
+
   setRegistrationAttendance,
 
   saveEventOperationsSettings,
@@ -619,6 +623,10 @@ const EventOperations = () => {
 
   const [notice, setNotice] = useState(null);
 
+  const [selectedWaitlistIds, setSelectedWaitlistIds] = useState([]);
+
+  const [waitlistWorking, setWaitlistWorking] = useState(false);
+
 
 
   const selected = useMemo(
@@ -630,6 +638,29 @@ const EventOperations = () => {
   );
 
   const canSendEventEmail = hasPermission(access, "event_emails.send");
+
+  const waitlistedRegistrations = useMemo(
+    () => registrations.filter((registration) => registration.status === "waitlist"),
+    [registrations],
+  );
+
+  const waitlistOpen = selected?.waitlist_open !== false;
+
+  const availableWaitlistSpots = useMemo(() => {
+    if (selected?.capacity == null || selected?.capacity === "") return null;
+    const capacity = Number(selected.capacity);
+    if (!Number.isFinite(capacity)) return null;
+    const confirmedCount = registrations.filter(
+      (registration) => registration.status === "confirmed",
+    ).length;
+    return Math.max(0, capacity - confirmedCount);
+  }, [selected?.capacity, registrations]);
+
+  const selectedWaitlistCount = selectedWaitlistIds.length;
+
+  const selectedWaitlistExceedsCapacity =
+    availableWaitlistSpots !== null &&
+    selectedWaitlistCount > availableWaitlistSpots;
 
   const eventGroups = useMemo(() => {
     const startTime = (event) => {
@@ -852,6 +883,7 @@ const EventOperations = () => {
     setRegistrationStatusFilter("all");
     setAttendanceQuery("");
     setAttendanceFilter("all");
+    setSelectedWaitlistIds([]);
     setNotice(null);
     setLoading(true);
 
@@ -909,6 +941,98 @@ const EventOperations = () => {
   };
 
 
+
+  const toggleWaitlist = async () => {
+    if (!selected || waitlistWorking) return;
+
+    const nextOpen = !waitlistOpen;
+    const action = nextOpen ? "reopen" : "close";
+    const message = nextOpen
+      ? "Reopen this event waitlist? New people can join the waitlist again when the event is full."
+      : "Close this event waitlist? Existing waitlisted people will remain on the list, but no new waitlist registrations will be accepted.";
+
+    if (!window.confirm(message)) return;
+
+    setWaitlistWorking(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      await setEventWaitlistOpen(selected.id, nextOpen);
+      const eventId = await loadEvents(selected.id);
+      await loadEventData(eventId);
+      setNotice(`Event waitlist ${action === "close" ? "closed" : "reopened"}.`);
+    } catch (waitlistError) {
+      setError(waitlistError?.message || `Unable to ${action} the waitlist.`);
+    } finally {
+      setWaitlistWorking(false);
+    }
+  };
+
+  const toggleWaitlistSelection = (registrationId) => {
+    setSelectedWaitlistIds((current) =>
+      current.includes(registrationId)
+        ? current.filter((id) => id !== registrationId)
+        : [...current, registrationId],
+    );
+  };
+
+  const selectAllWaitlisted = () => {
+    setSelectedWaitlistIds((current) =>
+      current.length === waitlistedRegistrations.length
+        ? []
+        : waitlistedRegistrations.map((registration) => registration.id),
+    );
+  };
+
+  const promoteSelectedWaitlist = async () => {
+    if (!selected || selectedWaitlistIds.length === 0 || waitlistWorking) return;
+
+    if (selectedWaitlistExceedsCapacity) {
+      setError(
+        `Only ${availableWaitlistSpots} confirmed spot${availableWaitlistSpots === 1 ? "" : "s"} remain. Select fewer people or increase the event capacity first.`,
+      );
+      return;
+    }
+
+    const selectedNames = waitlistedRegistrations
+      .filter((registration) => selectedWaitlistIds.includes(registration.id))
+      .map((registration) => registration.name)
+      .filter(Boolean);
+
+    const preview = selectedNames.slice(0, 3).join(", ");
+    const extra = selectedNames.length > 3 ? ` and ${selectedNames.length - 3} more` : "";
+    const selectedSummary = preview ? " (" + preview + extra + ")" : "";
+
+    if (!window.confirm(
+      `Confirm ${selectedWaitlistIds.length} waitlisted participant${selectedWaitlistIds.length === 1 ? "" : "s"}${selectedSummary}? They will become confirmed registrants and receive an acceptance email with calendar details.`,
+    )) return;
+
+    setWaitlistWorking(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const result = await promoteEventWaitlist(selected.id, selectedWaitlistIds);
+      setSelectedWaitlistIds([]);
+      const eventId = await loadEvents(selected.id);
+      await loadEventData(eventId);
+
+      const promoted = result?.promoted ?? 0;
+      const sent = result?.emails_sent ?? 0;
+      const failed = result?.email_failed ?? 0;
+
+      setNotice(
+        failed > 0
+          ? `${promoted} participant${promoted === 1 ? "" : "s"} confirmed. ${sent} acceptance email${sent === 1 ? "" : "s"} sent; ${failed} email${failed === 1 ? "" : "s"} failed and can be followed up from the registrant email tools.`
+          : `${promoted} participant${promoted === 1 ? "" : "s"} confirmed and ${sent} acceptance email${sent === 1 ? "" : "s"} sent.`,
+      );
+    } catch (promotionError) {
+      setError(promotionError?.message || "Unable to promote waitlisted participants.");
+    } finally {
+      setWaitlistWorking(false);
+    }
+  };
 
   const changeAttendance = async (registration, nextStatus) => {
 
@@ -1491,6 +1615,95 @@ const EventOperations = () => {
         ) : tab === "registrations" ? (
 
           <div className="mt-6 space-y-4">
+
+            <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-serif-display text-burgundy text-[20px] font-semibold">Waitlist management</h3>
+                    <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${waitlistOpen ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-amber-50 text-amber-800 ring-amber-200"}`}>
+                      {waitlistOpen ? "Open" : "Closed"}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[12px] text-ink/60 max-w-[720px] leading-relaxed">
+                    Closing the waitlist stops new waitlist signups without removing anyone already waiting. Promote selected people when places become available; they become confirmed registrants and receive an acceptance email with calendar details.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleWaitlist}
+                  disabled={waitlistWorking || selected?.status === "past" || isEventEnded(selected)}
+                  className="rounded-full ring-1 ring-burgundy/30 px-4 py-2 text-[12.5px] font-semibold text-burgundy hover:bg-burgundy/10 disabled:opacity-50"
+                >
+                  {waitlistWorking ? "Working…" : waitlistOpen ? "Close waitlist" : "Reopen waitlist"}
+                </button>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2 text-[11.5px] text-ink/65">
+                <span className="rounded-full bg-ivory px-3 py-1 ring-1 ring-ivory-300">{waitlistedRegistrations.length} waiting</span>
+                <span className="rounded-full bg-ivory px-3 py-1 ring-1 ring-ivory-300">{metrics.confirmed} confirmed</span>
+                <span className="rounded-full bg-ivory px-3 py-1 ring-1 ring-ivory-300">
+                  {availableWaitlistSpots === null ? "No capacity limit" : `${availableWaitlistSpots} spot${availableWaitlistSpots === 1 ? "" : "s"} available`}
+                </span>
+              </div>
+
+              {waitlistedRegistrations.length > 0 && (
+                <div className="mt-5">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={selectAllWaitlisted}
+                      className="text-[12.5px] font-semibold text-burgundy hover:underline"
+                    >
+                      {selectedWaitlistIds.length === waitlistedRegistrations.length ? "Clear selection" : "Select all waitlisted"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={promoteSelectedWaitlist}
+                      disabled={waitlistWorking || selectedWaitlistCount === 0 || selectedWaitlistExceedsCapacity || selected?.status === "past" || isEventEnded(selected)}
+                      className="inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-4 py-2.5 text-[12.5px] font-semibold hover:bg-burgundy-light disabled:opacity-50"
+                    >
+                      {waitlistWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                      Confirm selected{selectedWaitlistCount ? ` (${selectedWaitlistCount})` : ""}
+                    </button>
+                  </div>
+
+                  {selectedWaitlistExceedsCapacity && (
+                    <div className="mt-3 rounded-xl bg-amber-50 text-amber-800 ring-1 ring-amber-200 px-4 py-3 text-[12px]">
+                      You selected {selectedWaitlistCount}, but only {availableWaitlistSpots} confirmed spot{availableWaitlistSpots === 1 ? "" : "s"} remain.
+                    </div>
+                  )}
+
+                  <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {waitlistedRegistrations.map((registration) => (
+                      <label key={registration.id} className="flex items-start gap-3 rounded-xl bg-ivory ring-1 ring-ivory-300 p-3 cursor-pointer hover:ring-burgundy/30">
+                        <input
+                          type="checkbox"
+                          checked={selectedWaitlistIds.includes(registration.id)}
+                          onChange={() => toggleWaitlistSelection(registration.id)}
+                          className="mt-1"
+                        />
+                        <span className="min-w-0">
+                          <span className="block font-semibold text-[13px] text-ink truncate">{registration.name}</span>
+                          <span className="block text-[11.5px] text-ink/60 truncate">{registration.email || "No email"}</span>
+                          <span className="block mt-1 text-[10.5px] text-ink/45">Joined {formatDateTime(registration.created_at)}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {waitlistedRegistrations.length === 0 && (
+                <div className="mt-4 rounded-xl bg-ivory px-4 py-4 ring-1 ring-ivory-300 text-[12.5px] text-ink/55">
+                  No one is currently waiting for this event.
+                </div>
+              )}
+
+              <p className="mt-4 text-[11.5px] text-ink/50 leading-relaxed">
+                Promoted participants are reset into the normal reminder lifecycle. If a configured reminder window already passed while they were waitlisted, the next reminder job will send one reminder and mark the missed window as handled.
+              </p>
+            </section>
 
             <section className="rounded-2xl bg-ivory-100 ring-1 ring-ivory-300 p-5">
               <div className="flex items-start justify-between gap-4 flex-wrap">

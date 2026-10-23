@@ -267,7 +267,19 @@ export async function getEventBySlug(slug) {
   const { data, error } = await supabase.rpc('get_public_event', { p_slug: slug });
   if (error) throw error;
   if (!data) throw new Error('Event not found');
-  return toFrontendEvent(data);
+
+  let waitlistOpen = data.waitlist_open;
+  if (data.id) {
+    const { data: waitlistState, error: waitlistError } = await supabase.rpc(
+      'get_event_waitlist_open',
+      { p_event_id: data.id },
+    );
+    if (!waitlistError && typeof waitlistState === 'boolean') {
+      waitlistOpen = waitlistState;
+    }
+  }
+
+  return toFrontendEvent({ ...data, waitlist_open: waitlistOpen });
 }
 
 export async function registerForEvent({
@@ -359,6 +371,40 @@ export async function getEventRegistrations(eventId) {
     .order('created_at', { ascending: true });
   if (error) throw error;
   return data || [];
+}
+
+async function invokeWaitlistManagement(body) {
+  const { data, error } = await supabase.functions.invoke('manage-event-waitlist', {
+    body,
+  });
+
+  if (error) {
+    let message = error.message || 'Event waitlist update failed.';
+    try {
+      const response = await error?.context?.json?.();
+      message = response?.error || message;
+    } catch {}
+    throw new Error(message);
+  }
+
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+export async function setEventWaitlistOpen(eventId, open) {
+  return invokeWaitlistManagement({
+    action: 'set_open',
+    event_id: eventId,
+    open: !!open,
+  });
+}
+
+export async function promoteEventWaitlist(eventId, registrationIds) {
+  return invokeWaitlistManagement({
+    action: 'promote',
+    event_id: eventId,
+    registration_ids: Array.from(new Set(registrationIds || [])),
+  });
 }
 
 export async function saveEventOperationsSettings(eventId, event) {

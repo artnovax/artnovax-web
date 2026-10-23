@@ -16,6 +16,55 @@ const formatDate = (value) => {
   }).format(new Date(value));
 };
 
+const INLINE_MARKDOWN_PATTERN =
+  /\*\*([^*\n]+?)\*\*|_([^_\n]+?)_|\*([^*\n]+?)\*/g;
+
+const renderInlineMarkdown = (value = "") => {
+  const source = String(value);
+  const nodes = [];
+  let cursor = 0;
+  let match;
+  let key = 0;
+
+  INLINE_MARKDOWN_PATTERN.lastIndex = 0;
+
+  while ((match = INLINE_MARKDOWN_PATTERN.exec(source)) !== null) {
+    if (match.index > cursor) {
+      nodes.push(
+        <React.Fragment key={`text-${key++}`}>
+          {source.slice(cursor, match.index)}
+        </React.Fragment>,
+      );
+    }
+
+    if (match[1] !== undefined) {
+      nodes.push(
+        <strong key={`strong-${key++}`} className="font-semibold">
+          {match[1]}
+        </strong>,
+      );
+    } else {
+      nodes.push(
+        <em key={`em-${key++}`}>
+          {match[2] !== undefined ? match[2] : match[3]}
+        </em>,
+      );
+    }
+
+    cursor = match.index + match[0].length;
+  }
+
+  if (cursor < source.length) {
+    nodes.push(
+      <React.Fragment key={`text-${key++}`}>
+        {source.slice(cursor)}
+      </React.Fragment>,
+    );
+  }
+
+  return nodes.length ? nodes : source;
+};
+
 const renderBody = (body = "") =>
   body
     .split(/\n\s*\n/)
@@ -28,7 +77,7 @@ const renderBody = (body = "") =>
             key={index}
             className="font-serif-display text-ink text-[21px] md:text-[23px] font-semibold mt-7 mb-2"
           >
-            {section.slice(4).trim()}
+            {renderInlineMarkdown(section.slice(4).trim())}
           </h3>
         );
       }
@@ -39,7 +88,7 @@ const renderBody = (body = "") =>
             key={index}
             className="font-serif-display text-burgundy text-[27px] md:text-[31px] font-semibold mt-10 mb-3"
           >
-            {section.slice(3).trim()}
+            {renderInlineMarkdown(section.slice(3).trim())}
           </h2>
         );
       }
@@ -50,7 +99,7 @@ const renderBody = (body = "") =>
             key={index}
             className="my-8 border-l-4 border-burgundy pl-5 font-serif-display italic text-burgundy text-[20px] md:text-[23px] leading-relaxed"
           >
-            {section.slice(2).trim()}
+            {renderInlineMarkdown(section.slice(2).trim())}
           </blockquote>
         );
       }
@@ -60,7 +109,7 @@ const renderBody = (body = "") =>
           key={index}
           className="text-ink/85 text-[16px] md:text-[17px] leading-[1.8] mb-5 whitespace-pre-line"
         >
-          {section}
+          {renderInlineMarkdown(section)}
         </p>
       );
     });
@@ -73,7 +122,6 @@ const NewsletterDetail = () => {
   const [notFound, setNotFound] = useState(false);
 
   const [firstName, setFirstName] = useState("");
-
 
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [email, setEmail] = useState("");
