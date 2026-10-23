@@ -393,6 +393,9 @@ const EventDetail = () => {
         .map((t) => t.trim())
         .filter(Boolean);
 
+  const waitlistClosed =
+    !!ev.is_full && ev.waitlist_open === false;
+
   return (
     <div className="min-h-screen bg-ivory">
       <Header activePath="/events" />
@@ -480,8 +483,14 @@ const EventDetail = () => {
                       / {ev.capacity} registered
                     </span>
                     {ev.is_full && (
-                      <span className="ml-2 text-[11.5px] font-semibold text-burgundy bg-burgundy/10 rounded-full px-2 py-0.5">
-                        Waitlist open
+                      <span
+                        className={`ml-2 text-[11.5px] font-semibold rounded-full px-2 py-0.5 ${
+                          waitlistClosed
+                            ? "text-amber-800 bg-amber-100"
+                            : "text-burgundy bg-burgundy/10"
+                        }`}
+                      >
+                        {waitlistClosed ? "Waitlist closed" : "Waitlist open"}
                       </span>
                     )}
                   </div>
@@ -507,13 +516,23 @@ const EventDetail = () => {
 
             {ev.status !== "past" && (
               <div className="mt-8 flex flex-wrap gap-3">
-                <a
-                  href={`/events/${ev.slug || ev.id}/register`}
-                  className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-6 py-3.5 text-[14.5px] font-semibold hover:bg-burgundy-light"
-                >
-                  <Ticket className="w-4 h-4" />{" "}
-                  {ev.is_full ? "Join the waitlist" : "Register now"}
-                </a>
+                {waitlistClosed ? (
+                  <span
+                    aria-disabled="true"
+                    className="inline-flex items-center gap-2 rounded-full bg-ink/10 text-ink/55 px-6 py-3.5 text-[14.5px] font-semibold cursor-not-allowed"
+                  >
+                    <Ticket className="w-4 h-4" />
+                    Waitlist closed
+                  </span>
+                ) : (
+                  <a
+                    href={`/events/${ev.slug || ev.id}/register`}
+                    className="cta-btn inline-flex items-center gap-2 rounded-full bg-burgundy text-ivory px-6 py-3.5 text-[14.5px] font-semibold hover:bg-burgundy-light"
+                  >
+                    <Ticket className="w-4 h-4" />{" "}
+                    {ev.is_full ? "Join the waitlist" : "Register now"}
+                  </a>
+                )}
 
                 <a
                   href="/get-involved/partner"

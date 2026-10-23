@@ -384,21 +384,29 @@ Deno.serve(async (req) => {
 
       const open = body.open;
 
-      const { error } = await supabaseAdmin
-        .from("events")
-        .update({
-          waitlist_open: open,
-          waitlist_closed_at: open ? null : new Date().toISOString(),
-          waitlist_closed_by: open ? null : staff.id,
-        })
-        .eq("id", eventId);
+      const { data: updatedEvent, error: updateError } =
+        await supabaseAdmin.rpc("set_event_waitlist_open", {
+          p_event_id: eventId,
+          p_open: open,
+          p_changed_by: staff.id,
+        });
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      if (!updatedEvent || updatedEvent.waitlist_open !== open) {
+        throw new Error(
+          `Waitlist state update was not persisted. Expected ${open}, received ${
+            updatedEvent?.waitlist_open ?? "no event row"
+          }.`,
+        );
+      }
 
       return json({
         ok: true,
         event_id: eventId,
-        waitlist_open: open,
+        waitlist_open: updatedEvent.waitlist_open,
+        waitlist_closed_at: updatedEvent.waitlist_closed_at || null,
+        event: updatedEvent,
       });
     }
 

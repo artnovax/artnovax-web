@@ -392,11 +392,20 @@ async function invokeWaitlistManagement(body) {
 }
 
 export async function setEventWaitlistOpen(eventId, open) {
-  return invokeWaitlistManagement({
+  const expected = !!open;
+  const result = await invokeWaitlistManagement({
     action: 'set_open',
     event_id: eventId,
-    open: !!open,
+    open: expected,
   });
+
+  if (result?.waitlist_open !== expected) {
+    throw new Error(
+      `Waitlist state did not persist. Expected ${expected ? 'open' : 'closed'} but the server returned ${String(result?.waitlist_open)}.`,
+    );
+  }
+
+  return result;
 }
 
 export async function promoteEventWaitlist(eventId, registrationIds) {
